@@ -1,4 +1,4 @@
-# King Portfolio — Soro Z. Ebenezer
+# Portfolio — Soro Z. Ebenezer
 
 Portfolio professionnel full‑stack avec **CMS interne intégré**, espace admin sécurisé et rendu visuel premium. Le site public présente profil, compétences, expériences, projets, services, témoignages, blog et FAQ ; l'espace admin permet de tout gérer (CRUD complet, médiathèque, analytics, paramètres).
 
