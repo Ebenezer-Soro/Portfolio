@@ -1,0 +1,196 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── ADMIN ─────────────────────────────────
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String // bcrypt hash
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── PROFIL (contenu singleton) ────────────
+model Profile {
+  id          String   @id @default(cuid())
+  name        String   @default("Soro Z. Ebenezer")
+  title       String   @default("Développeur Full Stack & Ingénieur Informatique")
+  bio         String   @db.Text
+  photoUrl    String? // photo du hero (idéalement détourée)
+  aboutPhotoUrl String? // photo distincte pour la section "À propos"
+  logoUrl     String? // chemin vers /uploads/
+  email       String?
+  phone       String?
+  location    String?  @default("Abidjan, Côte d'Ivoire")
+  cvUrl       String? // lien de téléchargement du CV
+  isAvailable Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+}
+
+// ── PROJETS ───────────────────────────────
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String   @db.Text
+  content     String?  @db.Text // Rich text (Tiptap JSON string)
+  coverUrl    String?
+  images      String[] // tableau d'URLs
+  tags        String[]
+  techStack   String[]
+  demoUrl     String?
+  repoUrl     String?
+  featured    Boolean  @default(false)
+  published   Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── COMPÉTENCES ───────────────────────────
+model Skill {
+  id       String  @id @default(cuid())
+  name     String
+  level    Int     @default(80) // 0-100
+  category String // "Frontend", "Backend", "DevOps", "Sécurité"…
+  iconUrl  String?
+  order    Int     @default(0)
+}
+
+// ── EXPÉRIENCES / FORMATIONS ──────────────
+model Experience {
+  id           String    @id @default(cuid())
+  type         String // "work" | "education"
+  title        String
+  organization String
+  location     String?
+  startDate    DateTime
+  endDate      DateTime?
+  current      Boolean   @default(false)
+  description  String?   @db.Text
+  order        Int       @default(0)
+}
+
+// ── SERVICES ──────────────────────────────
+model Service {
+  id          String  @id @default(cuid())
+  title       String
+  description String  @db.Text
+  iconName    String // nom d'icône lucide-react
+  order       Int     @default(0)
+  published   Boolean @default(true)
+}
+
+// ── TÉMOIGNAGES ───────────────────────────
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  company   String?
+  content   String   @db.Text
+  avatarUrl String?
+  rating    Int      @default(5)
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ── RÉSEAUX SOCIAUX ───────────────────────
+model SocialLink {
+  id       String  @id @default(cuid())
+  platform String // "GitHub", "LinkedIn", "Twitter", "Instagram"…
+  url      String
+  iconName String // icône lucide ou nom custom
+  order    Int     @default(0)
+  active   Boolean @default(true)
+}
+
+// ── PUBLICATIONS RÉSEAUX SOCIAUX ──────────
+model SocialPost {
+  id           String   @id @default(cuid())
+  platform     String // "LinkedIn", "GitHub", "Twitter"…
+  title        String
+  description  String?  @db.Text
+  url          String // lien hypertexte vers la publication
+  thumbnailUrl String?
+  publishedAt  DateTime @default(now())
+  featured     Boolean  @default(false)
+  active       Boolean  @default(true)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+}
+
+// ── BLOG ──────────────────────────────────
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?  @db.Text
+  content     String   @db.Text // Tiptap JSON string
+  coverUrl    String?
+  tags        String[]
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  readingTime Int? // en minutes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── FAQ ───────────────────────────────────
+model FAQ {
+  id       String  @id @default(cuid())
+  question String
+  answer   String  @db.Text
+  order    Int     @default(0)
+  active   Boolean @default(true)
+}
+
+// ── MESSAGES DE CONTACT ───────────────────
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ── VISITES / ANALYTICS ───────────────────
+model Visit {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String?
+  userAgent String?
+  country   String?
+  city      String?
+  ip        String?
+  sessionId String?
+  createdAt DateTime @default(now())
+}
+
+// ── MÉDIAS / BIBLIOTHÈQUE ─────────────────
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  type      String // "image" | "pdf" | "video"
+  size      Int // en octets
+  alt       String?
+  createdAt DateTime @default(now())
+}
+
+// ── PARAMÈTRES DU SITE ────────────────────
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @db.Text
+}

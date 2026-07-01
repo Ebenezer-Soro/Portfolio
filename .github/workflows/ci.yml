@@ -1,0 +1,54 @@
+name: CI
+
+# Contrôle qualité à chaque push et pull request sur main.
+# Le déploiement en ligne est géré par l'intégration Git native de Vercel
+# (voir README → section « Déploiement »).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Un seul run à la fois par branche : annule les runs obsolètes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint · Types · Build
+    runs-on: ubuntu-latest
+
+    # Valeurs factices : le build est entièrement dynamique et ne se connecte
+    # à aucune base. Les vrais secrets vivent dans les variables d'env Vercel.
+    env:
+      DATABASE_URL: "postgresql://user:pass@localhost:5432/ci?schema=public"
+      AUTH_SECRET: "ci-dummy-secret-not-used-at-runtime-000000000000"
+      NEXTAUTH_SECRET: "ci-dummy-secret-not-used-at-runtime-000000000000"
+      NEXTAUTH_URL: "http://localhost:3000"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build

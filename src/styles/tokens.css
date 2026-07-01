@@ -1,0 +1,156 @@
+/* src/styles/tokens.css — design tokens (importé dans globals.css) */
+:root {
+  /* ── PRIMITIVES ─────────────────────────── */
+  --sky-50: #f0f9ff;
+  --sky-100: #e0f2fe;
+  --sky-200: #bae6fd;
+  --sky-300: #7dd3fc;
+  --sky-400: #38bdf8;
+  --sky-500: #0ea5e9; /* Primaire principal */
+  --sky-600: #0284c7;
+  --sky-700: #0369a1;
+  --sky-800: #075985;
+  --sky-900: #0c4a6e;
+
+  --indigo-400: #818cf8;
+  --indigo-500: #6366f1;
+  --indigo-600: #4f46e5; /* Accent secondaire */
+
+  --violet-400: #a78bfa;
+  --violet-500: #8b5cf6; /* Accent tertiaire */
+
+  --emerald-400: #34d399;
+  --emerald-500: #10b981; /* Succès / badge actif */
+
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+
+  /* ── SÉMANTIQUES (utiliser ces tokens dans les composants) ── */
+  --color-primary: var(--sky-500);
+  --color-primary-hover: var(--sky-400);
+  --color-primary-dark: var(--sky-700);
+  --color-accent: var(--indigo-500);
+  --color-accent-2: var(--violet-500);
+  --color-success: var(--emerald-500);
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+
+  /* Backgrounds (light) — fonds légèrement teintés pour plus de rythme */
+  --bg-primary: #f6f8fc;
+  --bg-secondary: #eaf0fa;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+
+  /* Texte */
+  --text-primary: var(--slate-900);
+  --text-secondary: var(--slate-600);
+  --text-muted: var(--slate-400);
+  --text-inverse: #ffffff;
+
+  /* Bordures */
+  --border: var(--slate-200);
+  --border-focus: var(--sky-500);
+
+  /* Glow / effets */
+  --glow-primary: 0 0 30px rgba(14, 165, 233, 0.3);
+  --glow-accent: 0 0 20px rgba(99, 102, 241, 0.25);
+
+  /* ── TYPOGRAPHIE ────────────────────────── */
+  --font-display: var(--font-space-grotesk), "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", "Fira Code", monospace;
+
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.6vw, 1.25rem);
+  --text-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.2rem + 1.5vw, 2rem);
+  --text-3xl: clamp(1.875rem, 1.5rem + 2vw, 2.5rem);
+  --text-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 3.5rem);
+  --text-5xl: clamp(3rem, 2rem + 4vw, 5rem);
+
+  /* ── ESPACEMENT FLUIDE ──────────────────── */
+  --space-1: clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem);
+  --space-2: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+  --space-4: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  --space-6: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  --space-8: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+  --space-12: clamp(3rem, 2rem + 4vw, 6rem);
+  --space-16: clamp(4rem, 3rem + 5vw, 8rem);
+
+  /* ── RAYONS, OMBRES, ANIMATIONS ─────────── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-sky: 0 4px 20px rgba(14, 165, 233, 0.25);
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+
+  /* ── Z-INDEX ────────────────────────────── */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-overlay: 100;
+  --z-modal: 1000;
+  --z-toast: 3000;
+}
+
+/* Mode sombre */
+[data-theme="dark"] {
+  --bg-primary: #080c14;
+  --bg-secondary: #0d1320;
+  --bg-elevated: #111827;
+  --bg-card: #141d2e;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --border: #1e293b;
+  --glow-primary: 0 0 40px rgba(56, 189, 248, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-primary: #080c14;
+    --bg-secondary: #0d1320;
+    --bg-elevated: #111827;
+    --bg-card: #141d2e;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #475569;
+    --border: #1e293b;
+    --glow-primary: 0 0 40px rgba(56, 189, 248, 0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
