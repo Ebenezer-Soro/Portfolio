@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
@@ -24,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXTAUTH_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Soro Z. Ebenezer — Développeur Full Stack & Ingénieur Informatique",
     template: "%s · Soro Z. Ebenezer",
@@ -33,9 +34,17 @@ export const metadata: Metadata = {
     "Portfolio de Soro Z. Ebenezer, développeur full stack et ingénieur informatique. Développement web, cybersécurité et intelligence artificielle.",
   keywords: ["développeur", "full stack", "Next.js", "cybersécurité", "IA", "portfolio"],
   authors: [{ name: "Soro Z. Ebenezer" }],
+  creator: "Soro Z. Ebenezer",
   openGraph: {
     type: "website",
     locale: "fr_FR",
+    url: SITE_URL,
+    siteName: "Soro Z. Ebenezer — Portfolio",
+    title: "Soro Z. Ebenezer — Développeur Full Stack",
+    description: "Développement web, cybersécurité et intelligence artificielle.",
+  },
+  twitter: {
+    card: "summary_large_image",
     title: "Soro Z. Ebenezer — Développeur Full Stack",
     description: "Développement web, cybersécurité et intelligence artificielle.",
   },

@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Github } from "lucide-react";
-import { getProjectBySlug } from "@/lib/queries";
+import { getProjectBySlug, getProfile } from "@/lib/queries";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { TiptapRenderer } from "@/components/public/TiptapRenderer";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { SITE_URL, absoluteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,7 @@ export async function generateMetadata({
   return {
     title: project.title,
     description: project.description,
+    alternates: { canonical: `/projets/${project.slug}` },
     openGraph: project.coverUrl ? { images: [project.coverUrl] } : undefined,
   };
 }
@@ -31,11 +34,26 @@ export default async function ProjectDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const [project, profile] = await Promise.all([getProjectBySlug(slug), getProfile()]);
   if (!project || !project.published) notFound();
+
+  const projectLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: project.title,
+    description: project.description,
+    ...(absoluteUrl(project.coverUrl) ? { image: absoluteUrl(project.coverUrl) } : {}),
+    url: `${SITE_URL}/projets/${project.slug}`,
+    dateCreated: project.createdAt.toISOString(),
+    dateModified: project.updatedAt.toISOString(),
+    author: { "@type": "Person", name: profile.name, url: SITE_URL },
+    ...(project.techStack.length ? { keywords: project.techStack.join(", ") } : {}),
+    inLanguage: "fr-FR",
+  };
 
   return (
     <article className="container-page max-w-4xl pt-32 pb-20">
+      <JsonLd data={projectLd} />
       <Link
         href="/projets"
         className="mb-8 inline-flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)] hover:text-primary"

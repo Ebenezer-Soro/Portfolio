@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Publications",
   description: "Toutes mes publications sur les réseaux sociaux.",
+  alternates: { canonical: "/publications" },
 };
 
 export default async function PublicationsPage() {

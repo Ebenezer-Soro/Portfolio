@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Clock, Calendar } from "lucide-react";
-import { getPostBySlug } from "@/lib/queries";
+import { getPostBySlug, getProfile } from "@/lib/queries";
 import { Badge } from "@/components/ui/Badge";
 import { TiptapRenderer } from "@/components/public/TiptapRenderer";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { SITE_URL, absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +23,7 @@ export async function generateMetadata({
   return {
     title: post.title,
     description: post.excerpt ?? undefined,
+    alternates: { canonical: `/blog/${post.slug}` },
     openGraph: post.coverUrl ? { images: [post.coverUrl] } : undefined,
   };
 }
@@ -31,11 +34,25 @@ export default async function PostDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const [post, profile] = await Promise.all([getPostBySlug(slug), getProfile()]);
   if (!post || !post.published) notFound();
+
+  const articleLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    ...(post.excerpt ? { description: post.excerpt } : {}),
+    ...(absoluteUrl(post.coverUrl) ? { image: absoluteUrl(post.coverUrl) } : {}),
+    datePublished: post.createdAt.toISOString(),
+    dateModified: post.updatedAt.toISOString(),
+    author: { "@type": "Person", name: profile.name, url: SITE_URL },
+    mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
+    inLanguage: "fr-FR",
+  };
 
   return (
     <article className="container-page max-w-3xl pt-32 pb-20">
+      <JsonLd data={articleLd} />
       <Link
         href="/blog"
         className="mb-8 inline-flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)] hover:text-primary"

@@ -39,15 +39,21 @@ export function RevealSection({
   if (reduce) return <>{children}</>;
 
   return (
-    <motion.div
-      variants={VARIANTS[variant]}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-      style={{ willChange: "transform, opacity, filter" }}
-    >
-      {children}
-    </motion.div>
+    // Le glissement horizontal (x: ±140) déborderait la largeur du viewport sur
+    // mobile → on clippe l'axe X ici pour éviter tout scroll horizontal parasite.
+    // `clip` (et non `hidden`) laisse l'axe vertical intact et ne crée pas de
+    // conteneur de défilement.
+    <div className="overflow-x-clip">
+      <motion.div
+        variants={VARIANTS[variant]}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+        style={{ willChange: "transform, opacity, filter" }}
+      >
+        {children}
+      </motion.div>
+    </div>
   );
 }
