@@ -5,12 +5,12 @@ const prisma = new PrismaClient();
 
 async function main() {
   // ── Admin ──────────────────────────────────────────────
-  const hash = await bcrypt.hash("admin123", 12);
+  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD!, 12);
   await prisma.admin.upsert({
-    where: { email: "admin@portfolio.com" },
+    where: { email: process.env.ADMIN_EMAIL! },
     update: {},
     create: {
-      email: "admin@portfolio.com",
+      email: process.env.ADMIN_EMAIL!,
       password: hash,
       name: "Soro Z. Ebenezer",
     },
