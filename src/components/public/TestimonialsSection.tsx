@@ -50,7 +50,7 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
                 transition={{ duration: 0.4 }}
-                className="card-surface p-8 text-center"
+                className="card-surface p-6 text-center sm:p-8"
               >
                 <Quote className="mx-auto mb-4 h-8 w-8 text-primary/40" />
                 <p className="text-lg italic leading-relaxed text-[var(--text-primary)]">

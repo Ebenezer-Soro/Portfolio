@@ -27,7 +27,7 @@ function renderText(node: Node, key: number) {
           href={String(mark.attrs?.href ?? "#")}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary underline"
+          className="text-primary underline [overflow-wrap:anywhere]"
         >
           {el}
         </a>
@@ -42,15 +42,27 @@ function renderNode(node: Node, key: number): React.ReactNode {
   switch (node.type) {
     case "paragraph":
       return (
-        <p key={key} className="my-4 leading-relaxed text-[var(--text-secondary)]">
+        <p key={key} className="my-4 leading-relaxed text-[var(--text-secondary)] [overflow-wrap:anywhere]">
           {children}
         </p>
       );
     case "heading": {
-      const level = Number(node.attrs?.level ?? 2);
-      const Tag = (`h${Math.min(Math.max(level, 1), 6)}`) as keyof React.JSX.IntrinsicElements;
+      const level = Math.min(Math.max(Number(node.attrs?.level ?? 2), 1), 6);
+      const Tag = (`h${level}`) as keyof React.JSX.IntrinsicElements;
+      // Hiérarchie de taille responsive (mobile-first) selon le niveau.
+      const sizeByLevel: Record<number, string> = {
+        1: "text-2xl sm:text-3xl",
+        2: "text-xl sm:text-2xl",
+        3: "text-lg sm:text-xl",
+        4: "text-base sm:text-lg",
+        5: "text-base",
+        6: "text-sm uppercase tracking-wide",
+      };
       return (
-        <Tag key={key} className="mt-8 mb-3 font-display font-bold text-[var(--text-primary)]">
+        <Tag
+          key={key}
+          className={`mt-8 mb-3 font-display font-bold text-[var(--text-primary)] [overflow-wrap:anywhere] ${sizeByLevel[level]}`}
+        >
           {children}
         </Tag>
       );

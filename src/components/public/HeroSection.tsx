@@ -100,7 +100,7 @@ export function HeroSection({
 
         {/* Photo artistique : formes en arrière-plan + photo flottante détourée */}
         <div className="order-1 flex justify-center md:order-2">
-          <div className="hero-photo relative flex h-[24rem] w-[20rem] items-center justify-center sm:h-[28rem] sm:w-[24rem] lg:h-[32rem] lg:w-[26rem]">
+          <div className="hero-photo relative flex h-[22rem] w-[17rem] items-center justify-center sm:h-[28rem] sm:w-[24rem] lg:h-[32rem] lg:w-[26rem]">
             {/* Halo conique rotatif (effet "wow") — déborde largement la photo */}
             <div
               className="absolute h-[28rem] w-[28rem] animate-spin-slow rounded-full opacity-70 blur-2xl sm:h-[34rem] sm:w-[34rem] lg:h-[42rem] lg:w-[42rem]"

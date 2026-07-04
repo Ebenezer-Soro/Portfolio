@@ -51,7 +51,7 @@ export default async function ProjectDetailPage({
         ))}
       </div>
 
-      <h1 className="font-display text-4xl font-bold text-[var(--text-primary)] md:text-5xl">
+      <h1 className="font-display text-4xl font-bold text-[var(--text-primary)] md:text-5xl [overflow-wrap:anywhere]">
         {project.title}
       </h1>
       <p className="mt-4 text-lg text-[var(--text-secondary)]">{project.description}</p>

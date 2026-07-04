@@ -35,7 +35,7 @@ export function BlogCard({ post }: { post: Post }) {
           ))}
         </div>
         <Link href={`/blog/${post.slug}`}>
-          <h3 className="font-display text-lg font-semibold text-[var(--text-primary)] transition-colors group-hover:text-primary">
+          <h3 className="font-display text-lg font-semibold text-[var(--text-primary)] transition-colors group-hover:text-primary [overflow-wrap:anywhere]">
             {post.title}
           </h3>
         </Link>

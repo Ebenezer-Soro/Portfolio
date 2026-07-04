@@ -41,7 +41,7 @@ export function ProjectCard({ project }: { project: Project }) {
         </div>
 
         <Link href={`/projets/${project.slug}`}>
-          <h3 className="font-display text-lg font-semibold text-[var(--text-primary)] transition-colors group-hover:text-primary">
+          <h3 className="font-display text-lg font-semibold text-[var(--text-primary)] transition-colors group-hover:text-primary [overflow-wrap:anywhere]">
             {project.title}
           </h3>
         </Link>
@@ -71,7 +71,7 @@ export function ProjectCard({ project }: { project: Project }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Démo en ligne"
-              className="text-[var(--text-muted)] transition-colors hover:text-primary"
+              className="-m-2 flex items-center justify-center p-2 text-[var(--text-muted)] transition-colors hover:text-primary"
             >
               <ExternalLink className="h-5 w-5" />
             </a>
@@ -82,7 +82,7 @@ export function ProjectCard({ project }: { project: Project }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Code source"
-              className="text-[var(--text-muted)] transition-colors hover:text-primary"
+              className="-m-2 flex items-center justify-center p-2 text-[var(--text-muted)] transition-colors hover:text-primary"
             >
               <Github className="h-5 w-5" />
             </a>

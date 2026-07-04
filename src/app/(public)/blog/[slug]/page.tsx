@@ -51,7 +51,7 @@ export default async function PostDetailPage({
         ))}
       </div>
 
-      <h1 className="font-display text-4xl font-bold text-[var(--text-primary)] md:text-5xl">
+      <h1 className="font-display text-4xl font-bold text-[var(--text-primary)] md:text-5xl [overflow-wrap:anywhere]">
         {post.title}
       </h1>
 

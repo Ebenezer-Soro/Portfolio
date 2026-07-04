@@ -27,7 +27,7 @@ export function SocialPostCard({ post }: { post: SocialPost }) {
         >
           {post.platform}
         </span>
-        <h3 className="font-display text-base font-semibold text-[var(--text-primary)]">
+        <h3 className="font-display text-base font-semibold text-[var(--text-primary)] [overflow-wrap:anywhere]">
           {post.title}
         </h3>
         {post.description && (

@@ -19,6 +19,9 @@
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Garde-fou mobile : aucune barre de défilement horizontale parasite.
+       `clip` (et non `hidden`) ne casse pas position: sticky. */
+    overflow-x: clip;
   }
 
   h1,
