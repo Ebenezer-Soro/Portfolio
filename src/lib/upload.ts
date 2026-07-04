@@ -1,9 +1,7 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { put, del } from "@vercel/blob";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
 
 export const ALLOWED_IMAGE_TYPES = [
@@ -22,13 +20,13 @@ export type SavedFile = {
   type: "image" | "pdf";
 };
 
-async function ensureDir() {
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-}
+/** Hôte des URLs Vercel Blob — sert de garde-fou avant suppression. */
+const BLOB_HOST = "blob.vercel-storage.com";
 
 /**
- * Sauvegarde un fichier uploadé. Les images sont redimensionnées
- * (max 1920px, qualité 85, conversion webp) via sharp.
+ * Sauvegarde un fichier uploadé sur Vercel Blob (stockage persistant + CDN).
+ * Les images sont redimensionnées (max 1920px, qualité 85, conversion webp)
+ * via sharp. Requiert la variable d'environnement BLOB_READ_WRITE_TOKEN.
  */
 export async function saveUpload(file: File): Promise<SavedFile> {
   if (!ALLOWED_TYPES.includes(file.type)) {
@@ -38,56 +36,48 @@ export async function saveUpload(file: File): Promise<SavedFile> {
     throw new Error("Fichier trop volumineux (max 10 Mo).");
   }
 
-  await ensureDir();
   const buffer = Buffer.from(await file.arrayBuffer());
   const id = randomUUID();
 
-  // PDF : sauvegarde brute
+  // PDF : envoi brut
   if (file.type === "application/pdf") {
-    const filename = `${id}.pdf`;
-    await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
-    return {
-      url: `/uploads/${filename}`,
-      filename,
-      size: buffer.length,
-      type: "pdf",
-    };
+    const blob = await put(`uploads/${id}.pdf`, buffer, {
+      access: "public",
+      contentType: "application/pdf",
+      addRandomSuffix: false,
+    });
+    return { url: blob.url, filename: `${id}.pdf`, size: buffer.length, type: "pdf" };
   }
 
   // GIF : conservé tel quel (sharp aplatirait l'animation)
   if (file.type === "image/gif") {
-    const filename = `${id}.gif`;
-    await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
-    return {
-      url: `/uploads/${filename}`,
-      filename,
-      size: buffer.length,
-      type: "image",
-    };
+    const blob = await put(`uploads/${id}.gif`, buffer, {
+      access: "public",
+      contentType: "image/gif",
+      addRandomSuffix: false,
+    });
+    return { url: blob.url, filename: `${id}.gif`, size: buffer.length, type: "image" };
   }
 
   // Images : redimensionnement + conversion webp
-  const filename = `${id}.webp`;
   const output = await sharp(buffer)
     .resize({ width: 1920, height: 1920, fit: "inside", withoutEnlargement: true })
     .webp({ quality: 85 })
     .toBuffer();
 
-  await fs.writeFile(path.join(UPLOAD_DIR, filename), output);
-  return {
-    url: `/uploads/${filename}`,
-    filename,
-    size: output.length,
-    type: "image",
-  };
+  const blob = await put(`uploads/${id}.webp`, output, {
+    access: "public",
+    contentType: "image/webp",
+    addRandomSuffix: false,
+  });
+  return { url: blob.url, filename: `${id}.webp`, size: output.length, type: "image" };
 }
 
-/** Supprime un fichier physique d'après son URL publique. */
+/** Supprime un fichier Vercel Blob d'après son URL. Ignore les URLs externes. */
 export async function deleteUpload(url: string): Promise<void> {
-  if (!url.startsWith("/uploads/")) return;
-  const filename = path.basename(url);
+  if (!url.includes(BLOB_HOST)) return; // n'agit que sur nos propres blobs
   try {
-    await fs.unlink(path.join(UPLOAD_DIR, filename));
+    await del(url);
   } catch {
     // Fichier déjà absent : ignore.
   }
