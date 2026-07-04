@@ -57,7 +57,7 @@ export default function LoginPage() {
           <Input
             label="Email"
             type="email"
-            placeholder="admin@portfolio.com"
+            placeholder="vous@exemple.com"
             error={errors.email?.message}
             className="bg-white/10 text-white placeholder:text-slate-400"
             {...register("email")}
@@ -74,10 +74,6 @@ export default function LoginPage() {
             <LogIn className="h-4 w-4" /> Se connecter
           </Button>
         </form>
-
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Identifiants par défaut : admin@portfolio.com / admin123
-        </p>
       </div>
     </div>
   );

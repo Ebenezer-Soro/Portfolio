@@ -5,12 +5,19 @@ const prisma = new PrismaClient();
 
 async function main() {
   // ── Admin ──────────────────────────────────────────────
-  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD!, 12);
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    throw new Error(
+      "ADMIN_EMAIL et ADMIN_PASSWORD doivent être définis (non vides) dans .env avant de lancer le seed.",
+    );
+  }
+  const hash = await bcrypt.hash(adminPassword, 12);
   await prisma.admin.upsert({
-    where: { email: process.env.ADMIN_EMAIL! },
+    where: { email: adminEmail },
     update: {},
     create: {
-      email: process.env.ADMIN_EMAIL!,
+      email: adminEmail,
       password: hash,
       name: "Soro Z. Ebenezer",
     },
