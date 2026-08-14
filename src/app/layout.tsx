@@ -1,14 +1,19 @@
-import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
+import { Poppins, Inter, JetBrains_Mono } from "next/font/google";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+// Police d'affichage du modèle. Poppins n'est pas une police variable :
+// les graisses doivent être déclarées explicitement. 900 porte la signature
+// visuelle du modèle (titres `font-black`).
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -23,6 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
 });
+
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -48,21 +54,46 @@ export const metadata: Metadata = {
     title: "Soro Z. Ebenezer — Développeur Full Stack",
     description: "Développement web, cybersécurité et intelligence artificielle.",
   },
+  // Le pack d'icônes vit dans /public : la convention de fichiers de l'App
+  // Router ne le détecte pas, il faut donc le déclarer explicitement.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  manifest: "/site.webmanifest",
 };
 
-export default function RootLayout({
+// Teinte de la barre du navigateur sur mobile. Depuis Next 15, `themeColor`
+// se déclare dans l'export `viewport`, plus dans `metadata`.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf8f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d0d0d" },
+  ],
+};
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Nonce de la requête, posé par le middleware. next-themes injecte un script
+  // en ligne (anti-flash au chargement) : sans nonce, la CSP le bloquerait et
+  // la page s'afficherait une fraction de seconde dans le mauvais thème.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html
       lang="fr"
       suppressHydrationWarning
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col overflow-x-hidden">
-        <ThemeProvider>
+        <ThemeProvider nonce={nonce}>
           <AuthProvider>
             {children}
             <ToastProvider />

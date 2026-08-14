@@ -1,0 +1,104 @@
+/* src/styles/admin.css — thème du back-office
+   ───────────────────────────────────────────────────────────────────
+   L'administration est un outil de travail, pas une vitrine : elle vise
+   la lisibilité et la densité d'information, pas l'effet. Elle adopte
+   donc une palette claire et neutre, indépendante du thème du site
+   public.
+
+   Comme toute l'UI passe par des jetons sémantiques (var(--bg-*),
+   var(--text-*), les canaux --c-*), il suffit de les redéfinir dans le
+   scope `.admin-scope` : les composants partagés (Button, Card, Input,
+   Badge…) s'y conforment sans être modifiés. */
+
+.admin-scope {
+  /* Fonds — gris très légèrement bleuté, reposant sur une longue session */
+  --bg-primary: #f4f5f8;
+  --bg-secondary: #eceef3;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+
+  --surface-raised: #f8f9fc;
+  --surface-deep: #e7e9f0;
+  --surface-timeline: #ffffff;
+
+  /* Texte — contrastes conformes AA sur fond clair */
+  --text-primary: #171a23;
+  --text-secondary: #555c6e;
+  --text-muted: #878ea1;
+  --text-inverse: #ffffff;
+
+  --border: #e1e4ec;
+  --border-focus: #8a6d1f;
+
+  /* Accent : l'or du logo, assombri en bronze pour rester lisible sur
+     blanc — le #D4AF37 n'y atteint qu'un rapport de contraste de 1,9:1. */
+  --c-primary: 138 109 31; /* #8a6d1f */
+  --c-primary-400: 184 145 43; /* #b8912b */
+  --c-accent: 155 122 26; /* #9b7a1a */
+  --c-accent2: 212 175 55; /* #d4af37 */
+
+  --color-primary: #8a6d1f;
+  --color-primary-hover: #b8912b;
+
+  /* Ombres discrètes : la hiérarchie vient des bordures et du fond,
+     pas de la profondeur. */
+  --shadow-card: 0 1px 2px rgba(23, 26, 35, 0.06), 0 1px 3px rgba(23, 26, 35, 0.04);
+  --shadow-md: 0 1px 2px rgba(23, 26, 35, 0.06), 0 1px 3px rgba(23, 26, 35, 0.04);
+  --shadow-lg: 0 4px 12px rgba(23, 26, 35, 0.08);
+  --shadow-sky: 0 2px 8px rgba(138, 109, 31, 0.2);
+  --glow-primary: none;
+
+  /* Interface dense : coins moins arrondis que sur le site vitrine. */
+  --radius-2xl: 12px;
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  color-scheme: light;
+}
+
+/* Le corps de texte du back-office reste en Inter : plus lisible que
+   Poppins en interface dense et sur de longues listes. */
+.admin-scope,
+.admin-scope input,
+.admin-scope textarea,
+.admin-scope select,
+.admin-scope button {
+  font-family: var(--font-body);
+}
+
+.admin-scope h1,
+.admin-scope h2,
+.admin-scope h3 {
+  font-family: var(--font-body);
+  letter-spacing: -0.011em;
+}
+
+/* Cartes du back-office : bordure franche, ombre minimale. */
+.admin-scope .card-surface {
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Barre de défilement discrète dans les panneaux longs. */
+.admin-scope *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.admin-scope *::-webkit-scrollbar-thumb {
+  background: #c9cdd8;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
+}
+.admin-scope *::-webkit-scrollbar-thumb:hover {
+  background: #adb3c2;
+  background-clip: content-box;
+}
+
+/* Sur très petit écran, on récupère de la largeur utile en réduisant les
+   marges internes plutôt qu'en rognant le contenu. */
+@media (max-width: 380px) {
+  .admin-scope {
+    font-size: 0.9375rem;
+  }
+}

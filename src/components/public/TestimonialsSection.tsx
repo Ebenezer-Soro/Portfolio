@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SectionHeading } from "./Reveal";
-import { SectionDecor } from "./SectionDecor";
+import { SectionShell } from "./SectionShell";
 import type { Testimonial } from "@prisma/client";
 
 export function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) {
@@ -28,9 +28,8 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
   const t = testimonials[index];
 
   return (
-    <section id="testimonials" className="section-pad relative overflow-hidden bg-[var(--bg-secondary)]">
-      <SectionDecor variant="primary" />
-      <div className="container-page relative z-10">
+    // Transparent : sur l'accueil, cette section est posée sur le ciel étoilé.
+    <SectionShell id="testimonials" className="bg-transparent">
         <SectionHeading
           eyebrow="Témoignages"
           title="Ils me font confiance"
@@ -117,7 +116,6 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
             </div>
           )}
         </div>
-      </div>
-    </section>
+      </SectionShell>
   );
 }

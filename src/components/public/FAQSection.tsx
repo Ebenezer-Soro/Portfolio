@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SectionHeading } from "./Reveal";
-import { SectionDecor } from "./SectionDecor";
+import { SectionShell } from "./SectionShell";
 import { cn } from "@/lib/utils";
 import type { FAQ } from "@prisma/client";
 
@@ -14,9 +14,7 @@ export function FAQSection({ faqs }: { faqs: FAQ[] }) {
   if (!faqs.length) return null;
 
   return (
-    <section id="faq" className="section-pad relative overflow-hidden bg-[var(--bg-primary)]">
-      <SectionDecor variant="accent" />
-      <div className="container-page relative z-10">
+    <SectionShell id="faq" className="bg-[var(--bg-primary)]">
         <SectionHeading
           eyebrow="FAQ"
           title="Questions fréquentes"
@@ -64,7 +62,6 @@ export function FAQSection({ faqs }: { faqs: FAQ[] }) {
             );
           })}
         </div>
-      </div>
-    </section>
+      </SectionShell>
   );
 }

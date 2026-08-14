@@ -34,7 +34,7 @@ export function SectionDecor({
         style={{
           backgroundImage:
             variant === "primary"
-              ? "radial-gradient(70% 55% at 15% 0%, rgba(14,165,233,0.10), transparent 60%), radial-gradient(70% 55% at 85% 100%, rgba(99,102,241,0.09), transparent 60%)"
+              ? "radial-gradient(70% 55% at 15% 0%, rgba(145,94,255,0.10), transparent 60%), radial-gradient(70% 55% at 85% 100%, rgba(128,77,238,0.09), transparent 60%)"
               : "radial-gradient(70% 55% at 85% 0%, rgba(99,102,241,0.10), transparent 60%), radial-gradient(70% 55% at 15% 100%, rgba(139,92,246,0.09), transparent 60%)",
         }}
       />

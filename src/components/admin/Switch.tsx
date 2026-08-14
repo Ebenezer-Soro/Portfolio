@@ -8,16 +8,21 @@ export function Switch({
   onCheckedChange,
   label,
   id,
+  // Nom accessible quand l'interrupteur n'a pas de `label` visible à lui :
+  // sans cela, un lecteur d'écran annonce un bouton sans intitulé.
+  "aria-label": ariaLabel,
 }: {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label?: string;
   id?: string;
+  "aria-label"?: string;
 }) {
   return (
     <label htmlFor={id} className="flex cursor-pointer items-center gap-3">
       <SwitchPrimitive.Root
         id={id}
+        aria-label={label ? undefined : ariaLabel}
         checked={checked}
         onCheckedChange={onCheckedChange}
         className={cn(

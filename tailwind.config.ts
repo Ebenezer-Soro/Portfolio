@@ -6,29 +6,57 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Échelle or, dérivée du logo (#D4AF37 au centre).
         primary: {
-          DEFAULT: "#0ea5e9",
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          400: "#38bdf8",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-          800: "#075985",
-          900: "#0c4a6e",
+          DEFAULT: "rgb(var(--c-primary) / <alpha-value>)",
+          50: "#fdfaf0",
+          100: "#fbf6e4",
+          200: "#f4e9bf",
+          300: "#e9d68a",
+          400: "rgb(var(--c-primary-400) / <alpha-value>)",
+          500: "#d4af37",
+          600: "#b8912b",
+          700: "#8a6d1f",
+          800: "#6b5417",
+          900: "#453610",
         },
-        accent: { DEFAULT: "#6366f1", hover: "#818cf8" },
-        accent2: { DEFAULT: "#8b5cf6" },
+        accent: { DEFAULT: "rgb(var(--c-accent) / <alpha-value>)", hover: "#dcc25e" },
+        accent2: { DEFAULT: "rgb(var(--c-accent2) / <alpha-value>)" },
         success: "#10b981",
         danger: "#ef4444",
         warning: "#f59e0b",
+        // ── Noirs du logo ────────────────────────────────────
+        // Réutilisables tels quels quand une surface doit rester sombre
+        // dans les deux thèmes (hero, fond étoilé, cartes de la scène).
+        space: {
+          950: "#0d0d0d",
+          900: "#121212",
+          850: "#161616",
+          800: "#1a1a1a",
+          750: "#1f1f1f", // carte de timeline
+          700: "#2a2a2a", // bordure
+        },
+        // Neutres chauds : un blanc pur jurerait à côté de l'or.
+        lavender: {
+          100: "#f7f3e8",
+          300: "#ded7c4", // sous-titre du hero
+          400: "#a8a296", // texte courant
+        },
+        // Éclat et argenté du monogramme.
+        eclat: "#e5e555",
+        argent: { 300: "#f0f0f0", 400: "#d0d0d0", 500: "#a8a8ac" },
       },
       fontFamily: {
-        display: ["var(--font-space-grotesk)", "Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        display: ["var(--font-poppins)", "Poppins", "Space Grotesk", "system-ui", "sans-serif"],
         body: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
         mono: ["var(--font-jetbrains-mono)", "JetBrains Mono", "Fira Code", "monospace"],
+      },
+      // Le modèle cible un palier intermédiaire à 450px (cartes de service).
+      screens: {
+        xs: "450px",
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
       },
       animation: {
         "fade-in-up": "fadeInUp 0.6s ease-out both",
@@ -61,8 +89,8 @@ const config: Config = {
           to: { opacity: "1", transform: "scale(1)" },
         },
         glowPulse: {
-          "0%,100%": { boxShadow: "0 0 20px rgba(14,165,233,0.3)" },
-          "50%": { boxShadow: "0 0 40px rgba(14,165,233,0.6)" },
+          "0%,100%": { boxShadow: "0 0 20px rgba(212,175,55,0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(212,175,55,0.55)" },
         },
         float: {
           "0%,100%": { transform: "translateY(0px)" },

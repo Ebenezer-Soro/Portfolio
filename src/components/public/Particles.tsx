@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-// Particules flottantes légères (canvas, ~28 points sky-300).
+// Particules flottantes légères (canvas, ~28 points dorés).
 export function Particles({ count = 28 }: { count?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -43,7 +43,7 @@ export function Particles({ count = 28 }: { count?: number }) {
         if (d.y < 0 || d.y > h) d.vy *= -1;
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(125, 211, 252, ${d.o})`;
+        ctx.fillStyle = `rgba(212, 175, 55, ${d.o})`;
         ctx.fill();
       }
       raf = requestAnimationFrame(draw);

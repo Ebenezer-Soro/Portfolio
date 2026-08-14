@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { ProjectCard } from "./ProjectCard";
 import { SectionHeading } from "./Reveal";
-import { SectionDecor } from "./SectionDecor";
+import { SectionShell } from "./SectionShell";
 import { Button } from "@/components/ui/Button";
+import { fadeIn } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { Project } from "@prisma/client";
 
@@ -18,6 +20,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
   }, [projects]);
 
   const [filter, setFilter] = useState("Tous");
+  const reduce = useReducedMotion();
 
   if (!projects.length) return null;
 
@@ -26,46 +29,50 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
   const shown = filtered.slice(0, 6);
 
   return (
-    <section id="projects" className="section-pad relative overflow-hidden bg-[var(--bg-secondary)]">
-      <SectionDecor variant="accent" />
-      <div className="container-page relative z-10">
-        <SectionHeading
-          eyebrow="Réalisations"
-          title="Mes projets"
-          description="Une sélection de projets qui illustrent mon savoir-faire."
-        />
+    <SectionShell id="projects" className="bg-[var(--bg-secondary)]">
+      <SectionHeading
+        eyebrow="Mon travail"
+        title="Projets"
+        description="Ces projets illustrent mon savoir-faire à travers des cas concrets. Chacun est décrit brièvement, avec un lien vers le dépôt de code et la démonstration en ligne."
+        align="left"
+      />
 
-        <div className="mb-10 flex flex-wrap justify-center gap-2">
-          {techs.slice(0, 8).map((tech) => (
-            <button
-              key={tech}
-              onClick={() => setFilter(tech)}
-              className={cn(
-                "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all",
-                filter === tech
-                  ? "bg-primary text-white shadow-[var(--shadow-sky)]"
-                  : "border border-[var(--border)] text-[var(--text-secondary)] hover:border-primary-400 hover:text-primary",
-              )}
-            >
-              {tech}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {shown.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-
-        <div className="mt-12 text-center">
-          <Link href="/projets">
-            <Button variant="outline" size="lg">
-              Tous les projets <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
+      <div className="rangee-filtres mb-14">
+        {techs.slice(0, 8).map((tech) => (
+          <button
+            key={tech}
+            onClick={() => setFilter(tech)}
+            aria-pressed={filter === tech}
+            className={cn(
+              "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all",
+              filter === tech
+                ? "bg-primary text-white shadow-[var(--shadow-sky)]"
+                : "border border-[var(--border)] text-[var(--text-secondary)] hover:border-primary-400 hover:text-primary",
+            )}
+          >
+            {tech}
+          </button>
+        ))}
       </div>
-    </section>
+
+      <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+        {shown.map((project, i) => (
+          <motion.div
+            key={project.id}
+            variants={reduce ? undefined : fadeIn("up", "spring", i * 0.2, 0.75)}
+          >
+            <ProjectCard project={project} />
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-14 text-center">
+        <Link href="/projets">
+          <Button variant="outline" size="lg">
+            Tous les projets <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
+      </div>
+    </SectionShell>
   );
 }

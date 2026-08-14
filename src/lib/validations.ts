@@ -2,10 +2,13 @@ import { z } from "zod";
 
 // ── Contact (public) ──────────────────────────────────────
 export const contactSchema = z.object({
-  name: z.string().min(2, "Le nom doit faire au moins 2 caractères."),
-  email: z.string().email("Email invalide."),
+  name: z.string().min(2, "Le nom doit faire au moins 2 caractères.").max(100),
+  email: z.string().email("Email invalide.").max(200),
   subject: z.string().max(150).optional().or(z.literal("")),
-  message: z.string().min(10, "Le message doit faire au moins 10 caractères."),
+  message: z
+    .string()
+    .min(10, "Le message doit faire au moins 10 caractères.")
+    .max(5000, "Le message ne peut pas dépasser 5000 caractères."),
 });
 export type ContactFormData = z.infer<typeof contactSchema>;
 

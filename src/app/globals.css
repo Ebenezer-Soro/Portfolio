@@ -1,4 +1,5 @@
 @import "../styles/tokens.css";
+@import "../styles/admin.css";
 
 @tailwind base;
 @tailwind components;
@@ -43,7 +44,7 @@
   }
 
   ::selection {
-    background-color: rgba(14, 165, 233, 0.25);
+    background-color: rgba(212, 175, 55, 0.32);
     color: var(--text-primary);
   }
 }
@@ -61,13 +62,98 @@
   }
 
   .text-gradient {
-    background: linear-gradient(
-      120deg,
-      var(--sky-400),
-      var(--indigo-500),
-      var(--violet-500)
-    );
+    background: linear-gradient(120deg, var(--or-600), var(--or-500), var(--eclat));
     background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* ── Échelle typographique du modèle ──────────────────────
+     Le modèle tire sa signature de titres très gras et très grands,
+     surmontés d'un sur-titre capitale espacé.
+
+     Interlignes volontairement plus larges que dans le modèle : celui-ci est
+     en anglais, sans accents. En français, les capitales accentuées (É, À) et
+     les cédilles débordent d'une boîte de ligne à 1.06 et se font trancher
+     dès qu'un ancêtre découpe. */
+  .hero-head-text {
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 1.15;
+    font-size: clamp(2.5rem, 1.4rem + 5.2vw, 5rem);
+  }
+
+  .hero-sub-text {
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: 1.35;
+    font-size: clamp(1rem, 0.72rem + 1.35vw, 1.875rem);
+  }
+
+  .section-head-text {
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 1.18;
+    font-size: clamp(1.875rem, 1.1rem + 3.6vw, 3.75rem);
+    /* Marge de sécurité pour l'encre des accents en capitales. */
+    padding-block: 0.06em;
+  }
+
+  .section-sub-text {
+    font-family: var(--font-display);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: clamp(0.875rem, 0.8rem + 0.3vw, 1.125rem);
+    color: var(--text-secondary);
+  }
+
+  /* ── Dégradés du modèle ───────────────────────────────── */
+  .black-gradient {
+    background: linear-gradient(to right, #434343, #000000);
+  }
+
+  /* Filet vertical du hero. Le nom est conservé : c'est celui du modèle,
+     seule la teinte suit désormais le logo. */
+  .violet-gradient {
+    background: linear-gradient(-90deg, #d4af37 0%, rgba(69, 54, 16, 0) 100%);
+  }
+
+  /* Bordure 1px en dégradé : l'enveloppe porte le dégradé et un padding
+     d'1px, la surface intérieure masque le centre. Gamme métallique
+     bronze → or → éclat, celle du monogramme. */
+  .green-pink-gradient {
+    background: linear-gradient(90.13deg, #8a6d1f 1.9%, #d4af37 50%, #e5e555 97.5%);
+  }
+
+  .orange-text-gradient {
+    background: linear-gradient(to top, #b8912b, #e5e555);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .green-text-gradient {
+    background: linear-gradient(to top, #8a6d1f, #dcc25e);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .blue-text-gradient {
+    background: linear-gradient(to top, #8a8a8e, #f0f0f0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .pink-text-gradient {
+    background: linear-gradient(to top, #6b5417, #d4af37);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -82,28 +168,97 @@
   }
 
   [data-theme="dark"] .glass {
-    background: rgba(13, 19, 32, 0.6);
+    background: rgba(18, 18, 18, 0.72);
   }
 
   .card-surface {
     background-color: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-card);
   }
 
   /* Plus de profondeur pour les cartes en mode clair */
   [data-theme="light"] .card-surface {
-    box-shadow: 0 10px 30px -12px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 10px 30px -12px rgba(69, 54, 16, 0.14);
   }
 
+  /* Fond du hero : la nuit du logo, réchauffée de halos dorés. */
   .gradient-mesh {
-    background-color: var(--slate-950);
+    background-color: var(--noir-950);
     background-image:
-      radial-gradient(at 20% 25%, rgba(14, 165, 233, 0.35) 0px, transparent 50%),
-      radial-gradient(at 80% 20%, rgba(99, 102, 241, 0.35) 0px, transparent 50%),
-      radial-gradient(at 60% 80%, rgba(139, 92, 246, 0.3) 0px, transparent 50%),
-      radial-gradient(at 10% 90%, rgba(14, 165, 233, 0.25) 0px, transparent 50%);
+      radial-gradient(at 20% 25%, rgba(212, 175, 55, 0.22) 0px, transparent 50%),
+      radial-gradient(at 80% 20%, rgba(184, 145, 43, 0.2) 0px, transparent 50%),
+      radial-gradient(at 60% 80%, rgba(229, 229, 85, 0.14) 0px, transparent 50%),
+      radial-gradient(at 10% 90%, rgba(138, 109, 31, 0.22) 0px, transparent 50%);
+  }
+
+  /* ── Rangée de filtres ────────────────────────────────────
+     Sur petit écran, les pastilles restent sur UNE ligne que l'on fait
+     défiler du doigt ; à partir de sm, elles reviennent à la ligne
+     normalement. La barre de défilement est masquée : sur un ruban de
+     filtres elle alourdit la mise en page pour aucun gain, le geste
+     tactile suffisant à indiquer l'affordance.
+
+     `justify-content` reste volontairement à `flex-start` en mobile :
+     centrer un conteneur qui déborde pousse les premiers éléments hors de
+     la zone atteignable par le défilement. */
+  .rangee-filtres {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    /* Firefox */
+    scrollbar-width: none;
+    /* Edge / IE hérités */
+    -ms-overflow-style: none;
+  }
+
+  .rangee-filtres::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Les pastilles ne doivent ni se compresser ni se couper en deux lignes. */
+  .rangee-filtres > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 640px) {
+    .rangee-filtres {
+      flex-wrap: wrap;
+      overflow-x: visible;
+    }
+  }
+
+  /* Défilement horizontal sans barre visible, pour les autres rubans
+     (onglets du back-office notamment). */
+  .defilement-discret {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .defilement-discret::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Révélation de l'icône « code source » au survol d'une carte projet
+     (card-img_hover du modèle). */
+  .card-img_hover {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity var(--duration-normal) var(--ease-smooth),
+      transform var(--duration-normal) var(--ease-smooth);
+  }
+
+  .group:hover .card-img_hover,
+  .group:focus-within .card-img_hover {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .glow-ring {

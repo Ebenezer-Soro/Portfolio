@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BlogCard } from "./BlogCard";
 import { Reveal, SectionHeading } from "./Reveal";
-import { SectionDecor } from "./SectionDecor";
+import { SectionShell } from "./SectionShell";
 import { Button } from "@/components/ui/Button";
 import type { Post } from "@prisma/client";
 
@@ -10,9 +10,7 @@ export function BlogSection({ posts }: { posts: Post[] }) {
   if (!posts.length) return null;
 
   return (
-    <section id="blog" className="section-pad relative overflow-hidden bg-[var(--bg-secondary)]">
-      <SectionDecor variant="accent" />
-      <div className="container-page relative z-10">
+    <SectionShell id="blog" className="bg-[var(--bg-secondary)]">
         <SectionHeading
           eyebrow="Blog"
           title="Derniers articles"
@@ -34,7 +32,6 @@ export function BlogSection({ posts }: { posts: Post[] }) {
             </Button>
           </Link>
         </div>
-      </div>
-    </section>
+      </SectionShell>
   );
 }

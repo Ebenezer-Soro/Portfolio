@@ -1,5 +1,4 @@
 import { HeroSection } from "@/components/public/HeroSection";
-import { RevealSection } from "@/components/public/RevealSection";
 import { AboutSection } from "@/components/public/AboutSection";
 import { SkillsSection } from "@/components/public/SkillsSection";
 import { ExperienceSection } from "@/components/public/ExperienceSection";
@@ -10,8 +9,10 @@ import { SocialPostsSection } from "@/components/public/SocialPostsSection";
 import { BlogSection } from "@/components/public/BlogSection";
 import { FAQSection } from "@/components/public/FAQSection";
 import { ContactSection } from "@/components/public/ContactSection";
+import { StarsCanvas } from "@/components/canvas/StarsCanvas";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL, absoluteUrl } from "@/lib/site";
+import { sectionVisible } from "@/lib/sections";
 import {
   getProfile,
   getSettings,
@@ -84,41 +85,45 @@ export default async function HomePage() {
     inLanguage: "fr-FR",
   };
 
+  // Visibilité pilotée depuis l'admin (Paramètres → Sections de l'accueil).
+  // Une section reste par ailleurs masquée si elle n'a aucun contenu : les
+  // deux conditions se cumulent.
+  const affiche = (id: Parameters<typeof sectionVisible>[1]) =>
+    sectionVisible(settings, id);
+
   return (
     <>
       <JsonLd data={personLd} />
       <JsonLd data={websiteLd} />
+
+      {/*
+        Les sections portent désormais leur propre cascade d'animation
+        (SectionShell + variantes `fadeIn`), reprise du modèle. L'ancien
+        `RevealSection`, qui animait le bloc entier avec un flou, entrait en
+        concurrence avec elle : les deux effets se superposaient. Une seule
+        grammaire de mouvement suffit.
+      */}
       <HeroSection profile={profile} socialLinks={socialLinks} />
-      <RevealSection variant="up">
-        <AboutSection profile={profile} settings={settings} />
-      </RevealSection>
-      <RevealSection variant="right">
-        <SkillsSection skills={skills} />
-      </RevealSection>
-      <RevealSection variant="left">
-        <ExperienceSection experiences={experiences} />
-      </RevealSection>
-      <RevealSection variant="zoom">
-        <ProjectsSection projects={projects} />
-      </RevealSection>
-      <RevealSection variant="up">
-        <ServicesSection services={services} />
-      </RevealSection>
-      <RevealSection variant="right">
-        <TestimonialsSection testimonials={testimonials} />
-      </RevealSection>
-      <RevealSection variant="left">
-        <SocialPostsSection posts={socialPosts} />
-      </RevealSection>
-      <RevealSection variant="zoom">
-        <BlogSection posts={posts} />
-      </RevealSection>
-      <RevealSection variant="up">
-        <FAQSection faqs={faqs} />
-      </RevealSection>
-      <RevealSection variant="up">
-        <ContactSection profile={profile} />
-      </RevealSection>
+      {affiche("about") && <AboutSection profile={profile} settings={settings} />}
+      {affiche("services") && <ServicesSection services={services} />}
+      {affiche("skills") && <SkillsSection skills={skills} />}
+      {affiche("experience") && <ExperienceSection experiences={experiences} />}
+      {affiche("projects") && <ProjectsSection projects={projects} />}
+      {affiche("publications") && <SocialPostsSection posts={socialPosts} />}
+      {affiche("blog") && <BlogSection posts={posts} />}
+      {affiche("faq") && <FAQSection faqs={faqs} />}
+
+      {/* Bloc final sur ciel étoilé, comme dans le modèle : le champ
+          d'étoiles n'habille que la fin de page. */}
+      <div className="relative z-0 bg-[var(--bg-secondary)]">
+        <StarsCanvas />
+        <div className="relative z-10">
+          {affiche("testimonials") && (
+            <TestimonialsSection testimonials={testimonials} />
+          )}
+          {affiche("contact") && <ContactSection profile={profile} />}
+        </div>
+      </div>
     </>
   );
 }

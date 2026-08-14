@@ -1,6 +1,8 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { textVariant } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -32,6 +34,15 @@ export function Reveal({
   );
 }
 
+/**
+ * En-tête de section au format du modèle : sur-titre en capitales espacées,
+ * puis un titre très gras et très grand. Pas de filet décoratif — dans le
+ * modèle, c'est le contraste d'échelle entre les deux lignes qui structure
+ * la page.
+ *
+ * L'animation est autoportée (`whileInView`) : l'en-tête se comporte de la
+ * même façon qu'il soit ou non placé dans un conteneur d'échelonnement.
+ */
 export function SectionHeading({
   eyebrow,
   title,
@@ -45,32 +56,33 @@ export function SectionHeading({
   align?: "center" | "left";
   className?: string;
 }) {
+  const reduce = useReducedMotion();
+
   return (
-    <div
+    <motion.div
+      data-section-heading
+      variants={reduce ? undefined : textVariant()}
+      initial={reduce ? undefined : "hidden"}
+      whileInView={reduce ? undefined : "show"}
+      viewport={{ once: true, amount: 0.4 }}
       className={cn(
-        "mb-10 max-w-2xl sm:mb-14",
-        align === "center" ? "mx-auto text-center" : "text-left",
+        "mb-12 sm:mb-16",
+        align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-3xl text-left",
         className,
       )}
     >
-      {eyebrow && (
-        <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-primary shadow-[0_0_24px_rgba(14,165,233,0.18)] backdrop-blur">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-          {eyebrow}
-        </span>
-      )}
-      <h2 className="font-display text-3xl font-bold tracking-tight text-[var(--text-primary)] md:text-4xl lg:text-[2.75rem]">
-        {title}
-      </h2>
-      <div
-        className={cn(
-          "mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-primary via-accent to-accent2 bg-[length:200%_auto] animate-gradient",
-          align === "center" && "mx-auto",
-        )}
-      />
+      {eyebrow && <p className="section-sub-text">{eyebrow}</p>}
+      <h2 className="section-head-text mt-2 text-[var(--text-primary)]">{title}</h2>
       {description && (
-        <p className="mt-5 text-base text-[var(--text-secondary)] md:text-lg">{description}</p>
+        <p
+          className={cn(
+            "mt-4 max-w-3xl text-[17px] leading-[30px] text-[var(--text-secondary)]",
+            align === "center" && "mx-auto",
+          )}
+        >
+          {description}
+        </p>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -85,5 +85,5 @@ export function platformColor(platform: string): string {
     facebook: "#1877F2",
     dribbble: "#EA4C89",
   };
-  return map[platform.toLowerCase()] ?? "#0ea5e9";
+  return map[platform.toLowerCase()] ?? "#d4af37";
 }

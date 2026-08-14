@@ -57,7 +57,7 @@ export function SortableList<T extends SortableItem>({
           )}
         >
           <GripVertical className="h-5 w-5 shrink-0 cursor-grab text-[var(--text-muted)]" />
-          <div className="flex-1">{render(item)}</div>
+          <div className="min-w-0 flex-1">{render(item)}</div>
         </li>
       ))}
     </ul>

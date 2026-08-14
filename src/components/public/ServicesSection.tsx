@@ -1,37 +1,50 @@
+"use client";
+
+import { motion, useReducedMotion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
-import { Reveal, SectionHeading } from "./Reveal";
-import { SectionDecor } from "./SectionDecor";
+import { SectionHeading } from "./Reveal";
+import { SectionShell } from "./SectionShell";
+import { TiltCard } from "./TiltCard";
+import { GradientCard } from "./GradientCard";
+import { fadeIn } from "@/lib/motion";
 import type { Service } from "@prisma/client";
 
 export function ServicesSection({ services }: { services: Service[] }) {
+  const reduce = useReducedMotion();
   if (!services.length) return null;
 
   return (
-    <section id="services" className="section-pad relative overflow-hidden bg-[var(--bg-primary)]">
-      <SectionDecor variant="primary" />
-      <div className="container-page relative z-10">
-        <SectionHeading
-          eyebrow="Services"
-          title="Ce que je propose"
-          description="Des prestations sur mesure pour donner vie à vos projets."
-        />
+    <SectionShell id="services" className="bg-[var(--bg-primary)]">
+      <SectionHeading
+        eyebrow="Services"
+        title="Ce que je propose"
+        description="Des prestations sur mesure pour donner vie à vos projets."
+        align="left"
+      />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {services.map((service, i) => (
-            <Reveal key={service.id} delay={i * 80}>
-              <div className="group h-full rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-primary-400 hover:shadow-[0_12px_40px_rgba(14,165,233,0.18)]">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-white shadow-[var(--shadow-sky)] transition-transform group-hover:scale-110">
-                  <Icon name={service.iconName} size={24} />
-                </div>
-                <h3 className="font-display text-lg font-semibold text-[var(--text-primary)]">
+      {/* Cartes du modèle : bordure 1px en dégradé, surface opaque,
+          inclinaison au survol, arrivée échelonnée par la droite. */}
+      <div className="flex flex-wrap gap-10">
+        {services.map((service, i) => (
+          <motion.div
+            key={service.id}
+            variants={reduce ? undefined : fadeIn("right", "spring", i * 0.3, 0.75)}
+            className="w-full xs:w-[250px]"
+          >
+            <TiltCard>
+              <GradientCard innerClassName="flex min-h-[280px] flex-col items-center justify-evenly px-8 py-5 text-center">
+                <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent2 text-white shadow-[var(--shadow-sky)]">
+                  <Icon name={service.iconName} size={30} />
+                </span>
+                <h3 className="font-display text-[20px] font-bold text-[var(--text-primary)]">
                   {service.title}
                 </h3>
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">{service.description}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+                <p className="text-sm text-[var(--text-secondary)]">{service.description}</p>
+              </GradientCard>
+            </TiltCard>
+          </motion.div>
+        ))}
       </div>
-    </section>
+    </SectionShell>
   );
 }

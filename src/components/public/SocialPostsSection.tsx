@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SocialPostCard } from "./SocialPostCard";
 import { SectionHeading } from "./Reveal";
-import { SectionDecor } from "./SectionDecor";
+import { SectionShell } from "./SectionShell";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import type { SocialPost } from "@prisma/client";
@@ -22,16 +22,14 @@ export function SocialPostsSection({ posts }: { posts: SocialPost[] }) {
   const filtered = filter === "Toutes" ? posts : posts.filter((p) => p.platform === filter);
 
   return (
-    <section id="publications" className="section-pad relative overflow-hidden bg-[var(--bg-primary)]">
-      <SectionDecor variant="primary" />
-      <div className="container-page relative z-10">
+    <SectionShell id="publications" className="bg-[var(--bg-primary)]">
         <SectionHeading
           eyebrow="Réseaux sociaux"
           title="Mes publications"
           description="Retrouvez mes derniers partages sur les réseaux."
         />
 
-        <div className="mb-10 flex flex-wrap justify-center gap-2">
+        <div className="rangee-filtres mb-10 sm:justify-center">
           {platforms.map((p) => (
             <button
               key={p}
@@ -61,7 +59,6 @@ export function SocialPostsSection({ posts }: { posts: SocialPost[] }) {
             </Button>
           </Link>
         </div>
-      </div>
-    </section>
+      </SectionShell>
   );
 }

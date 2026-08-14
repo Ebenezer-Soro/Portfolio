@@ -48,7 +48,9 @@ function renderNode(node: Node, key: number): React.ReactNode {
       );
     case "heading": {
       const level = Math.min(Math.max(Number(node.attrs?.level ?? 2), 1), 6);
-      const Tag = (`h${level}`) as keyof React.JSX.IntrinsicElements;
+      // Type restreint aux balises de titre : `keyof IntrinsicElements` inclut
+      // désormais les éléments Three.js (augmentation JSX de react-three-fiber).
+      const Tag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
       // Hiérarchie de taille responsive (mobile-first) selon le niveau.
       const sizeByLevel: Record<number, string> = {
         1: "text-2xl sm:text-3xl",

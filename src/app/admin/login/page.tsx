@@ -29,6 +29,9 @@ export default function LoginPage() {
         redirect: false,
       });
       if (res?.error) {
+        // Message unique quelle que soit la cause réelle (compte inexistant,
+        // mot de passe faux, limite de tentatives atteinte) : ne rien révéler
+        // à quelqu'un qui sonde le formulaire.
         toast.error("Identifiants incorrects");
       } else {
         toast.success("Connexion réussie");
@@ -43,37 +46,53 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="gradient-mesh flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-        <div className="mb-8 text-center">
-          <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white shadow-[var(--shadow-sky)]">
-            <Lock className="h-7 w-7" />
-          </span>
-          <h1 className="font-display text-2xl font-bold text-white">Espace Administration</h1>
-          <p className="mt-1 text-sm text-slate-300">Connectez-vous pour gérer votre portfolio</p>
+    <div className="admin-scope flex min-h-screen items-center justify-center bg-[var(--bg-secondary)] p-4">
+      <div className="w-full max-w-[400px]">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6 shadow-[var(--shadow-lg)] sm:p-8">
+          <div className="mb-7 text-center">
+            <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent2 text-white">
+              <Lock className="h-6 w-6" />
+            </span>
+            <h1 className="text-xl font-semibold text-[var(--text-primary)]">
+              Administration
+            </h1>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              Connectez-vous pour gérer votre portfolio
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+            <Input
+              label="Email"
+              type="email"
+              autoComplete="username"
+              placeholder="vous@exemple.com"
+              error={errors.email?.message}
+              {...register("email")}
+            />
+            <Input
+              label="Mot de passe"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              error={errors.password?.message}
+              {...register("password")}
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              loading={loading}
+              className="w-full"
+            >
+              <LogIn className="h-4 w-4" /> Se connecter
+            </Button>
+          </form>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-          <Input
-            label="Email"
-            type="email"
-            placeholder="vous@exemple.com"
-            error={errors.email?.message}
-            className="bg-white/10 text-white placeholder:text-slate-400"
-            {...register("email")}
-          />
-          <Input
-            label="Mot de passe"
-            type="password"
-            placeholder="••••••••"
-            error={errors.password?.message}
-            className="bg-white/10 text-white placeholder:text-slate-400"
-            {...register("password")}
-          />
-          <Button type="submit" variant="gradient" size="lg" loading={loading} className="w-full">
-            <LogIn className="h-4 w-4" /> Se connecter
-          </Button>
-        </form>
+        <p className="mt-5 text-center text-xs text-[var(--text-muted)]">
+          Accès réservé
+        </p>
       </div>
     </div>
   );

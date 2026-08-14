@@ -27,7 +27,7 @@ export function ProjectsListing({ projects }: { projects: Project[] }) {
 
   return (
     <>
-      <div className="mb-10 flex flex-wrap justify-center gap-2">
+      <div className="rangee-filtres mb-10 sm:justify-center">
         {techs.map((tech) => (
           <button
             key={tech}

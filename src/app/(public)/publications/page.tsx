@@ -16,10 +16,8 @@ export default async function PublicationsPage() {
   return (
     <div className="container-page pt-32 pb-20">
       <header className="mb-12 text-center">
-        <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-          Réseaux sociaux
-        </span>
-        <h1 className="font-display text-4xl font-bold text-[var(--text-primary)] md:text-5xl">
+        <p className="section-sub-text">Réseaux sociaux</p>
+        <h1 className="section-head-text mt-2 text-[var(--text-primary)]">
           Toutes mes publications
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-[var(--text-secondary)]">

@@ -89,13 +89,13 @@ export function Footer({
       </div>
 
       <div className="border-t border-[var(--border)]">
+        {/* Aucun lien vers l'administration : elle ne doit laisser aucune trace
+            dans le rendu public. L'accès se fait au clavier (voir
+            AdminShortcut) ou par l'URL directe. */}
         <div className="container-page flex flex-col items-center justify-between gap-2 py-5 text-xs text-[var(--text-muted)] sm:flex-row">
           <p>
             © {year} {profile.name}. Tous droits réservés.
           </p>
-          <Link href="/admin/login" className="transition-colors hover:text-primary">
-            Espace admin
-          </Link>
         </div>
       </div>
     </footer>

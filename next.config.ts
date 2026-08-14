@@ -1,6 +1,31 @@
 import type { NextConfig } from "next";
 
+const enDev = process.env.NODE_ENV === "development";
+
+/*
+ * La Content-Security-Policy n'est PAS définie ici : elle porte un nonce
+ * régénéré à chaque requête, ce qu'un en-tête statique ne peut pas faire.
+ * Elle est posée par le middleware (src/middleware.ts).
+ */
+const entetesSecurite = [
+  // Empêche l'inclusion du site dans une iframe tierce (clickjacking).
+  { key: "X-Frame-Options", value: "DENY" },
+  // Interdit au navigateur de deviner un type MIME différent de celui déclaré.
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Coupe l'accès aux capteurs et périphériques, dont ce site n'a aucun usage.
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+  },
+  { key: "X-DNS-Prefetch-Control", value: "on" },
+];
+
 const nextConfig: NextConfig = {
+  // Masque la version du framework dans les réponses : une information de
+  // moins pour cibler une faille connue.
+  poweredByHeader: false,
+
   images: {
     // Les médias du CMS sont servis localement depuis /public/uploads (chemins
     // relatifs) : aucun remotePattern n'est nécessaire pour eux. N'ajoute ici que
@@ -11,6 +36,39 @@ const nextConfig: NextConfig = {
       // Exemple domaine externe : { protocol: "https", hostname: "images.exemple.com" },
       { protocol: "http", hostname: "localhost" },
     ],
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          ...entetesSecurite,
+          // HSTS n'a de sens qu'en HTTPS ; l'imposer en local casserait le
+          // serveur de développement.
+          ...(enDev
+            ? []
+            : [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains; preload",
+                },
+              ]),
+        ],
+      },
+      {
+        // L'administration ne doit jamais être mise en cache ni indexée.
+        source: "/admin/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+          { key: "Cache-Control", value: "no-store, max-age=0, must-revalidate" },
+        ],
+      },
+      {
+        source: "/api/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, max-age=0" }],
+      },
+    ];
   },
 };
 

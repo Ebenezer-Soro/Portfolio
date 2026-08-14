@@ -225,7 +225,7 @@ export function ReseauxManager({
   return (
     <>
       {/* Tabs */}
-      <div className="mb-6 flex gap-2 border-b border-[var(--border)]">
+      <div className="defilement-discret mb-6 flex gap-2 border-b border-[var(--border)]">
         <button
           onClick={() => setTab("links")}
           className={cn(
@@ -397,7 +397,7 @@ export function ReseauxManager({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex shrink-0 items-center gap-4">
                     <button
                       onClick={() => onToggleFeatured(post)}
                       className={cn(

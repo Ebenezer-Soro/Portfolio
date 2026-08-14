@@ -95,21 +95,21 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <div className="card-surface p-6 lg:col-span-2">
+        <div className="card-surface min-w-0 p-4 sm:p-6 lg:col-span-2">
           <h2 className="mb-4 font-display text-lg font-semibold text-[var(--text-primary)]">
             Visites — 30 derniers jours
           </h2>
           <VisitsChart data={stats.visitsByDay} />
         </div>
 
-        <div className="card-surface p-6">
+        <div className="card-surface min-w-0 p-4 sm:p-6">
           <h2 className="mb-4 font-display text-lg font-semibold text-[var(--text-primary)]">
             Pages les plus visitées
           </h2>
           {stats.topPages.length ? (
             <ul className="space-y-3">
               {stats.topPages.map((p) => (
-                <li key={p.path} className="flex items-center justify-between gap-3 text-sm">
+                <li key={p.path} className="flex min-w-0 items-center justify-between gap-3 text-sm">
                   <span className="truncate font-mono text-[var(--text-secondary)]">{p.path}</span>
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                     {p.count}

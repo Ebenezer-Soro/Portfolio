@@ -34,17 +34,17 @@ export function VisitsChart({ data }: { data: VisitByDay[] }) {
   }
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full min-w-0 overflow-x-auto">
       <svg
         viewBox={`0 0 ${points.w} ${points.h}`}
-        className="h-60 w-full min-w-[600px]"
+        className="h-48 w-full min-w-[420px] sm:h-60 sm:min-w-[600px]"
         role="img"
         aria-label="Graphe des visites sur 30 jours"
       >
         <defs>
           <linearGradient id="visitsArea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(14,165,233,0.35)" />
-            <stop offset="100%" stopColor="rgba(14,165,233,0)" />
+            <stop offset="0%" stopColor="rgba(212,175,55,0.35)" />
+            <stop offset="100%" stopColor="rgba(212,175,55,0)" />
           </linearGradient>
         </defs>
 
@@ -52,14 +52,14 @@ export function VisitsChart({ data }: { data: VisitByDay[] }) {
         <polyline
           points={points.line}
           fill="none"
-          stroke="#0ea5e9"
+          stroke="#b8912b"
           strokeWidth={2.5}
           strokeLinejoin="round"
           strokeLinecap="round"
         />
         {points.coords.map((c, i) => (
           <g key={i}>
-            <circle cx={c.x} cy={c.y} r={3} fill="#0ea5e9" />
+            <circle cx={c.x} cy={c.y} r={3} fill="#b8912b" />
             {i % Math.ceil(points.coords.length / 8 || 1) === 0 && (
               <text
                 x={c.x}
