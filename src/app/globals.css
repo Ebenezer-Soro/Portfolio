@@ -12,6 +12,23 @@
 
   html {
     scroll-behavior: smooth;
+    /* Confinement du débordement latéral à la RACINE, et pas seulement sur
+       `body`.
+
+       Sur `body` seul, la valeur est propagée au viewport — ce qui rend
+       `body` lui-même non clippant. Sur mobile, Chromium élargit alors le
+       viewport de mise en page pour rendre atteignable ce qui dépasse : la
+       navbar s'étalait sur 397 px pour 320 px visibles, et le bouton de menu
+       finissait hors écran.
+
+       `hidden` et non `clip` : accolé à un `overflow-y: visible`, `clip`
+       forcerait aussi l'axe vertical à `clip` et supprimerait tout
+       défilement de la page. `hidden` laisse l'axe Y en `auto`.
+
+       Le débordement provient des états initiaux d'animation (translations
+       en X) : une transformation ne modifie pas la mise en page mais compte
+       dans la zone de débordement défilable. */
+    overflow-x: hidden;
   }
 
   body {

@@ -64,6 +64,23 @@ export default auth((req) => {
   enTetes.set("x-nonce", nonce);
 
   const chemin = req.nextUrl.pathname;
+
+  /*
+   * Les routes Next sont sensibles à la casse : « /Admin/Login » renvoie 404.
+   * Or l'administration est la seule URL que l'on saisit à la main, et les
+   * claviers mobiles imposent une majuscule au premier mot de la barre
+   * d'adresse. On normalise donc vers la forme canonique en minuscules avant
+   * toute autre décision.
+   */
+  const cheminMinuscule = chemin.toLowerCase();
+  if (cheminMinuscule.startsWith("/admin") && chemin !== cheminMinuscule) {
+    const url = req.nextUrl.clone();
+    url.pathname = cheminMinuscule;
+    const redirection = NextResponse.redirect(url);
+    redirection.headers.set("Content-Security-Policy", csp);
+    return redirection;
+  }
+
   const routeAdmin = chemin.startsWith("/admin");
   const pageLogin = chemin === "/admin/login";
   const connecte = Boolean(req.auth);
