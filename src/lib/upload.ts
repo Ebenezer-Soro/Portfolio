@@ -1,5 +1,7 @@
 import { put, del } from "@vercel/blob";
 import { randomUUID } from "crypto";
+import { mkdir, writeFile, unlink } from "fs/promises";
+import path from "path";
 import sharp from "sharp";
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
@@ -23,6 +25,43 @@ export type SavedFile = {
 /** Hôte des URLs Vercel Blob — sert de garde-fou avant suppression. */
 const BLOB_HOST = "blob.vercel-storage.com";
 
+/** Préfixe des fichiers stockés localement, en développement uniquement. */
+const PREFIXE_LOCAL = "/uploads/";
+
+export type EtatStockage = "blob" | "local" | "absent";
+
+/**
+ * Où vont les fichiers :
+ *  - « blob »  : Vercel Blob, dès qu'un jeton est configuré ;
+ *  - « local » : sans jeton, EN DÉVELOPPEMENT, dans public/uploads (dossier
+ *    non versionné) — pour travailler sans compte Vercel ;
+ *  - « absent » : sans jeton en production. Le système de fichiers de Vercel
+ *    est en lecture seule : aucun envoi ne peut réussir.
+ */
+export function etatStockage(): EtatStockage {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return "blob";
+  return process.env.NODE_ENV === "production" ? "absent" : "local";
+}
+
+async function stocker(nom: string, contenu: Buffer, contentType: string): Promise<string> {
+  const etat = etatStockage();
+  if (etat === "blob") {
+    const blob = await put(`uploads/${nom}`, contenu, { access: "public", contentType, addRandomSuffix: false });
+    return blob.url;
+  }
+  if (etat === "local") {
+    const dossier = path.join(process.cwd(), "public", "uploads");
+    await mkdir(dossier, { recursive: true });
+    await writeFile(path.join(dossier, nom), contenu);
+    return PREFIXE_LOCAL + nom;
+  }
+  // Message destiné à l'administrateur : il remplace l'erreur technique
+  // anglaise de Vercel Blob (« No blob credentials found… »).
+  throw new Error(
+    "Stockage des médias non configuré : connecte un stockage Blob au projet dans Vercel (onglet Storage), ce qui crée BLOB_READ_WRITE_TOKEN, puis redéploie.",
+  );
+}
+
 /**
  * Sauvegarde un fichier uploadé sur Vercel Blob (stockage persistant + CDN).
  * Les images sont redimensionnées (max 1920px, qualité 85, conversion webp)
@@ -41,22 +80,14 @@ export async function saveUpload(file: File): Promise<SavedFile> {
 
   // PDF : envoi brut
   if (file.type === "application/pdf") {
-    const blob = await put(`uploads/${id}.pdf`, buffer, {
-      access: "public",
-      contentType: "application/pdf",
-      addRandomSuffix: false,
-    });
-    return { url: blob.url, filename: `${id}.pdf`, size: buffer.length, type: "pdf" };
+    const url = await stocker(`${id}.pdf`, buffer, "application/pdf");
+    return { url, filename: `${id}.pdf`, size: buffer.length, type: "pdf" };
   }
 
   // GIF : conservé tel quel (sharp aplatirait l'animation)
   if (file.type === "image/gif") {
-    const blob = await put(`uploads/${id}.gif`, buffer, {
-      access: "public",
-      contentType: "image/gif",
-      addRandomSuffix: false,
-    });
-    return { url: blob.url, filename: `${id}.gif`, size: buffer.length, type: "image" };
+    const url = await stocker(`${id}.gif`, buffer, "image/gif");
+    return { url, filename: `${id}.gif`, size: buffer.length, type: "image" };
   }
 
   // Images : redimensionnement + conversion webp
@@ -65,16 +96,22 @@ export async function saveUpload(file: File): Promise<SavedFile> {
     .webp({ quality: 85 })
     .toBuffer();
 
-  const blob = await put(`uploads/${id}.webp`, output, {
-    access: "public",
-    contentType: "image/webp",
-    addRandomSuffix: false,
-  });
-  return { url: blob.url, filename: `${id}.webp`, size: output.length, type: "image" };
+  const url = await stocker(`${id}.webp`, output, "image/webp");
+  return { url, filename: `${id}.webp`, size: output.length, type: "image" };
 }
 
-/** Supprime un fichier Vercel Blob d'après son URL. Ignore les URLs externes. */
+/** Supprime un fichier stocké d'après son URL. Ignore les URLs externes. */
 export async function deleteUpload(url: string): Promise<void> {
+  if (url.startsWith(PREFIXE_LOCAL) && process.env.NODE_ENV !== "production") {
+    // `basename` : aucune URL ne peut faire sortir la suppression du dossier.
+    const nom = path.basename(url);
+    try {
+      await unlink(path.join(process.cwd(), "public", "uploads", nom));
+    } catch {
+      // Fichier déjà absent : ignore.
+    }
+    return;
+  }
   if (!url.includes(BLOB_HOST)) return; // n'agit que sur nos propres blobs
   try {
     await del(url);

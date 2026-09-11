@@ -5,7 +5,9 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import ImageExt from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { televerser } from "@/lib/televersement";
 import {
   Bold,
   Italic,
@@ -16,6 +18,8 @@ import {
   Quote,
   Code,
   Link as LinkIcon,
+  ImagePlus,
+  Loader2,
   Undo,
   Redo,
 } from "lucide-react";
@@ -37,7 +41,7 @@ export function RichTextEditor({
     extensions: [
       StarterKit,
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-primary underline" } }),
-      ImageExt,
+      ImageExt.configure({ HTMLAttributes: { class: "my-4 h-auto max-w-full rounded-lg" } }),
       Placeholder.configure({ placeholder }),
     ],
     content: parseContent(value),
@@ -59,6 +63,26 @@ export function RichTextEditor({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
+
+  // L'extension Image était chargée, mais aucun bouton ne permettait d'en
+  // insérer une : on ne pouvait pas illustrer un article ou un projet.
+  const fichierRef = useRef<HTMLInputElement>(null);
+  const [envoiImage, setEnvoiImage] = useState(false);
+  const insererImage = async (fichier: File | undefined) => {
+    if (!fichier || !editor) return;
+    setEnvoiImage(true);
+    try {
+      const [media] = await televerser([fichier]);
+      const alt = fichier.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+      editor.chain().focus().setImage({ src: media.url, alt }).run();
+      toast.success("Image insérée");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setEnvoiImage(false);
+      if (fichierRef.current) fichierRef.current.value = "";
+    }
+  };
 
   if (!editor) return null;
 
@@ -109,6 +133,25 @@ export function RichTextEditor({
           >
             <LinkIcon className="h-4 w-4" />
           </button>
+          <button
+            type="button"
+            className={btn(false)}
+            onClick={() => fichierRef.current?.click()}
+            disabled={envoiImage}
+            aria-label="Insérer une image"
+            title="Insérer une image"
+          >
+            {envoiImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+          </button>
+          <input
+            ref={fichierRef}
+            type="file"
+            accept="image/*,.heic,.heif"
+            className="hidden"
+            tabIndex={-1}
+            aria-hidden
+            onChange={(e) => insererImage(e.target.files?.[0])}
+          />
           <span className="mx-1 h-5 w-px bg-[var(--border)]" />
           <button type="button" className={btn(false)} onClick={() => editor.chain().focus().undo().run()} aria-label="Annuler">
             <Undo className="h-4 w-4" />

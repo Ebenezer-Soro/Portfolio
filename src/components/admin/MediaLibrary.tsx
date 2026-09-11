@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { cn, formatBytes, formatDate } from "@/lib/utils";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { deleteMedia } from "@/lib/actions/media";
+import { televerser } from "@/lib/televersement";
 import type { Media } from "@prisma/client";
 
 export function MediaLibrary({ initialMedia }: { initialMedia: Media[] }) {
@@ -17,32 +18,42 @@ export function MediaLibrary({ initialMedia }: { initialMedia: Media[] }) {
   const [toDelete, setToDelete] = useState<Media | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Un fichier à la fois : un échec n'empêche pas les suivants, et chaque
+  // envoi reste sous la limite de taille de Vercel.
   const onDrop = useCallback(async (files: File[]) => {
     if (!files.length) return;
     setUploading(true);
-    try {
-      const fd = new FormData();
-      files.forEach((f) => fd.append("file", f));
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Échec de l'upload");
-      setMedia((m) => [...data.media, ...m]);
-      toast.success(`${data.media.length} fichier(s) ajouté(s)`);
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setUploading(false);
+    let reussis = 0;
+    for (const fichier of files) {
+      try {
+        const envoyes = await televerser([fichier]);
+        setMedia((m) => [...envoyes.map((x) => ({ ...x, createdAt: new Date(x.createdAt) }) as Media), ...m]);
+        reussis++;
+      } catch (e) {
+        toast.error((e as Error).message);
+      }
     }
+    if (reussis) toast.success(`${reussis} fichier(s) ajouté(s)`);
+    setUploading(false);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [], "application/pdf": [".pdf"] },
+    accept: { "image/*": [".heic", ".heif"], "application/pdf": [".pdf"] },
+    onDropRejected: (rejets) =>
+      toast.error(`${rejets.length} fichier(s) refusé(s) : seules les images et les PDF sont acceptés.`),
   });
 
-  const copyUrl = (url: string) => {
-    navigator.clipboard.writeText(window.location.origin + url);
-    toast.success("URL copiée");
+  const copyUrl = async (url: string) => {
+    // Les médias vivent sur Vercel Blob : leur URL est déjà absolue. Lui
+    // préfixer l'origine du site produisait un lien cassé.
+    const absolue = /^https?:\/\//.test(url) ? url : window.location.origin + url;
+    try {
+      await navigator.clipboard.writeText(absolue);
+      toast.success("URL copiée");
+    } catch {
+      toast.error("Copie impossible ici : " + absolue);
+    }
   };
 
   const confirmDelete = async () => {
@@ -78,7 +89,7 @@ export function MediaLibrary({ initialMedia }: { initialMedia: Media[] }) {
           <UploadCloud className="h-8 w-8 text-[var(--text-muted)]" />
         )}
         <p className="text-sm text-[var(--text-secondary)]">
-          Glissez vos fichiers ici ou cliquez (images & PDF, max 10 Mo)
+          Glissez vos fichiers ici ou cliquez — images (réduites automatiquement) et PDF de 4 Mo maximum
         </p>
       </div>
 
@@ -114,7 +125,7 @@ export function MediaLibrary({ initialMedia }: { initialMedia: Media[] }) {
                 ) : (
                   <FileText className="h-12 w-12 text-primary" />
                 )}
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:bg-black/30 [@media(hover:none)]:opacity-100">
                   <button
                     onClick={() => copyUrl(m.url)}
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-900 hover:bg-white"

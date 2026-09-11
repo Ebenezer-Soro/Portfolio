@@ -6,6 +6,7 @@ import Image from "next/image";
 import { UploadCloud, X, Loader2, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
+import { televerser } from "@/lib/televersement";
 
 export function ImageUploader({
   value,
@@ -26,13 +27,10 @@ export function ImageUploader({
       if (!file) return;
       setUploading(true);
       try {
-        const fd = new FormData();
-        fd.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Échec de l'upload");
-        onChange(data.url);
-        toast.success("Fichier téléversé");
+        // Réduction, conversion et messages d'erreur : voir lib/televersement.
+        const [media] = await televerser([file]);
+        onChange(media.url);
+        toast.success("Fichier envoyé");
       } catch (e) {
         toast.error((e as Error).message);
       } finally {
@@ -46,14 +44,18 @@ export function ImageUploader({
     accept === "pdf"
       ? { "application/pdf": [".pdf"] }
       : accept === "all"
-        ? { "image/*": [], "application/pdf": [".pdf"] }
-        : { "image/*": [] };
+        ? { "image/*": [".heic", ".heif"], "application/pdf": [".pdf"] }
+        : { "image/*": [".heic", ".heif"] };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: acceptMap,
     maxFiles: 1,
     multiple: false,
+    // Sans cela, un fichier refusé par la zone de dépôt était ignoré sans
+    // le moindre message.
+    onDropRejected: (rejets) =>
+      toast.error(`« ${rejets[0]?.file.name ?? "Ce fichier"} » n'est pas accepté ici.`),
   });
 
   const isPdf = value?.toLowerCase().endsWith(".pdf");
@@ -113,7 +115,9 @@ export function ImageUploader({
                 ? "Déposez ici…"
                 : "Glissez un fichier ou cliquez"}
           </p>
-          <p className="text-xs text-[var(--text-muted)]">Max 10 Mo</p>
+          <p className="text-xs text-[var(--text-muted)]">
+            {accept === "pdf" ? "PDF, 4 Mo maximum" : "Les photos lourdes sont réduites automatiquement"}
+          </p>
         </div>
       )}
     </div>
