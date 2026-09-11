@@ -98,6 +98,9 @@ export default auth((req) => {
   // Next.js lit le nonce directement dans cet en-tête pour en équiper ses
   // propres balises <script>. Il doit donc être posé sur toutes les réponses.
   reponse.headers.set("Content-Security-Policy", csp);
+  // L'admin n'est pas listé dans robots.txt (cela trahirait son adresse) :
+  // il est exclu de l'indexation par cet en-tête, redirections comprises.
+  if (routeAdmin) reponse.headers.set("X-Robots-Tag", "noindex, nofollow");
   return reponse;
 });
 
