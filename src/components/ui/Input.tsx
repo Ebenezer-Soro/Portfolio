@@ -11,7 +11,10 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, id, ...props }, ref) => {
-    const inputId = id ?? props.name;
+    // Sans `id` ni `name`, le libellé n'était relié à aucun champ : cliquer
+    // dessus ne focalisait rien et les lecteurs d'écran ne l'annonçaient pas.
+    const autoId = React.useId();
+    const inputId = id ?? props.name ?? autoId;
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
@@ -41,7 +44,10 @@ export interface TextareaProps
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, id, ...props }, ref) => {
-    const inputId = id ?? props.name;
+    // Sans `id` ni `name`, le libellé n'était relié à aucun champ : cliquer
+    // dessus ne focalisait rien et les lecteurs d'écran ne l'annonçaient pas.
+    const autoId = React.useId();
+    const inputId = id ?? props.name ?? autoId;
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
@@ -70,7 +76,10 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, id, children, ...props }, ref) => {
-    const inputId = id ?? props.name;
+    // Sans `id` ni `name`, le libellé n'était relié à aucun champ : cliquer
+    // dessus ne focalisait rien et les lecteurs d'écran ne l'annonçaient pas.
+    const autoId = React.useId();
+    const inputId = id ?? props.name ?? autoId;
     return (
       <div className="flex flex-col gap-1.5">
         {label && (

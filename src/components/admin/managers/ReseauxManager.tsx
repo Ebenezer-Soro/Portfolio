@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Plus, Pencil, Trash2, ExternalLink, Star } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea, Select } from "@/components/ui/Input";
+import { Input, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
@@ -26,7 +26,16 @@ import {
 } from "@/lib/actions/social";
 import type { SocialLink, SocialPost } from "@prisma/client";
 
-const PLATFORMS = ["GitHub", "LinkedIn", "Twitter", "Instagram", "YouTube", "Facebook"];
+/*
+ * Plateformes SUGGÉRÉES, pas imposées. Avec une liste fermée, une plateforme
+ * absente (« X (Twitter) », « E-mail », un réseau ajouté via le questionnaire
+ * du seed) s'affichait comme la première de la liste à l'édition, et
+ * l'enregistrer la remplaçait sans prévenir.
+ */
+const PLATFORMS = [
+  "GitHub", "LinkedIn", "X (Twitter)", "Instagram", "Facebook", "YouTube",
+  "GitLab", "Dribbble", "Figma", "CodePen", "WhatsApp", "Telegram", "Medium", "Dev.to", "E-mail",
+];
 
 // ── Drafts ──────────────────────────────────────────────────
 type LinkDraft = {
@@ -448,17 +457,18 @@ export function ReseauxManager({
       >
         {linkDraft && (
           <div className="space-y-4">
-            <Select
+            <Input
               label="Plateforme"
+              list="plateformes-link"
               value={linkDraft.platform}
               onChange={(e) => setLinkDraft({ ...linkDraft, platform: e.target.value })}
-            >
+              placeholder="GitHub, LinkedIn…"
+            />
+            <datalist id="plateformes-link">
               {PLATFORMS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
+                <option key={p} value={p} />
               ))}
-            </Select>
+            </datalist>
             <Input
               label="URL"
               type="url"
@@ -504,17 +514,18 @@ export function ReseauxManager({
       >
         {postDraft && (
           <div className="space-y-4">
-            <Select
+            <Input
               label="Plateforme"
+              list="plateformes-post"
               value={postDraft.platform}
               onChange={(e) => setPostDraft({ ...postDraft, platform: e.target.value })}
-            >
+              placeholder="GitHub, LinkedIn…"
+            />
+            <datalist id="plateformes-post">
               {PLATFORMS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
+                <option key={p} value={p} />
               ))}
-            </Select>
+            </datalist>
             <Input
               label="Titre"
               value={postDraft.title}

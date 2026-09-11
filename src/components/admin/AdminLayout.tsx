@@ -22,6 +22,15 @@ export function AdminLayout({
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setOpen(false), [pathname]);
 
+  // Les fenêtres d'édition (Radix) sont rendues dans un portail rattaché à
+  // <body>, donc HORS de ce conteneur : elles ignoraient la palette de
+  // l'admin — en mode sombre, bouton « Enregistrer » blanc sur or, 2:1.
+  // La classe est posée aussi sur <body> le temps de la visite de l'admin.
+  useEffect(() => {
+    document.body.classList.add("admin-scope");
+    return () => document.body.classList.remove("admin-scope");
+  }, []);
+
   // Empêche le défilement de l'arrière-plan pendant que le tiroir est ouvert.
   useEffect(() => {
     if (!open) return;

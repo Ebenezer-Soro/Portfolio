@@ -4,13 +4,23 @@ import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
-import { Input, Select } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { createSkill, updateSkill, deleteSkill } from "@/lib/actions/skills";
 import type { Skill } from "@prisma/client";
 
-const CATEGORIES = ["Frontend", "Backend", "DevOps", "Sécurité", "IA", "Autre"];
+/*
+ * Catégories SUGGÉRÉES, pas imposées : le site public tire ses filtres des
+ * catégories réellement présentes en base. Une liste fermée rendait
+ * invisibles ici — donc impossibles à gérer — les compétences d'une autre
+ * catégorie (« Mobile », « Réseau »… saisies via le questionnaire du seed).
+ * Même liste que les domaines proposés par ce questionnaire.
+ */
+const SUGGESTIONS = [
+  "Frontend", "Backend", "Mobile", "DevOps", "Cloud", "Sécurité",
+  "Cryptographie", "Réseau", "IA", "Data", "Outils",
+];
 
 type Draft = {
   id?: string;
@@ -72,10 +82,15 @@ export function SkillsManager({ initial }: { initial: Skill[] }) {
     }
   };
 
-  const byCategory = CATEGORIES.map((cat) => ({
-    cat,
-    items: skills.filter((s) => s.category === cat),
-  })).filter((g) => g.items.length);
+  // Catégories suggérées d'abord, dans leur ordre, puis toutes les autres
+  // présentes en base : aucune compétence ne peut échapper à la liste.
+  const categories = [
+    ...SUGGESTIONS,
+    ...[...new Set(skills.map((s) => s.category))].filter((c) => !SUGGESTIONS.includes(c)).sort(),
+  ];
+  const byCategory = categories
+    .map((cat) => ({ cat, items: skills.filter((s) => s.category === cat) }))
+    .filter((g) => g.items.length);
 
   return (
     <>
@@ -127,18 +142,24 @@ export function SkillsManager({ initial }: { initial: Skill[] }) {
         {draft && (
           <div className="space-y-4">
             <Input label="Nom" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-            <Select label="Catégorie" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+            <Input
+              label="Catégorie"
+              list="categories-competences"
+              value={draft.category}
+              onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+              placeholder="Frontend, Mobile, Sécurité…"
+            />
+            <datalist id="categories-competences">
+              {categories.map((c) => (
+                <option key={c} value={c} />
               ))}
-            </Select>
+            </datalist>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">
+              <label htmlFor="niveau-competence" className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">
                 Niveau : {draft.level}%
               </label>
               <input
+                id="niveau-competence"
                 type="range"
                 min={0}
                 max={100}

@@ -1,9 +1,9 @@
 /* src/styles/admin.css — thème du back-office
    ───────────────────────────────────────────────────────────────────
    L'administration est un outil de travail, pas une vitrine : elle vise
-   la lisibilité et la densité d'information, pas l'effet. Elle adopte
-   donc une palette claire et neutre, indépendante du thème du site
-   public.
+   la lisibilité et la densité d'information, pas l'effet. Elle a sa
+   propre palette, neutre, déclinée en clair et en sombre ; le mode suit
+   la même préférence que le site (bascule dans l'en-tête de l'admin).
 
    Comme toute l'UI passe par des jetons sémantiques (var(--bg-*),
    var(--text-*), les canaux --c-*), il suffit de les redéfinir dans le
@@ -24,21 +24,24 @@
   /* Texte — contrastes conformes AA sur fond clair */
   --text-primary: #171a23;
   --text-secondary: #555c6e;
-  --text-muted: #878ea1;
+  --text-muted: #626a7d; /* 5,4:1 sur blanc, 4,6:1 sur le fond gris */
   --text-inverse: #ffffff;
 
   --border: #e1e4ec;
-  --border-focus: #8a6d1f;
+  --border-focus: #7a6019;
 
   /* Accent : l'or du logo, assombri en bronze pour rester lisible sur
-     blanc — le #D4AF37 n'y atteint qu'un rapport de contraste de 1,9:1. */
-  --c-primary: 138 109 31; /* #8a6d1f */
-  --c-primary-400: 184 145 43; /* #b8912b */
-  --c-accent: 155 122 26; /* #9b7a1a */
+     blanc — le #D4AF37 n'y atteint qu'un rapport de contraste de 1,9:1.
+     Valeurs mesurées (audit automatique de toutes les pages) : le bronze
+     #8a6d1f tombait à 4,3:1 sur les pastilles teintées, d'où #7a6019
+     (5,2:1 sur pastille, 6:1 en texte blanc sur aplat). */
+  --c-primary: 122 96 25; /* #7a6019 */
+  --c-primary-400: 138 109 31; /* #8a6d1f — survol, texte blanc 4,7:1 */
+  --c-accent: 110 88 22; /* #6e5816 — badges « Mis en avant », 6:1 */
   --c-accent2: 212 175 55; /* #d4af37 */
 
-  --color-primary: #8a6d1f;
-  --color-primary-hover: #b8912b;
+  --color-primary: #7a6019;
+  --color-primary-hover: #8a6d1f;
 
   /* Ombres discrètes : la hiérarchie vient des bordures et du fond,
      pas de la profondeur. */
@@ -54,6 +57,68 @@
   background-color: var(--bg-primary);
   color: var(--text-primary);
   color-scheme: light;
+}
+
+/* ── Mode sombre ──────────────────────────────────────────────────────
+   Même principe : seuls les jetons changent. Des gris neutres plutôt que
+   les noirs dorés du site, qui fatiguent l'œil sur une longue session de
+   saisie.
+
+   L'accent y reprend l'or du logo : lisible en texte sur fond sombre
+   (7:1), mais du texte BLANC sur un fond or tomberait à 2:1. Les
+   éléments pleins d'accent passent donc en texte sombre (règles plus bas),
+   comme le bouton doré du site public. */
+[data-theme="dark"] .admin-scope {
+  --bg-primary: #111318;
+  --bg-secondary: #0c0e12;
+  --bg-elevated: #181b22;
+  --bg-card: #181b22;
+
+  --surface-raised: #1d2029;
+  --surface-deep: #0f1115;
+  --surface-timeline: #181b22;
+
+  --text-primary: #eceef3;
+  --text-secondary: #a9b0c0;
+  --text-muted: #7c8396;
+  --text-inverse: #111318;
+
+  --border: #2a2e38;
+  --border-focus: #d4af37;
+
+  --c-primary: 212 175 55; /* #d4af37 */
+  --c-primary-400: 220 194 94; /* #dcc25e */
+  --c-accent: 220 194 94;
+  --c-accent2: 229 229 85; /* #e5e555 */
+
+  --color-primary: #d4af37;
+  --color-primary-hover: #dcc25e;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --shadow-sky: 0 2px 10px rgba(212, 175, 55, 0.18);
+
+  color-scheme: dark;
+}
+
+/* Texte sombre sur les aplats d'accent : bouton principal, bouton
+   « contour » au survol, pastilles dégradées (logo, statistiques). */
+[data-theme="dark"] .admin-scope .bg-primary,
+[data-theme="dark"] .admin-scope .hover\:bg-primary:hover,
+[data-theme="dark"] .admin-scope .from-primary.text-white,
+[data-theme="dark"] .admin-scope .from-accent.text-white {
+  color: #14120b;
+}
+
+/* Vert « Publié » : Tailwind le définit comme une constante (#10b981), pas
+   comme un jeton — il ne suit donc pas la palette. Sur les pastilles
+   teintées du mode clair, il ne donnait que 2,3:1. */
+.admin-scope .text-success {
+  color: #067647;
+}
+[data-theme="dark"] .admin-scope .text-success {
+  color: #34d399;
 }
 
 /* Le corps de texte du back-office reste en Inter : plus lisible que
@@ -92,6 +157,14 @@
 }
 .admin-scope *::-webkit-scrollbar-thumb:hover {
   background: #adb3c2;
+  background-clip: content-box;
+}
+[data-theme="dark"] .admin-scope *::-webkit-scrollbar-thumb {
+  background: #3a3f4b;
+  background-clip: content-box;
+}
+[data-theme="dark"] .admin-scope *::-webkit-scrollbar-thumb:hover {
+  background: #4a505e;
   background-clip: content-box;
 }
 
