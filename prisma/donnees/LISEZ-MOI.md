@@ -2,35 +2,43 @@
 
 Trois temps : **saisir** dans le formulaire, **essayer à blanc**, **injecter**.
 
-## 1. Saisir
+## 1. Répondre au questionnaire
 
-Ouvrir `formulaire.html` dans un navigateur (double-clic). Il fonctionne hors
-ligne et n'envoie rien sur le réseau.
+Ouvrir `formulaire.html` dans un navigateur (double-clic). Il pose une question
+à la fois, fonctionne hors ligne et n'envoie rien sur le réseau.
 
-- Identité, réglages du site, puis une section par type de contenu : réseaux,
-  services, compétences, parcours, projets, publications, articles, FAQ,
-  témoignages.
-- La saisie est gardée dans le navigateur au fil de l'eau : on peut fermer
-  l'onglet et revenir plus tard. « Effacer le brouillon » la supprime.
-- **Images** : déposer les fichiers dans `public/` (par exemple
-  `public/images/moi.png`) et saisir le chemin `/images/moi.png`. Une URL
-  `https://` fonctionne aussi.
-- **Importer un fichier** recharge un export précédent pour le corriger, ou
-  `exemple.json` pour voir un formulaire rempli.
+- Environ quarante questions, en quinze chapitres : toi, te joindre, images
+  et CV, tes chiffres, puis une rubrique par contenu du site (réseaux,
+  services, compétences, parcours, projets, publications, blog, FAQ,
+  témoignages), et enfin les sections à afficher.
+- Les listes se remplissent comme un entretien : « Parle-moi d'un projet… »,
+  puis « As-tu un autre projet à présenter ? ».
+- Tes réponses sont gardées dans le navigateur au fil de l'eau : tu peux
+  fermer l'onglet et reprendre plus tard. « Sommaire », en haut, permet de
+  revenir à n'importe quel chapitre.
+- Entrée valide une réponse ; les touches A, B, C choisissent une option.
+- **Images** : dépose les fichiers dans `public/` (par exemple
+  `public/images/moi.png`) et indique le chemin `/images/moi.png`. Une URL
+  `https://` fonctionne aussi. Tu peux aussi les ajouter plus tard depuis
+  l'admin.
 
-Chaque section de liste porte une case **« Remplacer cette section en base »** :
+Pour chaque rubrique de liste, la première question propose trois réponses :
 
-| Case | Liste | Effet de l'injection |
-| --- | --- | --- |
-| cochée | remplie | la section en base est remplacée par la liste |
-| cochée | vide | la section en base est **vidée** |
-| décochée | — | la section en base n'est **pas touchée** |
+| Réponse | Effet de l'injection |
+| --- | --- |
+| « Oui… » | la rubrique en base est remplacée par tes réponses |
+| « Non » | la rubrique en base est **vidée** |
+| « Garder ceux déjà en ligne » | la rubrique en base n'est **pas touchée** |
+
+Une rubrique à laquelle tu n'as pas répondu n'est pas touchée non plus.
 
 Les témoignages de démonstration actuellement en base (Awa Koné, Jean Dupont)
-sont fictifs : laisser la section cochée, même vide, les retire.
+sont fictifs : répondre « Non » à la question des témoignages les retire.
 
-« Vérifier et exporter » liste les problèmes éventuels ; chaque ligne mène au
-champ concerné. Une fois tout valide, télécharger `mes-infos.json`.
+Le **récapitulatif** final reprend toutes tes réponses, avec un lien
+« Modifier » vers chaque question. Quand tout est valide, télécharge
+`mes-infos.json`. « Reprendre depuis un fichier » recharge un fichier déjà
+téléchargé pour le corriger.
 
 ## 2. Essayer à blanc
 
@@ -96,7 +104,7 @@ ne contient que des données fictives, est versionné.
 
 | Fichier | Rôle |
 | --- | --- |
-| `formulaire.html` | le formulaire de saisie |
+| `formulaire.html` | le questionnaire |
 | `schema.ts` | le format du fichier, validé par le seed |
 | `exemple.json` | un fichier complet de démonstration |
 | `mes-infos.json` | vos informations — non versionné |

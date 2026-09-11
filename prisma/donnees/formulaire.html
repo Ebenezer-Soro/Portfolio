@@ -3,192 +3,207 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mes informations — portfolio</title>
+<title>Questionnaire du portfolio</title>
 <!-- ═══════════════════════════════════════════════════════════════════
-     FORMULAIRE D'INFORMATIONS DU PORTFOLIO
-     Produit `mes-infos.json`, que `prisma/seed.ts` injecte en base.
+     QUESTIONNAIRE DU PORTFOLIO
+     Pose une question à la fois ; les réponses produisent `mes-infos.json`,
+     que `prisma/seed.ts` injecte en base.
 
-     - Fonctionne hors ligne : aucune ressource externe, aucune police
-       distante. Double-cliquer sur le fichier suffit.
-     - Rien ne quitte le navigateur : pas de requête réseau. Le brouillon
-       est gardé dans le stockage local de CE navigateur, et le bouton
-       « Effacer le brouillon » le supprime.
-     - Les règles de validation reproduisent celles de
-       `prisma/donnees/schema.ts` : un fichier accepté ici l'est par le seed.
+     - Hors ligne : aucune ressource externe, aucune requête réseau.
+     - Les réponses sont gardées dans le stockage local de CE navigateur ;
+       « Effacer mes réponses », au récapitulatif, les supprime.
+     - Les règles de validation reproduisent `prisma/donnees/schema.ts` :
+       un fichier accepté ici l'est par le seed.
+
+     ORGANISATION DU SCRIPT
+       1. Référentiels et règles de validation
+       2. Modèle des éléments de liste (champs exportés)
+       3. État, brouillon, reprise d'un ancien brouillon
+       4. Composants (champ, options, puces)
+       5. Le parcours de questions — `ecrans()` le recalcule à chaque pas,
+          car les boucles (« Un autre projet ? ») en changent la longueur
+       6. Navigation, récapitulatif, export, import
      ═══════════════════════════════════════════════════════════════ -->
 <style>
 :root {
   --fond:#f7f5ef; --surface:#ffffff; --surface-2:#faf8f2;
   --bordure:#e5dfd0; --bordure-forte:#d3cbb6;
   --texte:#14130f; --texte-2:#565245; --texte-3:#8b8574;
-  --accent:#8a6d1f; --accent-fonce:#6b5417; --accent-doux:#f4ecd6;
+  --accent:#8a6d1f; --accent-fonce:#6b5417; --accent-doux:#f4ecd6; --accent-trait:#ead9a8;
   --danger:#b42318; --danger-doux:#fef3f2;
   --succes:#067647; --succes-doux:#ecfdf3;
   --r:10px; --r-lg:14px;
-  --ombre:0 1px 2px rgba(20,19,15,.05), 0 6px 18px -8px rgba(69,54,16,.14);
+  --ombre:0 1px 2px rgba(20,19,15,.05), 0 8px 24px -12px rgba(69,54,16,.18);
   --police:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:ui-monospace,"Cascadia Code","Consolas",monospace;
 }
 *,*::before,*::after { box-sizing:border-box; }
 html { -webkit-text-size-adjust:100%; }
-body { margin:0; background:var(--fond); color:var(--texte); font:15px/1.55 var(--police); }
-h1,h2,h3 { margin:0; line-height:1.25; }
+body { margin:0; background:var(--fond); color:var(--texte); font:16px/1.55 var(--police); min-height:100vh; }
+h1,h2,h3,p { margin:0; }
 button,input,select,textarea { font:inherit; color:inherit; }
 button { cursor:pointer; }
 :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 [hidden] { display:none !important; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
-/* ── Structure ───────────────────────────────────────────── */
-.entete {
-  position:sticky; top:0; z-index:20; background:rgba(247,245,239,.92);
-  backdrop-filter:blur(8px); border-bottom:1px solid var(--bordure);
-}
-.entete-contenu { max-width:1180px; margin:0 auto; padding:.75rem 1rem;
+/* ── En-tête et progression ──────────────────────────────── */
+.entete { position:sticky; top:0; z-index:20; background:rgba(247,245,239,.94);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--bordure); }
+.entete-contenu { max-width:760px; margin:0 auto; padding:.625rem 1.25rem;
   display:flex; align-items:center; justify-content:space-between; gap:.75rem; }
 .marque { display:flex; align-items:center; gap:.625rem; min-width:0; }
-.marque b { flex:0 0 auto; width:2.25rem; height:2.25rem; border-radius:9px; display:grid; place-items:center;
+.marque b { flex:0 0 auto; width:2.125rem; height:2.125rem; border-radius:9px; display:grid; place-items:center;
   background:linear-gradient(135deg,#b8912b,#d4af37); color:#0d0d0d; font-weight:800; }
 .marque div { min-width:0; }
-.marque h1 { font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.marque p { margin:0; font-size:.75rem; color:var(--texte-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.etat-brouillon { font-size:.75rem; color:var(--texte-3); text-align:right; flex:0 0 auto; }
+.marque h1 { font-size:.9375rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.marque p { font-size:.75rem; color:var(--texte-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.progression { height:3px; background:var(--bordure); }
+.progression i { display:block; height:100%; width:0; background:var(--accent); transition:width .35s ease; }
 
-.cadre { max-width:1180px; margin:0 auto; padding:1rem; display:grid; gap:1rem; }
-@media (min-width:900px) {
-  .cadre { grid-template-columns:230px minmax(0,1fr); gap:1.5rem; padding:1.5rem 1rem 6rem; }
-}
+/* ── Écran de question ───────────────────────────────────── */
+.scene { max-width:760px; margin:0 auto; padding:clamp(1.75rem,1rem + 4vw,4rem) 1.25rem 4rem; }
+.ecran { animation:apparition .28s ease both; }
+@keyframes apparition { from { opacity:0; transform:translateY(10px); } }
 
-/* Navigation : colonne sur grand écran, ruban défilant sur mobile. La
-   barre de défilement est masquée, le geste tactile suffit. */
-.nav { display:flex; gap:.375rem; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
-  margin:0 -1rem; padding:0 1rem .25rem; }
-.nav::-webkit-scrollbar { display:none; }
-@media (min-width:900px) {
-  .nav { flex-direction:column; overflow:visible; margin:0; padding:0; position:sticky; top:5rem; align-self:start; }
-}
-.nav button {
-  flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:.5rem;
-  padding:.5rem .75rem; border-radius:999px; border:1px solid var(--bordure); background:var(--surface);
-  color:var(--texte-2); font-size:.875rem; white-space:nowrap; text-align:left;
-}
-@media (min-width:900px) { .nav button { border-radius:var(--r); width:100%; } }
-.nav button[aria-current="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
-.pastille-nb { font-size:.6875rem; font-weight:600; min-width:1.25rem; padding:0 .375rem; border-radius:999px;
-  background:var(--surface-2); color:var(--texte-3); text-align:center; line-height:1.25rem; }
-.nav button[aria-current="true"] .pastille-nb { background:rgba(255,255,255,.2); color:#fff; }
-.pastille-nb.erreur { background:var(--danger); color:#fff; }
-
-/* ── Panneaux ────────────────────────────────────────────── */
-.panneau { min-width:0; }
-.panneau-tete { margin-bottom:1rem; }
-.panneau-tete h2 { font-size:1.375rem; }
-.panneau-tete p { margin:.375rem 0 0; color:var(--texte-2); max-width:62ch; }
-
-.carte { background:var(--surface); border:1px solid var(--bordure); border-radius:var(--r-lg);
-  box-shadow:var(--ombre); padding:1rem; }
-@media (min-width:640px) { .carte { padding:1.25rem; } }
-.carte + .carte { margin-top:.875rem; }
-
-.grille { display:grid; gap:.875rem 1rem; }
-@media (min-width:640px) { .grille { grid-template-columns:1fr 1fr; } .grille .large { grid-column:1 / -1; } }
+.surtitre { font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); }
+.question { margin-top:.5rem; font-size:clamp(1.375rem,1.05rem + 1.6vw,2rem); line-height:1.25; font-weight:700;
+  letter-spacing:-.01em; overflow-wrap:anywhere; }
+.question:focus { outline:none; }
+.aide-question { margin-top:.625rem; color:var(--texte-2); max-width:60ch; }
+.corps { margin-top:1.75rem; display:grid; gap:1.125rem; }
 
 /* ── Champs ──────────────────────────────────────────────── */
-.champ { display:grid; gap:.3rem; min-width:0; }
-.champ > label, .champ > .etiquette { font-size:.8125rem; font-weight:600; color:var(--texte); }
+.champ { display:grid; gap:.35rem; min-width:0; }
+.champ > label { font-size:.875rem; font-weight:600; }
 .champ .requis { color:var(--danger); margin-left:.125rem; }
 .champ input:not([type=checkbox]):not([type=range]), .champ select, .champ textarea {
-  width:100%; min-width:0; padding:.625rem .75rem; border-radius:var(--r);
-  border:1px solid var(--bordure-forte); background:var(--surface); transition:border-color .15s, box-shadow .15s;
+  width:100%; min-width:0; padding:.75rem .875rem; border-radius:var(--r);
+  border:1px solid var(--bordure-forte); background:var(--surface); font-size:1.0625rem;
+  transition:border-color .15s, box-shadow .15s;
 }
-.champ textarea { min-height:6.5rem; resize:vertical; }
+.seul input:not([type=checkbox]):not([type=range]) { font-size:1.25rem; padding:.875rem 1rem; }
+.champ textarea { min-height:7.5rem; resize:vertical; line-height:1.5; }
 .champ input:focus, .champ select:focus, .champ textarea:focus {
-  outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(138,109,31,.15);
+  outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(138,109,31,.16);
 }
-.champ .aide { font-size:.75rem; color:var(--texte-3); }
-.champ .message { font-size:.75rem; color:var(--danger); font-weight:500; }
+.champ .aide { font-size:.8125rem; color:var(--texte-3); }
+.champ .message { font-size:.8125rem; color:var(--danger); font-weight:500; }
 .champ.invalide input, .champ.invalide select, .champ.invalide textarea { border-color:var(--danger); }
-.champ.invalide input:focus, .champ.invalide textarea:focus { box-shadow:0 0 0 3px rgba(180,35,24,.14); }
 
-.bascule { display:flex; align-items:center; gap:.625rem; font-size:.875rem; cursor:pointer; user-select:none; }
-.bascule input { width:1.125rem; height:1.125rem; accent-color:var(--accent); flex:0 0 auto; }
+.bascule { display:flex; align-items:center; gap:.625rem; cursor:pointer; user-select:none; }
+.bascule input { width:1.25rem; height:1.25rem; accent-color:var(--accent); flex:0 0 auto; }
 
 .jauge { display:flex; align-items:center; gap:.75rem; }
 .jauge input { flex:1; accent-color:var(--accent); min-width:0; }
-.jauge output { font-family:var(--mono); font-size:.8125rem; min-width:3ch; text-align:right; }
+.jauge output { font-family:var(--mono); font-size:.875rem; min-width:4.5ch; text-align:right; }
 
-/* ── Éléments de liste ───────────────────────────────────── */
-.element-tete { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.875rem; }
-.element-tete h3 { font-size:.9375rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.element-tete h3 span { color:var(--texte-3); font-weight:500; margin-right:.375rem; }
-.outils-element { display:flex; gap:.25rem; flex:0 0 auto; }
-.bouton-icone { width:2.125rem; height:2.125rem; display:grid; place-items:center; border-radius:8px;
-  border:1px solid var(--bordure); background:var(--surface); color:var(--texte-2); font-size:1rem; line-height:1; }
-.bouton-icone:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
-.bouton-icone.danger:hover { border-color:var(--danger); color:var(--danger); }
-.bouton-icone:disabled { opacity:.35; cursor:default; }
+.grille { display:grid; gap:1.125rem 1rem; }
+@media (min-width:600px) { .grille.deux { grid-template-columns:1fr 1fr; } .grille.deux .large { grid-column:1/-1; } }
 
-.inclure { display:flex; align-items:flex-start; gap:.625rem; padding:.75rem .875rem; margin-bottom:1rem;
-  border-radius:var(--r); background:var(--accent-doux); border:1px solid #ead9a8; font-size:.875rem; }
-.inclure input { margin-top:.2rem; width:1.125rem; height:1.125rem; accent-color:var(--accent); flex:0 0 auto; }
-.inclure.exclue { background:var(--surface-2); border-color:var(--bordure); color:var(--texte-2); }
+/* ── Options (réponse unique) ────────────────────────────── */
+.options { display:grid; gap:.625rem; }
+.option { display:flex; align-items:center; gap:.875rem; width:100%; text-align:left;
+  padding:.9375rem 1.125rem; border-radius:12px; border:1px solid var(--bordure-forte); background:var(--surface);
+  font-size:1.0625rem; font-weight:500; transition:border-color .15s, background .15s; }
+.option:hover { border-color:var(--accent); }
+.option kbd { flex:0 0 auto; width:1.75rem; height:1.75rem; display:grid; place-items:center; border-radius:6px;
+  border:1px solid var(--bordure-forte); font:600 .8125rem var(--police); color:var(--texte-2); background:var(--surface-2); }
+.option span { min-width:0; }
+.option small { display:block; font-size:.8125rem; color:var(--texte-3); font-weight:400; margin-top:.125rem; }
+.option[aria-pressed="true"] { border-color:var(--accent); background:var(--accent-doux); }
+.option[aria-pressed="true"] kbd { background:var(--accent); border-color:var(--accent); color:#fff; }
 
-.vide { text-align:center; padding:1.75rem 1rem; color:var(--texte-3); border:1px dashed var(--bordure-forte);
-  border-radius:var(--r-lg); background:var(--surface); }
+/* ── Puces (réponses multiples, suggestions) ─────────────── */
+.puces { display:flex; flex-wrap:wrap; gap:.5rem; }
+.puce { padding:.5rem .875rem; border-radius:999px; border:1px solid var(--bordure-forte); background:var(--surface);
+  font-size:.9375rem; transition:all .15s; }
+.puce:hover { border-color:var(--accent); color:var(--accent); }
+.puce[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+.exemples { display:flex; flex-wrap:wrap; gap:.375rem; align-items:center; }
+.exemples > span { font-size:.8125rem; color:var(--texte-3); margin-right:.125rem; }
+.exemples .puce { font-size:.8125rem; padding:.3rem .65rem; }
+
+/* ── Blocs ───────────────────────────────────────────────── */
+.carte { background:var(--surface); border:1px solid var(--bordure); border-radius:var(--r-lg);
+  box-shadow:var(--ombre); padding:1.125rem; }
+.carte-tete { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.875rem; }
+.carte-tete h3 { font-size:1rem; min-width:0; overflow-wrap:anywhere; }
+.rangee { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.625rem; align-items:end;
+  padding:.875rem; border:1px solid var(--bordure); border-radius:var(--r); background:var(--surface-2); }
+.rangee .grille { gap:.75rem; }
+@media (min-width:600px) { .rangee .grille { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
+
+.liste-resume { list-style:none; margin:0; padding:0; display:grid; gap:.5rem; }
+.liste-resume li { display:flex; align-items:center; justify-content:space-between; gap:.75rem;
+  padding:.625rem .875rem; border-radius:var(--r); background:var(--surface); border:1px solid var(--bordure); }
+.liste-resume li span { min-width:0; overflow-wrap:anywhere; }
+
+.note { padding:.75rem .9375rem; border-radius:var(--r); font-size:.9375rem; background:var(--accent-doux);
+  border:1px solid var(--accent-trait); color:var(--texte); }
+.note.ko { background:var(--danger-doux); border-color:#fecdca; color:var(--danger); }
+.note.ok { background:var(--succes-doux); border-color:#abefc6; color:var(--succes); }
 
 /* ── Boutons ─────────────────────────────────────────────── */
-.btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.625rem 1rem;
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.75rem 1.25rem;
   border-radius:var(--r); border:1px solid var(--bordure-forte); background:var(--surface);
-  font-weight:600; font-size:.875rem; transition:background .15s, border-color .15s; }
+  font-weight:600; font-size:.9375rem; transition:background .15s, border-color .15s, color .15s; }
 .btn:hover { border-color:var(--accent); color:var(--accent); }
 .btn-plein { background:var(--accent); border-color:var(--accent); color:#fff; }
 .btn-plein:hover { background:var(--accent-fonce); border-color:var(--accent-fonce); color:#fff; }
-.btn-ajout { width:100%; margin-top:.875rem; border-style:dashed; color:var(--accent); }
-.btn-lien { border:none; background:none; padding:0; color:var(--danger); font-weight:500; font-size:.8125rem; text-decoration:underline; }
+.btn-discret { border-color:transparent; background:none; padding:.5rem .75rem; color:var(--texte-2); }
+.btn-petit { padding:.4rem .75rem; font-size:.8125rem; }
+.btn-lien { border:none; background:none; padding:0; color:var(--accent); font-weight:600; font-size:.875rem;
+  text-decoration:underline; text-underline-offset:2px; flex:0 0 auto; }
+.btn-lien.danger { color:var(--danger); }
+.btn-ajout { border-style:dashed; color:var(--accent); width:100%; }
 
-.pas { display:flex; justify-content:space-between; gap:.75rem; margin-top:1.25rem; }
+.nav-ecran { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:2.25rem; flex-wrap:wrap; }
+.nav-ecran .droite { display:flex; align-items:center; gap:.875rem; margin-left:auto; }
+.indice { font-size:.8125rem; color:var(--texte-3); }
+@media (hover:none) { .indice { display:none; } }
 
-/* ── Vérification & export ───────────────────────────────── */
-.tableau { width:100%; border-collapse:collapse; font-size:.875rem; }
-.tableau th, .tableau td { padding:.5rem .625rem; border-bottom:1px solid var(--bordure); text-align:left; }
-.tableau th { font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; color:var(--texte-3); font-weight:600; }
-.defile { overflow-x:auto; }
-.statut-ok { color:var(--succes); font-weight:600; }
-.statut-ko { color:var(--danger); font-weight:600; }
-.statut-neutre { color:var(--texte-3); }
-
-.erreurs { margin:0; padding:0; list-style:none; display:grid; gap:.375rem; }
+/* ── Récapitulatif ───────────────────────────────────────── */
+.recap { display:grid; gap:.875rem; }
+.recap .carte-tete { margin-bottom:.5rem; }
+.recap dl { margin:0; display:grid; gap:.375rem; }
+.recap dl div { display:grid; gap:.125rem; }
+@media (min-width:600px) { .recap dl div { grid-template-columns:11rem minmax(0,1fr); gap:1rem; } }
+.recap dt { font-size:.8125rem; color:var(--texte-3); }
+.recap dd { margin:0; overflow-wrap:anywhere; }
+.etat { font-size:.8125rem; font-weight:600; }
+.etat.garde { color:var(--texte-3); }
+.etat.vide { color:var(--danger); }
+.erreurs { list-style:none; margin:.875rem 0 0; padding:0; display:grid; gap:.375rem; }
 .erreurs button { width:100%; text-align:left; padding:.5rem .75rem; border-radius:8px;
-  border:1px solid #fecdca; background:var(--danger-doux); color:var(--danger); font-size:.8125rem; }
-.bandeau { padding:.875rem 1rem; border-radius:var(--r); font-size:.875rem; }
-.bandeau.ok { background:var(--succes-doux); color:var(--succes); border:1px solid #abefc6; }
-.bandeau.ko { background:var(--danger-doux); color:var(--danger); border:1px solid #fecdca; }
-
+  border:1px solid #fecdca; background:var(--danger-doux); color:var(--danger); font-size:.875rem; }
 pre.commande { margin:.375rem 0 0; padding:.625rem .75rem; border-radius:8px; background:#1a1a1a; color:#f7f3e8;
   font:.8125rem/1.5 var(--mono); overflow-x:auto; white-space:pre; }
 .etapes { margin:0; padding-left:1.25rem; display:grid; gap:.875rem; }
 
-/* ── Barre d'actions ─────────────────────────────────────── */
-.barre { position:fixed; inset:auto 0 0; z-index:20; background:var(--surface); border-top:1px solid var(--bordure);
-  box-shadow:0 -6px 18px -12px rgba(20,19,15,.25); }
-/* Une seule ligne quelle que soit la largeur : sur deux lignes, la barre
-   dépassait le rembourrage bas du corps et masquait la fin du contenu. */
-.barre-contenu { max-width:1180px; margin:0 auto; padding:.625rem 1rem; display:flex;
-  align-items:center; justify-content:space-between; gap:.5rem; }
-.barre-contenu .groupe { display:flex; gap:.5rem; min-width:0; }
-.court { display:none; }
-@media (max-width:479px) {
-  .barre-contenu .groupe { flex:1; }
-  .barre-contenu .btn { width:100%; padding-inline:.5rem; }
-  .long { display:none; } .court { display:inline; }
-}
-body { padding-bottom:5.5rem; }
+/* ── Sommaire ────────────────────────────────────────────── */
+dialog { border:none; border-radius:var(--r-lg); padding:0; width:min(26rem,calc(100% - 2rem));
+  box-shadow:0 24px 60px -20px rgba(20,19,15,.45); color:var(--texte); }
+dialog::backdrop { background:rgba(20,19,15,.35); }
+.sommaire-tete { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.125rem;
+  border-bottom:1px solid var(--bordure); }
+.sommaire-liste { list-style:none; margin:0; padding:.5rem; max-height:60vh; overflow-y:auto; }
+.sommaire-liste button { width:100%; display:flex; justify-content:space-between; gap:.75rem; text-align:left;
+  padding:.625rem .75rem; border:none; border-radius:8px; background:none; }
+.sommaire-liste button:hover { background:var(--surface-2); }
+.sommaire-liste button[aria-current="true"] { background:var(--accent-doux); font-weight:600; }
+.sommaire-liste .fait { color:var(--succes); font-size:.8125rem; }
+.sommaire-pied { display:flex; flex-wrap:wrap; gap:.5rem; padding:.875rem 1.125rem; border-top:1px solid var(--bordure); }
 
-.toast { position:fixed; left:50%; bottom:5.5rem; transform:translateX(-50%) translateY(1rem); opacity:0;
+.toast { position:fixed; left:50%; bottom:1.25rem; transform:translateX(-50%) translateY(1rem); opacity:0;
   background:#14130f; color:#fff; padding:.625rem 1rem; border-radius:var(--r); font-size:.875rem;
   transition:opacity .2s, transform .2s; pointer-events:none; z-index:30; max-width:calc(100% - 2rem); }
 .toast.visible { opacity:1; transform:translateX(-50%) translateY(0); }
 
-@media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none !important; } }
+@media (prefers-reduced-motion:reduce) {
+  .ecran { animation:none; }
+  *,*::before,*::after { transition:none !important; }
+}
 </style>
 </head>
 <body>
@@ -198,42 +213,38 @@ body { padding-bottom:5.5rem; }
     <div class="marque">
       <b aria-hidden="true">S</b>
       <div>
-        <h1>Mes informations</h1>
-        <p>Formulaire du seed du portfolio</p>
+        <h1>Questionnaire du portfolio</h1>
+        <p id="etat-brouillon" aria-live="polite">Réponses gardées dans ce navigateur</p>
       </div>
     </div>
-    <p class="etat-brouillon" id="etat-brouillon" aria-live="polite">Brouillon local</p>
+    <button class="btn btn-discret" type="button" id="btn-sommaire" aria-haspopup="dialog">Sommaire</button>
   </div>
+  <div class="progression" role="progressbar" aria-label="Avancement du questionnaire" aria-valuemin="0" aria-valuemax="100" id="progression"><i id="barre"></i></div>
 </header>
 
-<div class="cadre">
-  <nav class="nav" id="nav" aria-label="Sections du formulaire"></nav>
-  <main class="panneau" id="panneau"></main>
-</div>
+<main class="scene"><section class="ecran" id="ecran"></section></main>
 
-<div class="barre">
-  <div class="barre-contenu">
-    <div class="groupe">
-      <button class="btn" type="button" id="btn-importer"><span class="long">Importer un fichier</span><span class="court">Importer</span></button>
-      <input type="file" id="fichier-import" accept="application/json,.json" hidden>
-    </div>
-    <div class="groupe">
-      <button class="btn btn-plein" type="button" id="btn-verifier"><span class="long">Vérifier et exporter</span><span class="court">Exporter</span></button>
-    </div>
+<dialog id="sommaire" aria-labelledby="titre-sommaire">
+  <div class="sommaire-tete">
+    <h2 id="titre-sommaire" style="font-size:1rem">Sommaire</h2>
+    <button class="btn btn-discret btn-petit" type="button" id="fermer-sommaire">Fermer</button>
   </div>
-</div>
+  <ul class="sommaire-liste" id="sommaire-liste"></ul>
+  <div class="sommaire-pied">
+    <button class="btn btn-petit" type="button" id="btn-importer">Reprendre depuis un fichier</button>
+  </div>
+</dialog>
 
+<input type="file" id="fichier-import" accept="application/json,.json" hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-(function () {
+(() => {
   "use strict";
 
-  /* ═══ RÉFÉRENTIELS ════════════════════════════════════════════════
-     Les noms d'icônes sont ceux de lucide-react, vérifiés sur la version
-     installée dans le projet. Un nom inconnu retomberait sur l'icône par
-     défaut du site. */
-  var ICONES_SERVICES = [
+  /* ═══ 1. RÉFÉRENTIELS ═════════════════════════════════════════════
+     Noms d'icônes lucide-react, vérifiés sur la version installée. */
+  const ICONES_SERVICES = [
     ["Code", "Code — développement"], ["Layers", "Couches — full stack"], ["Smartphone", "Mobile"],
     ["Monitor", "Écran — web"], ["Server", "Serveur — back-end"], ["Database", "Base de données"],
     ["Cloud", "Cloud"], ["Workflow", "Automatisation"], ["Terminal", "Terminal — DevOps"],
@@ -245,261 +256,64 @@ body { padding-bottom:5.5rem; }
     ["Rocket", "Fusée — lancement"], ["Zap", "Éclair — performance"], ["Wrench", "Clé — maintenance"],
     ["GraduationCap", "Formation"], ["Globe", "Globe"]
   ];
-  var PLATEFORMES = [
-    ["GitHub", "Github"], ["LinkedIn", "Linkedin"], ["Twitter / X", "Twitter"], ["Instagram", "Instagram"],
-    ["Facebook", "Facebook"], ["YouTube", "Youtube"], ["GitLab", "Gitlab"], ["Dribbble", "Dribbble"],
-    ["Figma", "Figma"], ["Twitch", "Twitch"], ["CodePen", "Codepen"], ["WhatsApp", "MessageCircle"],
-    ["Telegram", "Send"], ["E-mail", "Mail"], ["Site web", "Globe"], ["Blog", "Rss"]
+  // [nom affiché, icône, exemple d'adresse]
+  const PLATEFORMES = [
+    ["GitHub", "Github", "https://github.com/ton-compte"],
+    ["LinkedIn", "Linkedin", "https://www.linkedin.com/in/ton-profil"],
+    ["X (Twitter)", "Twitter", "https://x.com/ton-compte"],
+    ["Instagram", "Instagram", "https://www.instagram.com/ton-compte"],
+    ["Facebook", "Facebook", "https://www.facebook.com/ton-compte"],
+    ["YouTube", "Youtube", "https://www.youtube.com/@ta-chaine"],
+    ["GitLab", "Gitlab", "https://gitlab.com/ton-compte"],
+    ["Dribbble", "Dribbble", "https://dribbble.com/ton-compte"],
+    ["Figma", "Figma", "https://www.figma.com/@ton-compte"],
+    ["CodePen", "Codepen", "https://codepen.io/ton-compte"],
+    ["WhatsApp", "MessageCircle", "https://wa.me/2250700000000"],
+    ["Telegram", "Send", "https://t.me/ton-compte"],
+    ["E-mail", "Mail", "mailto:toi@exemple.com"]
   ];
-  var ICONES_RESEAUX = PLATEFORMES.map(function (p) { return [p[1], p[1]]; })
-    .filter(function (v, i, t) { return t.findIndex(function (w) { return w[0] === v[0]; }) === i; })
-    .concat([["Link", "Link"], ["AtSign", "AtSign"], ["Phone", "Phone"], ["BookOpen", "BookOpen"], ["Newspaper", "Newspaper"]]);
-  var CATEGORIES = ["Frontend", "Backend", "Mobile", "DevOps", "Cloud", "Sécurité", "Cryptographie", "Réseau", "IA", "Data", "Outils"];
+  const ICONES_RESEAUX = [...new Set(PLATEFORMES.map((p) => p[1]))].map((n) => [n, n])
+    .concat([["Globe", "Globe"], ["Link", "Link"], ["Rss", "Rss"], ["BookOpen", "BookOpen"], ["AtSign", "AtSign"], ["Phone", "Phone"]]);
+  const DOMAINES = ["Frontend", "Backend", "Mobile", "DevOps", "Cloud", "Sécurité", "Cryptographie", "Réseau", "IA", "Data", "Outils"];
 
-  // Miroir de `src/lib/sections.ts` (SECTIONS_MASQUABLES).
-  var SECTIONS_SITE = [
-    ["about", "À propos"], ["services", "Services"], ["skills", "Compétences"], ["experience", "Parcours"],
-    ["projects", "Projets"], ["publications", "Publications"], ["blog", "Blog"], ["faq", "FAQ"],
-    ["testimonials", "Témoignages"], ["contact", "Contact"]
+  // Miroir de `src/lib/sections.ts` : [id, libellé, liste qui l'alimente]
+  const SECTIONS_SITE = [
+    ["about", "À propos", null], ["services", "Services", "services"], ["skills", "Compétences", "competences"],
+    ["experience", "Parcours", "parcours"], ["projects", "Projets", "projets"], ["publications", "Publications", "publications"],
+    ["blog", "Blog", "articles"], ["faq", "FAQ", "faq"], ["testimonials", "Témoignages", "temoignages"], ["contact", "Contact", null]
   ];
 
-  /* ═══ RÈGLES DE VALIDATION ════════════════════════════════════════
-     Reproduction de `prisma/donnees/schema.ts`. */
-  var R = {
-    lien: function (v) {
+  const CHAPITRES = [
+    ["toi", "Toi"], ["contact", "Te joindre"], ["visuels", "Images et CV"], ["chiffres", "Tes chiffres"],
+    ["reseaux", "Réseaux"], ["services", "Services"], ["competences", "Compétences"], ["parcours", "Parcours"],
+    ["projets", "Projets"], ["publications", "Publications"], ["articles", "Blog"], ["faq", "FAQ"],
+    ["temoignages", "Témoignages"], ["site", "Ton site"], ["recap", "Récapitulatif"]
+  ];
+  const LISTES = ["reseaux", "services", "competences", "parcours", "projets", "publications", "articles", "faq", "temoignages"];
+
+  /* Règles de validation : reproduction de `prisma/donnees/schema.ts`. */
+  const R = {
+    lien: (v) => {
       if (v.charAt(0) === "/") return v.charAt(1) !== "/";
-      try { var p = new URL(v).protocol; return p === "https:" || p === "http:"; } catch (e) { return false; }
+      try { return ["https:", "http:"].includes(new URL(v).protocol); } catch (e) { return false; }
     },
-    lienReseau: function (v) {
-      try { var p = new URL(v).protocol; return p === "https:" || p === "http:" || p === "mailto:"; } catch (e) { return false; }
-    },
-    email: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); },
-    mois: function (v) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(v); },
-    jour: function (v) { return /^\d{4}-\d{2}-\d{2}$/.test(v); }
+    lienReseau: (v) => { try { return ["https:", "http:", "mailto:"].includes(new URL(v).protocol); } catch (e) { return false; } },
+    email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    mois: (v) => /^\d{4}-(0[1-9]|1[0-2])$/.test(v),
+    jour: (v) => /^\d{4}-\d{2}-\d{2}$/.test(v)
   };
-  var MSG = {
-    requis: "Champ obligatoire.",
-    lien: "URL https:// ou chemin commençant par / (ex. /images/moi.png).",
-    lienReseau: "URL https:// ou mailto:.",
-    email: "Adresse e-mail invalide.",
-    mois: "Mois au format AAAA-MM.",
-    jour: "Date au format AAAA-MM-JJ."
+  const MSG = {
+    requis: "Cette réponse est nécessaire.",
+    lien: "Il faut une adresse https:// ou un chemin commençant par / (par exemple /images/moi.png).",
+    lienReseau: "Il faut une adresse https:// ou mailto:.",
+    email: "Cette adresse e-mail n'a pas l'air valide.",
+    mois: "Indique le mois au format AAAA-MM.",
+    jour: "Indique la date au format AAAA-MM-JJ."
   };
+  const decouper = (s) => String(s || "").split(",").map((x) => x.trim()).filter(Boolean);
 
-  /* ═══ DÉFINITION DES SECTIONS ═════════════════════════════════════
-     Chaque champ : cle, label, type, et au besoin requis, aide, large,
-     options, omettre (clé retirée du fichier si vide, pour les champs que
-     le schéma accepte absents mais pas nuls). */
-  var PROFIL = [
-    { cle: "name", label: "Nom complet", type: "texte", requis: true },
-    { cle: "title", label: "Titre professionnel", type: "texte", requis: true, aide: "Sous le nom, dans l'accueil." },
-    { cle: "bio", label: "Biographie", type: "zone", requis: true, large: true, aide: "Affichée dans l'accueil et la section « À propos »." },
-    { cle: "email", label: "E-mail de contact", type: "email" },
-    { cle: "phone", label: "Téléphone", type: "tel", aide: "Format libre : +225 07 00 00 00 00" },
-    { cle: "location", label: "Localisation", type: "texte" },
-    { cle: "cvUrl", label: "CV", type: "lien", aide: "Chemin depuis public/ (ex. /cv.pdf) ou URL https://" },
-    { cle: "photoUrl", label: "Photo de l'accueil", type: "lien", aide: "Idéalement détourée (PNG transparent). Ex. /images/moi.png" },
-    { cle: "aboutPhotoUrl", label: "Illustration « À propos »", type: "lien", aide: "Affichée sans rognage, format 4/5 conseillé." },
-    { cle: "logoUrl", label: "Logo", type: "lien", large: true },
-    { cle: "isAvailable", label: "Afficher la pastille « Disponible pour de nouveaux projets »", type: "bool", large: true }
-  ];
-
-  var PARAMETRES = [
-    { cle: "site_name", label: "Nom du site", type: "texte", aide: "Titre de l'onglet et des partages." },
-    { cle: "stats_projects", label: "Projets réalisés", type: "entier", min: 0, aide: "Compteur de la section « À propos »." },
-    { cle: "stats_years", label: "Années d'expérience", type: "entier", min: 0 },
-    { cle: "stats_techs", label: "Technologies maîtrisées", type: "entier", min: 0 }
-  ];
-
-  var LISTES = [
-    { id: "reseaux", titre: "Réseaux sociaux", singulier: "réseau",
-      aide: "Les icônes sous votre nom dans l'accueil et le pied de page.",
-      titreCarte: function (x) { return x.platform || "Nouveau réseau"; },
-      nouveau: function () { return { platform: "", url: "", iconName: "Link", active: true }; },
-      champs: [
-        { cle: "platform", label: "Plateforme", type: "texte", requis: true, suggestions: PLATEFORMES.map(function (p) { return p[0]; }), aide: "Choisir dans la liste règle l'icône automatiquement." },
-        { cle: "iconName", label: "Icône", type: "choix", options: ICONES_RESEAUX, requis: true },
-        { cle: "url", label: "Adresse", type: "lienReseau", requis: true, large: true, aide: "https://github.com/votre-compte ou mailto:vous@exemple.com" },
-        { cle: "active", label: "Afficher sur le site", type: "bool", large: true }
-      ] },
-
-    { id: "services", titre: "Services", singulier: "service",
-      aide: "Les cartes de la section « Ce que je propose ».",
-      titreCarte: function (x) { return x.title || "Nouveau service"; },
-      nouveau: function () { return { title: "", description: "", iconName: "Code", published: true }; },
-      champs: [
-        { cle: "title", label: "Intitulé", type: "texte", requis: true },
-        { cle: "iconName", label: "Icône", type: "choix", options: ICONES_SERVICES, requis: true },
-        { cle: "description", label: "Description", type: "zone", requis: true, large: true },
-        { cle: "published", label: "Publier", type: "bool", large: true }
-      ] },
-
-    { id: "competences", titre: "Compétences", singulier: "compétence", feminin: true,
-      aide: "Regroupées par catégorie : chaque catégorie devient un filtre sur le site.",
-      titreCarte: function (x) { return (x.name || "Nouvelle compétence") + (x.category ? " · " + x.category : ""); },
-      nouveau: function () { return { name: "", category: "", level: "80", iconUrl: "" }; },
-      champs: [
-        { cle: "name", label: "Compétence", type: "texte", requis: true },
-        { cle: "category", label: "Catégorie", type: "texte", requis: true, suggestions: CATEGORIES },
-        { cle: "level", label: "Niveau de maîtrise", type: "niveau", min: 0, max: 100, requis: true, large: true },
-        { cle: "iconUrl", label: "Icône (facultatif)", type: "lien", large: true, aide: "Image affichée dans les billes 3D. Ex. /icones/react.svg" }
-      ] },
-
-    { id: "parcours", titre: "Parcours", singulier: "étape", feminin: true,
-      aide: "Expériences et formations. Le site les trie du plus récent au plus ancien.",
-      titreCarte: function (x) { return (x.title || "Nouvelle étape") + (x.organization ? " · " + x.organization : ""); },
-      nouveau: function () { return { type: "work", title: "", organization: "", location: "", startDate: "", endDate: "", current: false, description: "" }; },
-      champs: [
-        { cle: "type", label: "Nature", type: "choix", options: [["work", "Expérience professionnelle"], ["education", "Formation"]], requis: true },
-        { cle: "title", label: "Poste ou diplôme", type: "texte", requis: true },
-        { cle: "organization", label: "Entreprise ou établissement", type: "texte", requis: true },
-        { cle: "location", label: "Lieu", type: "texte" },
-        { cle: "startDate", label: "Début", type: "mois", requis: true },
-        { cle: "endDate", label: "Fin", type: "mois", aide: "Laisser vide si en cours." },
-        { cle: "current", label: "En cours actuellement", type: "bool", large: true },
-        { cle: "description", label: "Description", type: "zone", large: true }
-      ] },
-
-    { id: "projets", titre: "Projets", singulier: "projet",
-      aide: "Les projets « mis en avant » apparaissent en premier.",
-      titreCarte: function (x) { return x.title || "Nouveau projet"; },
-      nouveau: function () { return { title: "", slug: "", description: "", content: "", coverUrl: "", images: "", tags: "", techStack: "", demoUrl: "", repoUrl: "", featured: false, published: true }; },
-      champs: [
-        { cle: "title", label: "Titre", type: "texte", requis: true },
-        { cle: "slug", label: "Adresse de la page (facultatif)", type: "texte", omettre: true, aide: "Déduite du titre si vide." },
-        { cle: "description", label: "Résumé", type: "zone", requis: true, large: true, aide: "Affiché sur la carte du projet." },
-        { cle: "content", label: "Présentation détaillée (facultatif)", type: "zone", large: true, aide: "Une ligne vide sépare deux paragraphes." },
-        { cle: "techStack", label: "Technologies", type: "liste", large: true, aide: "Séparées par des virgules : Next.js, PostgreSQL, Prisma" },
-        { cle: "tags", label: "Catégories", type: "liste", aide: "Servent de filtres : Web, IA, Sécurité" },
-        { cle: "coverUrl", label: "Image de couverture", type: "lien" },
-        { cle: "images", label: "Galerie (facultatif)", type: "listeLiens", large: true, aide: "Chemins ou URL séparés par des virgules." },
-        { cle: "demoUrl", label: "Démo en ligne", type: "lien" },
-        { cle: "repoUrl", label: "Code source", type: "lien" },
-        { cle: "featured", label: "Mettre en avant", type: "bool" },
-        { cle: "published", label: "Publier", type: "bool" }
-      ] },
-
-    { id: "publications", titre: "Publications", singulier: "publication", feminin: true,
-      aide: "Vos contenus publiés ailleurs (LinkedIn, GitHub, Medium…), avec un lien vers l'original.",
-      titreCarte: function (x) { return x.title || "Nouvelle publication"; },
-      nouveau: function () { return { platform: "", title: "", description: "", url: "", thumbnailUrl: "", publishedAt: "", featured: false, active: true }; },
-      champs: [
-        { cle: "platform", label: "Plateforme", type: "texte", requis: true, suggestions: ["LinkedIn", "GitHub", "Medium", "Dev.to", "YouTube", "Twitter / X"] },
-        { cle: "title", label: "Titre", type: "texte", requis: true },
-        { cle: "url", label: "Lien vers la publication", type: "lien", requis: true, large: true },
-        { cle: "description", label: "Description", type: "zone", large: true },
-        { cle: "thumbnailUrl", label: "Vignette", type: "lien" },
-        { cle: "publishedAt", label: "Date de publication", type: "jour", omettre: true },
-        { cle: "featured", label: "Mettre en avant", type: "bool" },
-        { cle: "active", label: "Afficher sur le site", type: "bool" }
-      ] },
-
-    { id: "articles", titre: "Articles de blog", singulier: "article",
-      aide: "Rédigés en texte simple : une ligne vide sépare deux paragraphes. La mise en forme riche se fait ensuite dans le back-office.",
-      titreCarte: function (x) { return x.title || "Nouvel article"; },
-      nouveau: function () { return { title: "", slug: "", excerpt: "", content: "", coverUrl: "", tags: "", readingTime: "", featured: false, published: true }; },
-      champs: [
-        { cle: "title", label: "Titre", type: "texte", requis: true, large: true },
-        { cle: "excerpt", label: "Chapeau", type: "zone", large: true, aide: "Résumé affiché dans la liste des articles." },
-        { cle: "content", label: "Contenu", type: "zone", requis: true, large: true, grand: true },
-        { cle: "tags", label: "Étiquettes", type: "liste", aide: "Séparées par des virgules." },
-        { cle: "coverUrl", label: "Image de couverture", type: "lien" },
-        { cle: "slug", label: "Adresse de la page (facultatif)", type: "texte", omettre: true, aide: "Déduite du titre si vide." },
-        { cle: "readingTime", label: "Temps de lecture en minutes (facultatif)", type: "entier", min: 1, omettre: true, aide: "Calculé automatiquement si vide." },
-        { cle: "featured", label: "Mettre en avant", type: "bool" },
-        { cle: "published", label: "Publier", type: "bool" }
-      ] },
-
-    { id: "faq", titre: "FAQ", singulier: "question", feminin: true,
-      aide: "Les questions fréquentes, dans l'ordre d'affichage.",
-      titreCarte: function (x) { return x.question || "Nouvelle question"; },
-      nouveau: function () { return { question: "", answer: "", active: true }; },
-      champs: [
-        { cle: "question", label: "Question", type: "texte", requis: true, large: true },
-        { cle: "answer", label: "Réponse", type: "zone", requis: true, large: true },
-        { cle: "active", label: "Afficher sur le site", type: "bool", large: true }
-      ] },
-
-    { id: "temoignages", titre: "Témoignages", singulier: "témoignage",
-      aide: "Uniquement des avis réels, avec l'accord de leur auteur. Les témoignages de démonstration actuellement en base seront retirés si cette section est remplacée.",
-      titreCarte: function (x) { return (x.name || "Nouveau témoignage") + (x.company ? " · " + x.company : ""); },
-      nouveau: function () { return { name: "", role: "", company: "", content: "", avatarUrl: "", rating: "5", published: true }; },
-      champs: [
-        { cle: "name", label: "Nom", type: "texte", requis: true },
-        { cle: "role", label: "Fonction", type: "texte", requis: true },
-        { cle: "company", label: "Entreprise", type: "texte" },
-        { cle: "rating", label: "Note", type: "choix", options: [["5", "★★★★★ — 5"], ["4", "★★★★ — 4"], ["3", "★★★ — 3"], ["2", "★★ — 2"], ["1", "★ — 1"]], requis: true },
-        { cle: "content", label: "Témoignage", type: "zone", requis: true, large: true },
-        { cle: "avatarUrl", label: "Photo (facultatif)", type: "lien", large: true },
-        { cle: "published", label: "Publier", type: "bool", large: true }
-      ] }
-  ];
-
-  var ORDRE = [{ id: "profil", titre: "Identité" }, { id: "parametres", titre: "Réglages du site" }]
-    .concat(LISTES.map(function (l) { return { id: l.id, titre: l.titre }; }))
-    .concat([{ id: "export", titre: "Vérifier et exporter" }]);
-
-  /* ═══ ÉTAT ════════════════════════════════════════════════════════
-     Tout est stocké en chaînes (valeurs des champs) et booléens. La mise
-     au format du seed n'a lieu qu'à l'export. */
-  var CLE_STOCKAGE = "portfolio-formulaire-seed-v1";
-
-  function etatVide() {
-    var e = { profil: {}, parametres: { sections: {} }, listes: {}, inclure: {} };
-    PROFIL.forEach(function (c) { e.profil[c.cle] = c.type === "bool" ? true : ""; });
-    PARAMETRES.forEach(function (c) { e.parametres[c.cle] = ""; });
-    SECTIONS_SITE.forEach(function (s) { e.parametres.sections[s[0]] = true; });
-    LISTES.forEach(function (l) { e.listes[l.id] = []; e.inclure[l.id] = true; });
-    return e;
-  }
-
-  function charger() {
-    try {
-      var brut = localStorage.getItem(CLE_STOCKAGE);
-      if (!brut) return null;
-      var lu = JSON.parse(brut);
-      // Fusion avec un état vide : un brouillon d'une version antérieure du
-      // formulaire récupère les champs ajoutés depuis.
-      var e = etatVide();
-      Object.assign(e.profil, lu.profil || {});
-      Object.assign(e.parametres, lu.parametres || {});
-      e.parametres.sections = Object.assign(etatVide().parametres.sections, (lu.parametres || {}).sections || {});
-      LISTES.forEach(function (l) {
-        if (lu.listes && Array.isArray(lu.listes[l.id])) {
-          e.listes[l.id] = lu.listes[l.id].map(function (x) { return Object.assign(l.nouveau(), x); });
-        }
-        if (lu.inclure && typeof lu.inclure[l.id] === "boolean") e.inclure[l.id] = lu.inclure[l.id];
-      });
-      return e;
-    } catch (err) {
-      return null;
-    }
-  }
-
-  var etat = charger() || etatVide();
-  var touches = {};          // champs déjà quittés : on n'affiche l'erreur qu'après
-  var toutMontrer = false;   // passe à vrai à la première vérification
-  var courant = (location.hash || "").slice(1);
-  if (!ORDRE.some(function (o) { return o.id === courant; })) courant = "profil";
-
-  var minuteur = null;
-  function sauvegarder() {
-    clearTimeout(minuteur);
-    minuteur = setTimeout(function () {
-      var zone = document.getElementById("etat-brouillon");
-      try {
-        localStorage.setItem(CLE_STOCKAGE, JSON.stringify(etat));
-        var h = new Date();
-        zone.textContent = "Brouillon enregistré à " + String(h.getHours()).padStart(2, "0") + ":" + String(h.getMinutes()).padStart(2, "0");
-      } catch (err) {
-        zone.textContent = "Brouillon non enregistré (stockage indisponible) — pensez à exporter";
-      }
-    }, 350);
-  }
-
-  /* ═══ VALIDATION ══════════════════════════════════════════════════ */
-  function erreurChamp(def, v, objet) {
-    var s = typeof v === "string" ? v.trim() : v;
+  function erreurChamp(def, v) {
+    const s = typeof v === "string" ? v.trim() : v;
     if (def.type === "bool") return "";
     if (def.requis && !s) return MSG.requis;
     if (!s) return "";
@@ -509,363 +323,1056 @@ body { padding-bottom:5.5rem; }
       case "lienReseau": return R.lienReseau(s) ? "" : MSG.lienReseau;
       case "mois": return R.mois(s) ? "" : MSG.mois;
       case "jour": return R.jour(s) ? "" : MSG.jour;
-      case "listeLiens":
-        var mauvais = decouper(s).filter(function (x) { return !R.lien(x); });
+      case "listeLiens": {
+        const mauvais = decouper(s).filter((x) => !R.lien(x));
         return mauvais.length ? "Lien invalide : " + mauvais[0] + ". " + MSG.lien : "";
-      case "entier":
-      case "niveau":
-        if (!/^\d+$/.test(s)) return "Nombre entier attendu.";
-        var n = Number(s);
-        if (def.min !== undefined && n < def.min) return "Minimum : " + def.min + ".";
-        if (def.max !== undefined && n > def.max) return "Maximum : " + def.max + ".";
+      }
+      case "entier": case "niveau": {
+        if (!/^\d+$/.test(s)) return "Il faut un nombre entier.";
+        const n = Number(s);
+        if (def.min !== undefined && n < def.min) return "Au minimum " + def.min + ".";
+        if (def.max !== undefined && n > def.max) return "Au maximum " + def.max + ".";
         return "";
+      }
     }
     return "";
   }
 
-  function erreursCroisees(listeId, x) {
-    var r = {};
-    if (listeId === "parcours") {
-      if (!x.current && !String(x.endDate || "").trim()) r.endDate = "Date de fin requise si l'étape n'est pas en cours.";
-      else if (!x.current && R.mois(x.startDate) && R.mois(x.endDate) && x.endDate < x.startDate) r.endDate = "La fin précède le début.";
+  function erreursCroisees(liste, x) {
+    const r = {};
+    if (liste === "parcours" && !x.current) {
+      if (!String(x.endDate || "").trim()) r.endDate = "Indique quand cette étape s'est terminée, ou coche « J'y suis encore ».";
+      else if (R.mois(x.startDate) && R.mois(x.endDate) && x.endDate < x.startDate) r.endDate = "La fin tombe avant le début.";
     }
     return r;
   }
 
-  /** Toutes les erreurs : [{ section, index, cle, message, libelle }] */
-  function toutesLesErreurs() {
-    var liste = [];
-    PROFIL.forEach(function (c) {
-      var m = erreurChamp(c, etat.profil[c.cle]);
-      if (m) liste.push({ section: "profil", index: -1, cle: c.cle, message: m, libelle: c.label });
-    });
-    PARAMETRES.forEach(function (c) {
-      var m = erreurChamp(c, etat.parametres[c.cle]);
-      if (m) liste.push({ section: "parametres", index: -1, cle: c.cle, message: m, libelle: c.label });
-    });
-    LISTES.forEach(function (l) {
-      if (!etat.inclure[l.id]) return;
-      etat.listes[l.id].forEach(function (x, i) {
-        var croisees = erreursCroisees(l.id, x);
-        l.champs.forEach(function (c) {
-          var m = erreurChamp(c, x[c.cle]) || croisees[c.cle];
-          if (m) liste.push({ section: l.id, index: i, cle: c.cle, message: m, libelle: l.singulier + " " + (i + 1) + " — " + c.label });
-        });
-      });
-    });
-    return liste;
+  /* ═══ 2. MODÈLE DES ÉLÉMENTS DE LISTE ═════════════════════════════
+     Tous les champs EXPORTÉS, avec leur type. `cache` : exporté avec sa
+     valeur par défaut mais jamais demandé. `omettre` : retiré du fichier
+     si vide (champs que le schéma accepte absents, pas nuls). Le libellé
+     peut dépendre de l'élément (parcours : poste ou diplôme). */
+  const estFormation = (x) => x.type === "education";
+  const MODELE = {
+    reseaux: {
+      nouveau: () => ({ platform: "", url: "", iconName: "Globe", active: true, perso: true }),
+      champs: [
+        { cle: "platform", label: "Nom du réseau", type: "texte", requis: true },
+        { cle: "url", label: "Adresse de ton profil", type: "lienReseau", requis: true },
+        { cle: "iconName", label: "Icône", type: "choix", options: ICONES_RESEAUX, requis: true },
+        { cle: "active", type: "bool", cache: true }
+      ] },
+    services: {
+      nouveau: () => ({ title: "", description: "", iconName: "Code", published: true }),
+      champs: [
+        { cle: "title", label: "Comment l'appelles-tu ?", type: "texte", requis: true,
+          exemples: ["Développement web", "Applications mobiles", "Audit de sécurité", "Intégration IA", "Conseil & architecture", "Administration réseau"] },
+        { cle: "description", label: "Décris-le en une ou deux phrases.", type: "zone", requis: true,
+          aide: "Ce que tu fais concrètement, et ce que ton client y gagne." },
+        { cle: "iconName", label: "Quelle icône l'illustre le mieux ?", type: "choix", options: ICONES_SERVICES, requis: true },
+        { cle: "published", type: "bool", cache: true }
+      ] },
+    competences: {
+      nouveau: () => ({ name: "", category: "", level: "75", iconUrl: "" }),
+      champs: [
+        { cle: "name", label: "Technologie ou compétence", type: "texte", requis: true },
+        { cle: "level", label: "Niveau", type: "niveau", min: 0, max: 100, requis: true },
+        { cle: "category", type: "texte", requis: true, cache: true },
+        { cle: "iconUrl", type: "lien", cache: true }
+      ] },
+    parcours: {
+      nouveau: (type) => ({ type: type || "work", title: "", organization: "", location: "", startDate: "", endDate: "", current: false, description: "" }),
+      champs: [
+        { cle: "type", type: "choix", options: [["work", "Expérience"], ["education", "Formation"]], requis: true, cache: true },
+        { cle: "title", label: (x) => estFormation(x) ? "Quel diplôme ou quelle formation ?" : "Quel était ton poste ?", type: "texte", requis: true },
+        { cle: "organization", label: (x) => estFormation(x) ? "Dans quel établissement ?" : "Dans quelle entreprise ou organisation ?", type: "texte", requis: true },
+        { cle: "location", label: "Où ?", type: "texte", aide: "Ville, pays — ou « À distance »." },
+        { cle: "startDate", label: "Quand as-tu commencé ?", type: "mois", requis: true },
+        { cle: "current", label: (x) => estFormation(x) ? "Je suis encore en formation" : "J'occupe encore ce poste", type: "bool" },
+        { cle: "endDate", label: "Quand as-tu terminé ?", type: "mois", visible: (x) => !x.current },
+        { cle: "description", label: (x) => estFormation(x) ? "Qu'y as-tu appris ? (facultatif)" : "Qu'y as-tu fait ? (facultatif)", type: "zone",
+          aide: "Tes missions, tes réalisations, les technologies utilisées." }
+      ] },
+    projets: {
+      nouveau: () => ({ title: "", slug: "", description: "", content: "", coverUrl: "", images: "", tags: "", techStack: "", demoUrl: "", repoUrl: "", featured: false, published: true }),
+      champs: [
+        { cle: "title", label: "Comment s'appelle-t-il ?", type: "texte", requis: true },
+        { cle: "description", label: "Résume-le en une ou deux phrases.", type: "zone", requis: true,
+          aide: "C'est le texte affiché sur la carte du projet." },
+        { cle: "techStack", label: "Avec quelles technologies ?", type: "liste", aide: "Sépare-les par des virgules : Next.js, PostgreSQL, Prisma" },
+        { cle: "tags", label: "Dans quelles catégories le classer ?", type: "liste",
+          aide: "Elles servent de filtres sur le site. Sépare-les par des virgules : Web, IA, Sécurité" },
+        { cle: "demoUrl", label: "Y a-t-il une démo en ligne ? (facultatif)", type: "lien" },
+        { cle: "repoUrl", label: "Et un lien vers le code source ? (facultatif)", type: "lien" },
+        { cle: "coverUrl", label: "Une image pour l'illustrer ? (facultatif)", type: "lien",
+          aide: "Dépose-la dans public/images du projet, puis indique son chemin : /images/mon-projet.png" },
+        { cle: "content", label: "Veux-tu en dire plus ? (facultatif)", type: "zone",
+          aide: "Le contexte, les défis, le résultat. Une ligne vide sépare deux paragraphes." },
+        { cle: "featured", label: "Le mettre en avant en tête de liste", type: "bool" },
+        { cle: "published", type: "bool", cache: true },
+        { cle: "slug", type: "texte", cache: true, omettre: true },
+        { cle: "images", type: "listeLiens", cache: true }
+      ] },
+    publications: {
+      nouveau: () => ({ platform: "", title: "", description: "", url: "", thumbnailUrl: "", publishedAt: "", featured: false, active: true }),
+      champs: [
+        { cle: "platform", label: "Sur quelle plateforme ?", type: "texte", requis: true,
+          exemples: ["LinkedIn", "GitHub", "Medium", "Dev.to", "YouTube"] },
+        { cle: "title", label: "Quel est son titre ?", type: "texte", requis: true },
+        { cle: "url", label: "Quelle est son adresse ?", type: "lien", requis: true },
+        { cle: "description", label: "De quoi parle-t-elle ? (facultatif)", type: "zone" },
+        { cle: "publishedAt", label: "Quand l'as-tu publiée ? (facultatif)", type: "jour", omettre: true },
+        { cle: "featured", label: "La mettre en avant", type: "bool" },
+        { cle: "thumbnailUrl", type: "lien", cache: true },
+        { cle: "active", type: "bool", cache: true }
+      ] },
+    articles: {
+      nouveau: () => ({ title: "", slug: "", excerpt: "", content: "", coverUrl: "", tags: "", readingTime: "", featured: false, published: true }),
+      champs: [
+        { cle: "title", label: "Quel est son titre ?", type: "texte", requis: true },
+        { cle: "excerpt", label: "Résume-le en une phrase. (facultatif)", type: "zone", aide: "Affiché dans la liste des articles." },
+        { cle: "content", label: "Et le texte de l'article ?", type: "zone", requis: true, grand: true,
+          aide: "En texte simple : une ligne vide sépare deux paragraphes. Tu pourras le mettre en forme ensuite dans le back-office." },
+        { cle: "tags", label: "Quelques mots-clés ? (facultatif)", type: "liste", aide: "Séparés par des virgules." },
+        { cle: "coverUrl", label: "Une image de couverture ? (facultatif)", type: "lien" },
+        { cle: "featured", label: "Le mettre en avant", type: "bool" },
+        { cle: "published", type: "bool", cache: true },
+        { cle: "slug", type: "texte", cache: true, omettre: true },
+        { cle: "readingTime", type: "entier", cache: true, omettre: true }
+      ] },
+    faq: {
+      nouveau: () => ({ question: "", answer: "", active: true }),
+      champs: [
+        { cle: "question", label: "Quelle est la question ?", type: "texte", requis: true,
+          aide: "Formule-la comme un visiteur la poserait.",
+          exemples: ["Quels types de projets réalisez-vous ?", "Quels sont vos délais ?", "Quels sont vos tarifs ?",
+                     "Travaillez-vous à distance ?", "Assurez-vous la maintenance ?"] },
+        { cle: "answer", label: "Et ta réponse ?", type: "zone", requis: true },
+        { cle: "active", type: "bool", cache: true }
+      ] },
+    temoignages: {
+      nouveau: () => ({ name: "", role: "", company: "", content: "", avatarUrl: "", rating: "5", published: true }),
+      champs: [
+        { cle: "name", label: "Qui en est l'auteur ?", type: "texte", requis: true },
+        { cle: "role", label: "Quelle est sa fonction ?", type: "texte", requis: true },
+        { cle: "company", label: "Dans quelle entreprise ? (facultatif)", type: "texte" },
+        { cle: "content", label: "Que dit ce témoignage ?", type: "zone", requis: true, aide: "Reprends ses mots, sans les embellir." },
+        { cle: "rating", label: "Quelle note sur 5 ?", type: "choix", requis: true,
+          options: [["5", "★★★★★ — 5"], ["4", "★★★★ — 4"], ["3", "★★★ — 3"], ["2", "★★ — 2"], ["1", "★ — 1"]] },
+        { cle: "avatarUrl", label: "Une photo de la personne ? (facultatif)", type: "lien" },
+        { cle: "published", type: "bool", cache: true }
+      ] }
+  };
+  const champsVisibles = (liste, x) => MODELE[liste].champs.filter((c) => !c.cache && (!c.visible || c.visible(x)));
+  const libelle = (def, x) => (typeof def.label === "function" ? def.label(x) : def.label) || "";
+
+  /* ═══ 3. ÉTAT ═════════════════════════════════════════════════════
+     Valeurs en chaînes et booléens ; mise au format du seed à l'export.
+     `choix[liste]` : "oui" (les éléments saisis), "non" (liste vidée),
+     "garder" (section non touchée) ou absent (pas encore répondu — la
+     section n'est pas touchée non plus). */
+  const CLE = "portfolio-questionnaire-v1";
+  const ANCIENNE_CLE = "portfolio-formulaire-seed-v1";
+
+  function etatVide() {
+    const e = {
+      profil: { name: "", title: "", bio: "", email: "", phone: "", location: "", photoUrl: "", aboutPhotoUrl: "", logoUrl: "", cvUrl: "", isAvailable: null },
+      parametres: { site_name: "", stats_projects: "", stats_years: "", stats_techs: "" },
+      sections: null,           // null : visibilité déduite du contenu
+      listes: {}, choix: {}, domaines: [],
+      position: "intro"
+    };
+    LISTES.forEach((l) => { e.listes[l] = []; });
+    return e;
   }
 
-  /* ═══ OUTILS DOM ══════════════════════════════════════════════════
-     Les valeurs saisies ne passent JAMAIS par innerHTML : uniquement par
-     `value` et `textContent`. */
-  function el(tag, attrs) {
-    var n = document.createElement(tag);
-    if (attrs) Object.keys(attrs).forEach(function (k) {
-      var v = attrs[k];
+  function normaliser(lu) {
+    const e = etatVide();
+    Object.assign(e.profil, lu.profil || {});
+    Object.keys(e.parametres).forEach((k) => { if (lu.parametres && lu.parametres[k] !== undefined) e.parametres[k] = String(lu.parametres[k]); });
+    if (lu.sections) e.sections = Object.assign({}, lu.sections);
+    LISTES.forEach((l) => {
+      if (lu.listes && Array.isArray(lu.listes[l])) e.listes[l] = lu.listes[l].map((x) => Object.assign(MODELE[l].nouveau(x && x.type), x));
+      if (lu.choix && ["oui", "non", "garder"].includes(lu.choix[l])) e.choix[l] = lu.choix[l];
+    });
+    e.domaines = Array.isArray(lu.domaines) ? lu.domaines.filter((d) => typeof d === "string") : [];
+    e.listes.competences.forEach((c) => { if (c.category && !e.domaines.includes(c.category)) e.domaines.push(c.category); });
+    if (typeof lu.position === "string") e.position = lu.position;
+    if (typeof lu.positionPrecedente === "string") e.positionPrecedente = lu.positionPrecedente;
+    return e;
+  }
+
+  function charger() {
+    try {
+      const brut = localStorage.getItem(CLE);
+      if (brut) return normaliser(JSON.parse(brut));
+      // Reprise d'un brouillon de l'ancien formulaire, s'il en existe un.
+      const ancien = localStorage.getItem(ANCIENNE_CLE);
+      if (ancien) {
+        const a = JSON.parse(ancien);
+        const choix = {};
+        LISTES.forEach((l) => {
+          if (a.inclure && a.inclure[l] === false) choix[l] = "garder";
+          else if (a.listes && a.listes[l] && a.listes[l].length) choix[l] = "oui";
+        });
+        return normaliser({ profil: a.profil, parametres: a.parametres, sections: a.parametres && a.parametres.sections,
+          listes: a.listes, choix: choix, position: "recap" });
+      }
+    } catch (err) { /* brouillon illisible : on repart de zéro */ }
+    return null;
+  }
+
+  let etat = charger() || etatVide();
+  let touches = {};
+
+  let minuteur = null;
+  function sauvegarder() {
+    clearTimeout(minuteur);
+    minuteur = setTimeout(() => {
+      const zone = document.getElementById("etat-brouillon");
+      try {
+        localStorage.setItem(CLE, JSON.stringify(etat));
+        const h = new Date();
+        zone.textContent = "Réponses enregistrées à " + String(h.getHours()).padStart(2, "0") + ":" + String(h.getMinutes()).padStart(2, "0");
+      } catch (err) {
+        zone.textContent = "Réponses non enregistrées ici — pense à télécharger le fichier";
+      }
+    }, 350);
+  }
+
+  /* ═══ 4. COMPOSANTS ═══════════════════════════════════════════════
+     Les réponses ne passent JAMAIS par innerHTML : `value` et
+     `textContent` uniquement. */
+  function el(tag, attrs, ...enfants) {
+    const n = document.createElement(tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => {
       if (v === undefined || v === null || v === false) return;
       if (k === "texte") n.textContent = v;
       else if (k === "classe") n.className = v;
-      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), v);
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
       else n.setAttribute(k, v === true ? "" : v);
     });
-    for (var i = 2; i < arguments.length; i++) {
-      var enfant = arguments[i];
-      if (enfant === null || enfant === undefined || enfant === false) continue;
-      n.appendChild(typeof enfant === "string" ? document.createTextNode(enfant) : enfant);
-    }
+    enfants.forEach((c) => { if (c !== null && c !== undefined && c !== false) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
     return n;
   }
-
-  /* Quitter un champ invalide fait apparaître son message d'erreur, qui
-     décale ce qui suit. Or `blur` survient au `mousedown` : le bouton visé
-     glissait sous le pointeur avant le `mouseup`, et le clic était perdu —
-     il fallait cliquer deux fois sur « Ajouter ». Pendant un geste du
-     pointeur, l'affichage est donc différé jusqu'après le clic. */
-  var pointeurEnfonce = false, differes = [];
-  document.addEventListener("pointerdown", function () { pointeurEnfonce = true; }, true);
-  document.addEventListener("pointerup", function () {
-    // `click` est émis dans la même tâche que `pointerup` : le délai nul
-    // passe après lui.
-    setTimeout(function () {
-      pointeurEnfonce = false;
-      differes.splice(0).forEach(function (fn) { fn(); });
-    }, 0);
-  }, true);
-  function apresGeste(fn) { if (pointeurEnfonce) differes.push(fn); else fn(); }
-
-  var compteurId = 0;
-  function nouvelId() { return "c" + (++compteurId); }
-
-  function decouper(s) { return String(s || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean); }
+  let compteurId = 0;
+  const nouvelId = () => "q" + (++compteurId);
 
   function toast(msg) {
-    var t = document.getElementById("toast");
+    const t = document.getElementById("toast");
     t.textContent = msg;
     t.classList.add("visible");
     clearTimeout(toast.m);
-    toast.m = setTimeout(function () { t.classList.remove("visible"); }, 2600);
+    toast.m = setTimeout(() => t.classList.remove("visible"), 2600);
   }
 
-  /**
-   * Construit un champ lié à `objet[def.cle]`.
-   * `apresSaisie` est appelé à chaque modification (titre de carte, etc.).
-   */
-  function construireChamp(def, objet, cleTouche, verifierCroise, apresSaisie) {
-    var id = nouvelId();
-    var boite = el("div", { classe: "champ" + (def.large ? " large" : ""), "data-champ": cleTouche });
-    var message = el("p", { classe: "message", id: id + "-m", hidden: true });
+  /* Quitter un champ invalide affiche son message, qui décale ce qui
+     suit. `blur` survenant au `mousedown`, le bouton visé glissait sous le
+     pointeur avant le `mouseup` et le clic était perdu. Pendant un geste
+     du pointeur, l'affichage attend donc la fin du clic. */
+  let pointeurEnfonce = false;
+  const differes = [];
+  document.addEventListener("pointerdown", () => { pointeurEnfonce = true; }, true);
+  document.addEventListener("pointerup", () => {
+    setTimeout(() => { pointeurEnfonce = false; differes.splice(0).forEach((fn) => fn()); }, 0);
+  }, true);
+  const apresGeste = (fn) => { if (pointeurEnfonce) differes.push(fn); else fn(); };
 
-    function afficher() {
-      var m = erreurChamp(def, objet[def.cle]) || (verifierCroise ? verifierCroise()[def.cle] : "");
-      var visible = m && (touches[cleTouche] || toutMontrer);
-      boite.classList.toggle("invalide", !!visible);
+  /**
+   * Champ lié à `objet[def.cle]`. `entree.seul` : le libellé est la
+   * question elle-même, lue par les lecteurs d'écran mais masquée.
+   */
+  function construireChamp(entree) {
+    const { def, objet, cleTouche, croise, apresSaisie, seul, question } = entree;
+    const id = nouvelId();
+    const texteLabel = seul ? question : libelle(def, objet);
+    const boite = el("div", { classe: "champ" + (seul ? " seul" : "") + (def.large ? " large" : ""), "data-champ": cleTouche });
+    const message = el("p", { classe: "message", id: id + "-m", hidden: true });
+    let saisie;
+
+    const afficher = () => {
+      const m = erreurChamp(def, objet[def.cle]) || (croise ? croise()[def.cle] : "");
+      const visible = !!m && !!touches[cleTouche];
+      boite.classList.toggle("invalide", visible);
       message.hidden = !visible;
       message.textContent = visible ? m : "";
-      if (entree) entree.setAttribute("aria-invalid", visible ? "true" : "false");
-    }
-
-    function changer(valeur) {
-      objet[def.cle] = valeur;
+      if (saisie) saisie.setAttribute("aria-invalid", visible ? "true" : "false");
+      return m;
+    };
+    const changer = (v) => {
+      objet[def.cle] = v;
       afficher();
       if (apresSaisie) apresSaisie(def.cle);
-      majNav();
       sauvegarder();
-    }
+    };
 
-    var entree;
     if (def.type === "bool") {
-      entree = el("input", { type: "checkbox", id: id });
-      entree.checked = !!objet[def.cle];
-      entree.addEventListener("change", function () { changer(entree.checked); });
-      boite.appendChild(el("label", { classe: "bascule", for: id }, entree, def.label));
+      saisie = el("input", { type: "checkbox", id });
+      saisie.checked = !!objet[def.cle];
+      saisie.addEventListener("change", () => changer(saisie.checked));
+      boite.appendChild(el("label", { classe: "bascule", for: id }, saisie, texteLabel));
       boite.afficher = afficher;
       return boite;
     }
 
-    var etiquette = el("label", { for: id }, def.label, def.requis ? el("span", { classe: "requis", "aria-hidden": "true", texte: "*" }) : null);
-    boite.appendChild(etiquette);
+    boite.appendChild(el("label", { for: id, classe: seul ? "sr-only" : null }, texteLabel,
+      def.requis && !seul ? el("span", { classe: "requis", "aria-hidden": "true", texte: "*" }) : null));
 
     if (def.type === "zone") {
-      entree = el("textarea", { id: id, rows: def.grand ? 12 : 4 });
+      saisie = el("textarea", { id, rows: def.grand ? 12 : 4 });
     } else if (def.type === "choix") {
-      entree = el("select", { id: id });
-      def.options.forEach(function (o) { entree.appendChild(el("option", { value: o[0], texte: o[1] })); });
+      saisie = el("select", { id });
+      def.options.forEach((o) => saisie.appendChild(el("option", { value: o[0], texte: o[1] })));
     } else if (def.type === "niveau") {
-      var sortie = el("output", { for: id });
-      entree = el("input", { type: "range", id: id, min: def.min, max: def.max, step: 1 });
-      boite.appendChild(el("div", { classe: "jauge" }, entree, sortie));
-      entree.value = objet[def.cle] || "0";
-      sortie.textContent = entree.value + " %";
-      entree.addEventListener("input", function () { sortie.textContent = entree.value + " %"; changer(entree.value); });
+      const sortie = el("output", { for: id });
+      saisie = el("input", { type: "range", id, min: def.min, max: def.max, step: 5 });
+      saisie.value = objet[def.cle] || "0";
+      sortie.textContent = saisie.value + " %";
+      saisie.addEventListener("input", () => { sortie.textContent = saisie.value + " %"; changer(saisie.value); });
+      boite.appendChild(el("div", { classe: "jauge" }, saisie, sortie));
       boite.appendChild(message);
       boite.afficher = afficher;
+      boite.saisie = saisie;
       return boite;
     } else {
-      var types = { email: "email", tel: "tel", mois: "month", jour: "date", entier: "number" };
-      entree = el("input", { type: types[def.type] || "text", id: id });
-      if (def.type === "entier") { entree.setAttribute("inputmode", "numeric"); if (def.min !== undefined) entree.min = def.min; }
-      if (def.type === "lien" || def.type === "lienReseau" || def.type === "listeLiens") { entree.setAttribute("inputmode", "url"); entree.setAttribute("spellcheck", "false"); }
-      if (def.type === "mois") entree.placeholder = "AAAA-MM";
-      if (def.type === "email") entree.autocomplete = "email";
-      if (def.type === "tel") entree.autocomplete = "tel";
-      if (def.suggestions) {
-        var dl = el("datalist", { id: id + "-l" });
-        def.suggestions.forEach(function (s) { dl.appendChild(el("option", { value: s })); });
-        boite.appendChild(dl);
-        entree.setAttribute("list", id + "-l");
-      }
+      const types = { email: "email", tel: "tel", mois: "month", jour: "date", entier: "number" };
+      saisie = el("input", { type: types[def.type] || "text", id });
+      if (def.type === "entier") { saisie.setAttribute("inputmode", "numeric"); saisie.min = def.min !== undefined ? def.min : 0; }
+      if (["lien", "lienReseau", "listeLiens"].includes(def.type)) { saisie.setAttribute("inputmode", "url"); saisie.setAttribute("spellcheck", "false"); saisie.setAttribute("autocapitalize", "off"); }
+      if (def.type === "mois") saisie.placeholder = "AAAA-MM";
+      if (def.placeholder) saisie.placeholder = def.placeholder;
+      if (def.autocomplete) saisie.setAttribute("autocomplete", def.autocomplete);
     }
 
-    entree.value = objet[def.cle] === undefined || objet[def.cle] === null ? "" : objet[def.cle];
-    entree.addEventListener(def.type === "choix" ? "change" : "input", function () { changer(entree.value); });
-    entree.addEventListener("blur", function () { touches[cleTouche] = true; apresGeste(afficher); });
-    if (def.aide) entree.setAttribute("aria-describedby", id + "-a " + id + "-m");
+    saisie.value = objet[def.cle] === undefined || objet[def.cle] === null ? "" : objet[def.cle];
+    saisie.addEventListener(def.type === "choix" ? "change" : "input", () => changer(saisie.value));
+    saisie.addEventListener("blur", () => { touches[cleTouche] = true; apresGeste(afficher); });
+    saisie.setAttribute("aria-describedby", (def.aide ? id + "-a " : "") + id + "-m");
+    boite.appendChild(saisie);
 
-    boite.appendChild(entree);
+    if (def.exemples) {
+      const zone = el("div", { classe: "exemples" }, el("span", { texte: "Par exemple :" }));
+      def.exemples.forEach((ex) => zone.appendChild(el("button", { classe: "puce", type: "button", texte: ex,
+        onclick: () => { saisie.value = ex; changer(ex); saisie.focus(); } })));
+      boite.appendChild(zone);
+    }
     if (def.aide) boite.appendChild(el("p", { classe: "aide", id: id + "-a", texte: def.aide }));
     boite.appendChild(message);
     boite.afficher = afficher;
-    boite.entree = entree;
+    boite.saisie = saisie;
     return boite;
   }
 
-  /* ═══ RENDU DES PANNEAUX ══════════════════════════════════════════ */
-  function titrePanneau(titre, aide) {
-    return el("div", { classe: "panneau-tete" }, el("h2", { texte: titre, tabindex: "-1" }), aide ? el("p", { texte: aide }) : null);
-  }
-
-  function boutonsPas() {
-    var i = ORDRE.findIndex(function (o) { return o.id === courant; });
-    var prec = ORDRE[i - 1], suiv = ORDRE[i + 1];
-    return el("div", { classe: "pas" },
-      prec ? el("button", { classe: "btn", type: "button", texte: "← " + prec.titre, onclick: function () { aller(prec.id); } }) : el("span"),
-      suiv ? el("button", { classe: "btn btn-plein", type: "button", texte: suiv.titre + " →", onclick: function () { aller(suiv.id); } }) : el("span"));
-  }
-
-  function panneauProfil() {
-    var grille = el("div", { classe: "grille" });
-    PROFIL.forEach(function (c) {
-      var ch = construireChamp(c, etat.profil, "profil." + c.cle);
-      grille.appendChild(ch);
-      ch.afficher();
+  /** Réponses uniques, activables aussi par les touches A, B, C… */
+  function options(liste) {
+    const zone = el("div", { classe: "options", role: "group" });
+    liste.forEach((o, i) => {
+      zone.appendChild(el("button", { classe: "option", type: "button", "aria-pressed": o.actif ? "true" : "false",
+        "data-touche": String.fromCharCode(65 + i), onclick: o.action },
+        el("kbd", { texte: String.fromCharCode(65 + i), "aria-hidden": "true" }),
+        el("span", {}, o.texte, o.detail ? el("small", { texte: o.detail }) : null)));
     });
-    return [titrePanneau("Identité", "Les informations qui vous présentent. Pour les images, déposez les fichiers dans le dossier public/ du projet et indiquez leur chemin."),
-      el("div", { classe: "carte" }, grille), boutonsPas()];
+    return zone;
   }
 
-  function panneauParametres() {
-    var grille = el("div", { classe: "grille" });
-    PARAMETRES.forEach(function (c) {
-      var ch = construireChamp(c, etat.parametres, "parametres." + c.cle);
-      grille.appendChild(ch);
-      ch.afficher();
-    });
-    var vis = el("div", { classe: "grille" });
-    SECTIONS_SITE.forEach(function (s) {
-      vis.appendChild(construireChamp({ cle: s[0], label: s[1], type: "bool" }, etat.parametres.sections, "sections." + s[0]));
-    });
-    return [titrePanneau("Réglages du site", "Les compteurs de la section « À propos » et les sections affichées sur la page d'accueil."),
-      el("div", { classe: "carte" }, grille),
-      el("div", { classe: "carte" },
-        el("h3", { texte: "Sections visibles", style: "font-size:.9375rem;margin-bottom:.25rem" }),
-        el("p", { classe: "aide", texte: "Une section décochée disparaît du site ; son contenu reste en base.", style: "margin:0 0 .875rem;font-size:.8125rem;color:var(--texte-3)" }),
-        vis),
-      boutonsPas()];
+  function puces(liste) {
+    const zone = el("div", { classe: "puces", role: "group" });
+    liste.forEach((p) => zone.appendChild(el("button", { classe: "puce", type: "button", "aria-pressed": p.actif ? "true" : "false",
+      texte: p.texte, onclick: p.action })));
+    return zone;
   }
 
-  function panneauListe(def) {
-    var items = etat.listes[def.id];
-    var zone = el("div");
+  /* ═══ 5. LE PARCOURS DE QUESTIONS ═════════════════════════════════
+     Chaque écran : cle, chap, question, aide, et soit `champs` (liste de
+     { def, objet, cleTouche, croise }), soit `rendu(corps)` sur mesure.
+     `valider()` renvoie un message bloquant, `sansSuivant` masque le
+     bouton « Continuer » (réponses par options). `ecrans()` n'a AUCUN
+     effet de bord : on peut l'appeler autant qu'on veut. */
+  function champ(objet, def, cleEcran, croise) {
+    return { def, objet, cleTouche: cleEcran + ":" + def.cle, croise };
+  }
+  const profilChamp = (cleEcran, def) => champ(etat.profil, def, cleEcran);
 
-    var caseInclure = el("input", { type: "checkbox", id: "inclure-" + def.id });
-    caseInclure.checked = etat.inclure[def.id];
-    var texteInclure = el("span");
-    var bandeau = el("label", { classe: "inclure", for: "inclure-" + def.id }, caseInclure, texteInclure);
-    function majInclure() {
-      var oui = etat.inclure[def.id];
-      bandeau.classList.toggle("exclue", !oui);
-      texteInclure.textContent = oui
-        ? "Remplacer cette section en base par le contenu ci-dessous" + (items.length ? "." : " — la liste étant vide, la section sera VIDÉE.")
-        : "Section ignorée : le contenu actuellement en base ne sera pas modifié.";
+  function ecrans() {
+    const L = [];
+    const e = etat;
+
+    L.push({ cle: "intro", chap: "intro", rendu: rIntro, sansNav: true });
+
+    // ── Toi ─────────────────────────────────────────────────
+    L.push({ cle: "nom", chap: "toi", question: "Pour commencer, comment t'appelles-tu ?",
+      aide: "Ton nom tel qu'il s'affichera en grand sur la page d'accueil.",
+      champs: [profilChamp("nom", { cle: "name", type: "texte", requis: true, autocomplete: "name" })] });
+    L.push({ cle: "titre", chap: "toi", question: "Quel titre professionnel veux-tu afficher sous ton nom ?",
+      aide: "Une ligne courte, qui dit ce que tu fais.",
+      champs: [profilChamp("titre", { cle: "title", type: "texte", requis: true,
+        exemples: ["Développeur Full Stack", "Ingénieur DevSecOps", "Développeur Web & Mobile", "Consultant en cybersécurité"] })] });
+    L.push({ cle: "bio", chap: "toi", question: "Présente-toi en quelques phrases.",
+      aide: "Ce que tu fais, pour qui, et ce qui te distingue. Ce texte apparaît dans l'accueil et dans la section « À propos ».",
+      champs: [profilChamp("bio", { cle: "bio", type: "zone", requis: true })] });
+    L.push({ cle: "lieu", chap: "toi", question: "Où es-tu basé ?", aide: "Ville et pays, par exemple : Abidjan, Côte d'Ivoire.",
+      champs: [profilChamp("lieu", { cle: "location", type: "texte", autocomplete: "address-level2" })] });
+
+    // ── Te joindre ──────────────────────────────────────────
+    L.push({ cle: "contact", chap: "contact", question: "Comment les visiteurs peuvent-ils te joindre ?",
+      aide: "Affichés dans la section Contact. Laisse vide ce que tu ne veux pas montrer.",
+      champs: [
+        profilChamp("contact", { cle: "email", label: "Ton adresse e-mail", type: "email", autocomplete: "email" }),
+        profilChamp("contact", { cle: "phone", label: "Ton numéro de téléphone", type: "tel", autocomplete: "tel", placeholder: "+225 07 00 00 00 00" })
+      ] });
+
+    // ── Images et CV ────────────────────────────────────────
+    const aideFichier = "Dépose le fichier dans le dossier public/images du projet, puis indique son chemin. Une adresse https:// fonctionne aussi.";
+    L.push({ cle: "photo", chap: "visuels", question: "As-tu une photo de toi pour la page d'accueil ?",
+      aide: "Idéalement détourée, sur fond transparent (PNG). " + aideFichier,
+      champs: [profilChamp("photo", { cle: "photoUrl", type: "lien", placeholder: "/images/moi.png" })] });
+    L.push({ cle: "illustration", chap: "visuels", question: "Et une image ou une illustration pour la section « À propos » ?",
+      aide: "Elle s'affiche en entier, sans être recadrée ; un format vertical (4/5) rend le mieux. " + aideFichier,
+      champs: [profilChamp("illustration", { cle: "aboutPhotoUrl", type: "lien", placeholder: "/images/illustration.png" })] });
+    L.push({ cle: "logo", chap: "visuels", question: "As-tu un logo ?", aide: aideFichier,
+      champs: [profilChamp("logo", { cle: "logoUrl", type: "lien", placeholder: "/images/logo.png" })] });
+    L.push({ cle: "cv", chap: "visuels", question: "Veux-tu proposer ton CV en téléchargement ?",
+      aide: "Dépose le PDF dans le dossier public du projet, puis indique son chemin.",
+      champs: [profilChamp("cv", { cle: "cvUrl", type: "lien", placeholder: "/cv.pdf" })] });
+
+    // ── Tes chiffres ────────────────────────────────────────
+    L.push({ cle: "chiffres", chap: "chiffres", question: "Quelques chiffres pour la section « À propos » ?",
+      aide: "Ils s'affichent sous forme de compteurs animés. Laisse vide ce que tu ne veux pas modifier.",
+      champs: [
+        champ(e.parametres, { cle: "stats_projects", label: "Combien de projets as-tu réalisés ?", type: "entier", min: 0 }, "chiffres"),
+        champ(e.parametres, { cle: "stats_years", label: "Depuis combien d'années exerces-tu ?", type: "entier", min: 0 }, "chiffres"),
+        champ(e.parametres, { cle: "stats_techs", label: "Combien de technologies maîtrises-tu ?", type: "entier", min: 0 }, "chiffres")
+      ] });
+
+    // ── Réseaux ─────────────────────────────────────────────
+    L.push(ecranChoix("reseaux", "Veux-tu afficher tes réseaux sociaux sur le site ?",
+      "Ils apparaissent sous forme d'icônes sous ton nom et dans le pied de page.",
+      ["Oui, je choisis lesquels", "Non, aucun réseau", "Garder ceux déjà en ligne"]));
+    if (e.choix.reseaux === "oui") {
+      L.push({ cle: "reseaux.lesquels", chap: "reseaux", question: "Sur quels réseaux peut-on te trouver ?",
+        aide: "Sélectionne-les tous ; je te demanderai ensuite les adresses.",
+        valider: () => e.listes.reseaux.length ? "" : "Choisis au moins un réseau, ou reviens en arrière et réponds « aucun ».",
+        rendu: rReseaux });
+      L.push({ cle: "reseaux.liens", chap: "reseaux", question: "Donne-moi l'adresse de chacun de tes profils.",
+        aide: "Copie-la depuis la barre d'adresse de ton navigateur, sur ta page de profil.",
+        champs: e.listes.reseaux.flatMap((x, i) => {
+          const base = "reseaux." + i;
+          const preset = PLATEFORMES.find((p) => p[0] === x.platform);
+          const url = champ(x, Object.assign({}, MODELE.reseaux.champs[1], {
+            label: x.perso ? "Adresse du profil" : "Ton profil " + x.platform,
+            placeholder: preset ? preset[2] : "https://"
+          }), base);
+          return x.perso ? [champ(x, MODELE.reseaux.champs[0], base), url, champ(x, MODELE.reseaux.champs[2], base)] : [url];
+        }),
+        rendu: rLiensReseaux });
     }
-    caseInclure.addEventListener("change", function () {
-      etat.inclure[def.id] = caseInclure.checked;
-      majInclure(); majNav(); sauvegarder();
+
+    // ── Services ────────────────────────────────────────────
+    boucle(L, "services", {
+      choix: ["Proposes-tu des services à des clients ?", "Ils apparaissent sous forme de cartes dans la section « Ce que je propose ».",
+        ["Oui, je vais les décrire", "Non, pas de services", "Garder ceux déjà en ligne"]],
+      item: (i) => "Service n°" + (i + 1) + " : de quoi s'agit-il ?",
+      encore: "Proposes-tu un autre service ?",
+      resume: (x) => x.title,
+      ajouts: [["Oui, en ajouter un"]]
     });
-    majInclure();
 
-    function redessiner(focaliser) {
-      zone.textContent = "";
-      if (!items.length) {
-        zone.appendChild(el("p", { classe: "vide", texte: (def.feminin ? "Aucune " : "Aucun ") + def.singulier + " pour l'instant." }));
-      }
-      items.forEach(function (x, i) {
-        var titre = el("h3", {}, el("span", { texte: "#" + (i + 1) }), def.titreCarte(x));
-        var grille = el("div", { classe: "grille" });
-        var champs = [];
-        var croise = function () { return erreursCroisees(def.id, x); };
-
-        def.champs.forEach(function (c) {
-          var ch = construireChamp(c, x, def.id + "." + i + "." + c.cle, croise, function (cle) {
-            titre.lastChild.textContent = def.titreCarte(x);
-            // Plateforme reconnue : l'icône suit automatiquement.
-            if (def.id === "reseaux" && cle === "platform") {
-              var trouve = PLATEFORMES.filter(function (p) { return p[0].toLowerCase() === String(x.platform).trim().toLowerCase(); })[0];
-              if (trouve) {
-                x.iconName = trouve[1];
-                champs.forEach(function (autre) { if (autre.dataset.champ.slice(-9) === ".iconName") autre.entree.value = trouve[1]; });
-              }
-            }
-            // Les règles croisées dépendent de plusieurs champs.
-            champs.forEach(function (autre) { autre.afficher(); });
-          });
-          champs.push(ch);
-          grille.appendChild(ch);
-        });
-        champs.forEach(function (ch) { ch.afficher(); });
-
-        var outils = el("div", { classe: "outils-element" },
-          el("button", { classe: "bouton-icone", type: "button", "aria-label": "Monter", title: "Monter", disabled: i === 0, texte: "↑",
-            onclick: function () { deplacer(i, -1); } }),
-          el("button", { classe: "bouton-icone", type: "button", "aria-label": "Descendre", title: "Descendre", disabled: i === items.length - 1, texte: "↓",
-            onclick: function () { deplacer(i, 1); } }),
-          el("button", { classe: "bouton-icone danger", type: "button", "aria-label": "Supprimer", title: "Supprimer", texte: "✕",
-            onclick: function () {
-              var rempli = def.champs.some(function (c) { return c.type !== "bool" && String(x[c.cle] || "").trim(); });
-              if (rempli && !confirm("Supprimer « " + def.titreCarte(x) + " » ?")) return;
-              items.splice(i, 1); redessiner(); majInclure(); majNav(); sauvegarder();
-            } }));
-
-        var carte = el("div", { classe: "carte" }, el("div", { classe: "element-tete" }, titre, outils), grille);
-        zone.appendChild(carte);
-        if (focaliser === i) {
-          // Focus IMMÉDIAT : différé, il volait la saisie si l'on avait
-          // entre-temps touché un autre champ. `preventScroll` laisse le
-          // défilement doux amener la carte sans à-coup.
-          var premier = carte.querySelector("input:not([type=checkbox]), select, textarea");
-          if (premier) premier.focus({ preventScroll: true });
-          carte.scrollIntoView({ block: "start", behavior: "smooth" });
-        }
+    // ── Compétences ─────────────────────────────────────────
+    L.push(ecranChoix("competences", "Veux-tu présenter tes compétences techniques ?",
+      "Elles s'affichent par domaine, avec une jauge de niveau ; chaque domaine devient un filtre sur le site.",
+      ["Oui, je vais les lister", "Non", "Garder celles déjà en ligne"]));
+    if (e.choix.competences === "oui") {
+      L.push({ cle: "competences.domaines", chap: "competences", question: "Dans quels domaines as-tu des compétences ?",
+        aide: "Sélectionne-les tous, ou ajoute le tien.",
+        valider: () => e.domaines.length ? "" : "Choisis au moins un domaine.",
+        rendu: rDomaines });
+      e.domaines.forEach((d) => {
+        const items = e.listes.competences.map((x, i) => [x, i]).filter(([x]) => x.category === d);
+        L.push({ cle: "competences.d." + d, chap: "competences",
+          question: "Quelles technologies maîtrises-tu en « " + d + " », et à quel niveau ?",
+          aide: "Le niveau s'affiche sous forme de jauge, de 0 à 100 %.",
+          valider: () => items.length ? "" : "Ajoute au moins une compétence, ou retire ce domaine à la question précédente.",
+          champs: items.flatMap(([x, i]) => MODELE.competences.champs.filter((c) => !c.cache).map((c) => champ(x, c, "competences." + i))),
+          rendu: (corps, ecran, construire) => rDomaine(corps, d, items, ecran, construire) });
       });
     }
 
-    function deplacer(i, sens) {
-      var j = i + sens;
-      var tmp = items[i]; items[i] = items[j]; items[j] = tmp;
-      redessiner(); majNav(); sauvegarder();
+    // ── Parcours ────────────────────────────────────────────
+    boucle(L, "parcours", {
+      choix: ["Veux-tu présenter ton parcours ?", "Tes expériences professionnelles et tes formations. Le site les classe de la plus récente à la plus ancienne.",
+        ["Oui, je vais le décrire", "Non", "Garder celui déjà en ligne"]],
+      premier: "Par quoi commences-tu ?",
+      item: (i, x) => (estFormation(x) ? "Formation" : "Expérience") + " n°" + (i + 1) + (estFormation(x) ? " : parle-moi de cette formation." : " : parle-moi de ce poste."),
+      encore: "Veux-tu ajouter une autre étape à ton parcours ?",
+      resume: (x) => [x.title, x.organization].filter(Boolean).join(" — "),
+      ajouts: [["Oui, une expérience professionnelle", "work"], ["Oui, une formation", "education"]]
+    });
+
+    // ── Projets ─────────────────────────────────────────────
+    boucle(L, "projets", {
+      choix: ["Veux-tu présenter tes projets ?", "Ils s'affichent sous forme de cartes ; ceux que tu mets en avant passent en premier.",
+        ["Oui, je vais les décrire", "Non", "Garder ceux déjà en ligne"]],
+      item: (i) => i === 0 ? "Parle-moi d'un projet dont tu es fier." : "Parle-moi de ton projet n°" + (i + 1) + ".",
+      encore: "As-tu un autre projet à présenter ?",
+      resume: (x) => x.title,
+      ajouts: [["Oui, en ajouter un"]]
+    });
+
+    // ── Publications ────────────────────────────────────────
+    boucle(L, "publications", {
+      choix: ["As-tu publié des contenus ailleurs que tu veux mettre en avant ?", "Un post LinkedIn, un dépôt GitHub, un article Medium… Le site affiche un lien vers l'original.",
+        ["Oui, je vais les indiquer", "Non", "Garder celles déjà en ligne"]],
+      item: (i) => "Publication n°" + (i + 1) + " : de quoi s'agit-il ?",
+      encore: "As-tu une autre publication à ajouter ?",
+      resume: (x) => x.title,
+      ajouts: [["Oui, en ajouter une"]]
+    });
+
+    // ── Blog ────────────────────────────────────────────────
+    boucle(L, "articles", {
+      choix: ["Veux-tu publier des articles sur ton blog dès maintenant ?", "Tu pourras toujours en écrire plus tard depuis le back-office, avec une mise en forme riche.",
+        ["Oui, j'en ai un ou plusieurs", "Non, pas pour l'instant", "Garder ceux déjà en ligne"]],
+      item: (i) => "Article n°" + (i + 1),
+      encore: "As-tu un autre article à publier ?",
+      resume: (x) => x.title,
+      ajouts: [["Oui, en ajouter un"]]
+    });
+
+    // ── FAQ ─────────────────────────────────────────────────
+    boucle(L, "faq", {
+      choix: ["Veux-tu répondre aux questions que tes clients se posent souvent ?", "Elles s'affichent dans une section « Questions fréquentes ».",
+        ["Oui, je vais les écrire", "Non", "Garder celles déjà en ligne"]],
+      item: (i) => "Question fréquente n°" + (i + 1),
+      encore: "Y a-t-il une autre question qu'on te pose souvent ?",
+      resume: (x) => x.question,
+      ajouts: [["Oui, en ajouter une"]]
+    });
+
+    // ── Témoignages ─────────────────────────────────────────
+    boucle(L, "temoignages", {
+      choix: ["Des clients ou des collègues t'ont-ils laissé un avis que tu peux publier ?",
+        "Uniquement des avis réels, avec l'accord de leur auteur. Les deux avis actuellement sur le site sont des exemples fictifs : répondre « Non » les retire.",
+        ["Oui, je vais les recopier", "Non, pas encore", "Garder ceux déjà en ligne"]],
+      item: (i) => "Témoignage n°" + (i + 1),
+      encore: "As-tu un autre témoignage ?",
+      resume: (x) => [x.name, x.company].filter(Boolean).join(" — "),
+      ajouts: [["Oui, en ajouter un"]]
+    });
+
+    // ── Ton site ────────────────────────────────────────────
+    L.push({ cle: "sections", chap: "site", question: "Dernière question : quelles sections veux-tu afficher sur ton site ?",
+      aide: "J'ai présélectionné celles pour lesquelles tu as du contenu. Une section masquée garde son contenu en base : tu pourras la réafficher depuis le back-office.",
+      rendu: rSections });
+
+    L.push({ cle: "recap", chap: "recap", rendu: rRecap, sansNav: true });
+    return L;
+  }
+
+  /** Question d'entrée d'une section de liste : oui / non / garder. */
+  function ecranChoix(liste, question, aide, textes) {
+    const e = etat;
+    const detailGarder = "Rien ne changera dans cette section du site.";
+    return { cle: liste + ".choix", chap: liste, question, aide, sansSuivant: true,
+      rendu: (c) => {
+        c.appendChild(options([
+          { texte: textes[0], actif: e.choix[liste] === "oui", action: () => choisir(liste, "oui") },
+          { texte: textes[1], actif: e.choix[liste] === "non", action: () => choisir(liste, "non"),
+            detail: e.listes[liste].length ? "Ce que tu as déjà saisi ici est conservé, au cas où tu changerais d'avis." : null },
+          { texte: textes[2], actif: e.choix[liste] === "garder", action: () => choisir(liste, "garder"), detail: detailGarder }
+        ]));
+      } };
+  }
+
+  function choisir(liste, valeur) {
+    etat.choix[liste] = valeur;
+    // Dans le parcours, la première étape demande sa nature : on ne crée
+    // rien avant la réponse.
+    if (valeur === "oui" && !etat.listes[liste].length && !["reseaux", "competences", "parcours"].includes(liste)) {
+      etat.listes[liste].push(MODELE[liste].nouveau());
+    }
+    sauvegarder();
+    suivant();
+  }
+
+  /**
+   * Boucle d'entretien : choix → un écran par élément → « un autre ? ».
+   */
+  function boucle(L, liste, o) {
+    const e = etat;
+    L.push(ecranChoix(liste, o.choix[0], o.choix[1], o.choix[2]));
+    if (e.choix[liste] !== "oui") return;
+
+    if (o.premier && !e.listes[liste].length) {
+      L.push({ cle: liste + ".premier", chap: liste, question: o.premier, sansSuivant: true,
+        valider: () => e.listes[liste].length ? "" : "Choisis une réponse.",
+        rendu: (c) => c.appendChild(options(o.ajouts.map(([t, type]) => ({ texte: t.replace(/^Oui, /, "").replace(/^./, (m) => m.toUpperCase()),
+          action: () => { e.listes[liste].push(MODELE[liste].nouveau(type)); sauvegarder(); aller(liste + ".0"); } })))) });
+      return;
     }
 
-    redessiner();
+    e.listes[liste].forEach((x, i) => {
+      L.push({ cle: liste + "." + i, chap: liste, question: o.item(i, x), liste, index: i,
+        champs: champsVisibles(liste, x).map((c) => champ(x, c, liste + "." + i, () => erreursCroisees(liste, x))),
+        rendu: liste === "parcours" ? (corps, ecran, construire) => rEtapeParcours(corps, ecran, x, construire) : null });
+    });
 
-    var ajout = el("button", { classe: "btn btn-ajout", type: "button",
-      texte: "+ Ajouter " + (def.feminin ? "une " : "un ") + def.singulier,
-      onclick: function () { items.push(def.nouveau()); redessiner(items.length - 1); majInclure(); majNav(); sauvegarder(); } });
+    L.push({ cle: liste + ".encore", chap: liste, question: o.encore, sansSuivant: true,
+      rendu: (c) => {
+        const recap = el("ul", { classe: "liste-resume" });
+        e.listes[liste].forEach((x, i) => recap.appendChild(el("li", {},
+          el("span", { texte: (i + 1) + ". " + (o.resume(x) || "(sans titre)") }),
+          el("button", { classe: "btn-lien", type: "button", texte: "Modifier", onclick: () => aller(liste + "." + i) }))));
+        c.appendChild(recap);
+        c.appendChild(options(o.ajouts.map(([t, type]) => ({ texte: t,
+          action: () => { e.listes[liste].push(MODELE[liste].nouveau(type)); sauvegarder(); aller(liste + "." + (e.listes[liste].length - 1)); } }))
+          .concat([{ texte: "Non, c'est tout", action: () => suivant() }])));
+      } });
+  }
 
-    return [titrePanneau(def.titre, def.aide), bandeau, zone, ajout, boutonsPas()];
+  /* ── Rendus sur mesure ──────────────────────────────────── */
+  function rIntro(c) {
+    const reprise = etat.position !== "intro";
+    c.appendChild(el("p", { classe: "surtitre", texte: "Bienvenue" }));
+    c.appendChild(el("h2", { classe: "question", tabindex: "-1", texte: reprise ? "Content de te revoir." : "Construisons ton portfolio ensemble." }));
+    c.appendChild(el("p", { classe: "aide-question", texte: reprise
+      ? "Tes réponses précédentes sont toujours là. Tu peux reprendre où tu t'étais arrêté, ou revoir l'ensemble au récapitulatif."
+      : "Je vais te poser des questions sur toi, ton travail et ce que tu veux montrer. Tes réponses serviront à remplir le site automatiquement. Compte une vingtaine de minutes ; tu peux t'arrêter quand tu veux, tout est gardé dans ce navigateur." }));
+    const corps = el("div", { classe: "corps" });
+    const liste = reprise
+      ? [{ texte: "Reprendre où j'en étais", action: () => aller(etat.positionPrecedente || etat.position || "nom") },
+         { texte: "Voir le récapitulatif", action: () => aller("recap") },
+         { texte: "Reprendre depuis un fichier", detail: "Un mes-infos.json téléchargé précédemment.", action: ouvrirImport }]
+      : [{ texte: "Commencer", action: () => aller("nom") },
+         { texte: "Reprendre depuis un fichier", detail: "Un mes-infos.json téléchargé précédemment.", action: ouvrirImport }];
+    corps.appendChild(options(liste));
+    c.appendChild(corps);
+  }
+
+  function rReseaux(c) {
+    const e = etat;
+    const actifs = new Set(e.listes.reseaux.filter((x) => !x.perso).map((x) => x.platform));
+    c.appendChild(puces(PLATEFORMES.map(([nom, icone]) => ({ texte: nom, actif: actifs.has(nom),
+      action: () => {
+        const i = e.listes.reseaux.findIndex((x) => !x.perso && x.platform === nom);
+        if (i >= 0) {
+          if (e.listes.reseaux[i].url.trim() && !confirm("Retirer " + nom + " et l'adresse déjà saisie ?")) return;
+          e.listes.reseaux.splice(i, 1);
+        } else {
+          e.listes.reseaux.push({ platform: nom, url: "", iconName: icone, active: true, perso: false });
+        }
+        sauvegarder(); rafraichir();
+      } }))));
+    const perso = e.listes.reseaux.filter((x) => x.perso).length;
+    c.appendChild(el("button", { classe: "btn btn-ajout", type: "button",
+      texte: perso ? "+ Un autre réseau qui n'est pas dans la liste (" + perso + " ajouté" + (perso > 1 ? "s" : "") + ")" : "+ Un réseau qui n'est pas dans la liste",
+      onclick: () => { e.listes.reseaux.push(MODELE.reseaux.nouveau()); sauvegarder(); rafraichir(); } }));
+  }
+
+  function rLiensReseaux(corps, ecran, construire) {
+    const e = etat;
+    let k = 0;
+    e.listes.reseaux.forEach((x, i) => {
+      const n = x.perso ? 3 : 1;
+      const boites = ecran.champs.slice(k, k + n).map(construire);
+      k += n;
+      if (!x.perso) { boites.forEach((b) => corps.appendChild(b)); return; }
+      corps.appendChild(el("div", { classe: "carte" },
+        el("div", { classe: "carte-tete" }, el("h3", { texte: "Autre réseau" }),
+          el("button", { classe: "btn-lien danger", type: "button", texte: "Retirer",
+            onclick: () => { e.listes.reseaux.splice(i, 1); sauvegarder(); rafraichir(); } })),
+        el("div", { classe: "grille deux" }, ...boites)));
+    });
+  }
+
+  function rDomaines(c) {
+    const e = etat;
+    const tous = [...new Set(DOMAINES.concat(e.domaines))];
+    c.appendChild(puces(tous.map((d) => ({ texte: d, actif: e.domaines.includes(d),
+      action: () => {
+        if (e.domaines.includes(d)) {
+          const n = e.listes.competences.filter((x) => x.category === d).length;
+          if (n && !confirm("Retirer « " + d + " » et ses " + n + " compétence(s) ?")) return;
+          e.domaines = e.domaines.filter((x) => x !== d);
+          e.listes.competences = e.listes.competences.filter((x) => x.category !== d);
+        } else {
+          e.domaines.push(d);
+          e.listes.competences.push(Object.assign(MODELE.competences.nouveau(), { category: d }));
+        }
+        sauvegarder(); rafraichir();
+      } }))));
+    const saisie = el("input", { type: "text", placeholder: "Un autre domaine…", "aria-label": "Ajouter un domaine" });
+    const ajouter = () => {
+      const d = saisie.value.trim();
+      if (!d) return;
+      if (!e.domaines.includes(d)) {
+        e.domaines.push(d);
+        e.listes.competences.push(Object.assign(MODELE.competences.nouveau(), { category: d }));
+      }
+      sauvegarder(); rafraichir();
+    };
+    saisie.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); ev.stopPropagation(); ajouter(); } });
+    c.appendChild(el("div", { classe: "champ", style: "grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.5rem" },
+      saisie, el("button", { classe: "btn", type: "button", texte: "Ajouter", onclick: ajouter })));
+  }
+
+  function rDomaine(corps, domaine, items, ecran, construire) {
+    const e = etat;
+    let k = 0;
+    items.forEach(([x, i]) => {
+      const boites = ecran.champs.slice(k, k + 2).map(construire);
+      k += 2;
+      corps.appendChild(el("div", { classe: "rangee" },
+        el("div", { classe: "grille" }, ...boites),
+        el("button", { classe: "btn-lien danger", type: "button", texte: "Retirer", "aria-label": "Retirer " + (x.name || "cette compétence"),
+          onclick: () => { e.listes.competences.splice(i, 1); sauvegarder(); rafraichir(); } })));
+    });
+    corps.appendChild(el("button", { classe: "btn btn-ajout", type: "button", texte: "+ Ajouter une compétence en « " + domaine + " »",
+      onclick: () => {
+        e.listes.competences.push(Object.assign(MODELE.competences.nouveau(), { category: domaine }));
+        sauvegarder(); rafraichir(true);
+      } }));
+  }
+
+  function rEtapeParcours(corps, ecran, x, construire) {
+    // Nature de l'étape en tête : elle change les questions suivantes.
+    corps.appendChild(puces([["work", "Expérience professionnelle"], ["education", "Formation"]].map(([v, t]) => ({
+      texte: t, actif: x.type === v, action: () => { x.type = v; sauvegarder(); rafraichir(); } }))));
+    ecran.champs.forEach((ch) => corps.appendChild(construire(ch)));
+  }
+
+  /** Visibilité des sections : réglée par l'utilisateur, ou déduite. */
+  function sectionsEffectives() {
+    if (etat.sections) return etat.sections;
+    const s = {};
+    SECTIONS_SITE.forEach(([id, , liste]) => {
+      if (!liste) { s[id] = true; return; }
+      const c = etat.choix[liste];
+      s[id] = c === "oui" ? etat.listes[liste].length > 0 : c !== "non";
+    });
+    return s;
+  }
+
+  function rSections(c) {
+    const s = sectionsEffectives();
+    c.appendChild(puces(SECTIONS_SITE.map(([id, nom]) => ({ texte: nom, actif: !!s[id],
+      action: () => { etat.sections = Object.assign({}, sectionsEffectives(), { [id]: !s[id] }); sauvegarder(); rafraichir(); } }))));
+  }
+
+  /* ═══ 6. NAVIGATION ═══════════════════════════════════════════════ */
+  let ecranCourant = null;
+  let boitesCourantes = [];
+
+  function trouver(cle) {
+    const liste = ecrans();
+    let i = liste.findIndex((x) => x.cle === cle);
+    if (i < 0) {
+      // Écran disparu (élément supprimé…) : premier écran du même chapitre.
+      const chap = String(cle).split(".")[0];
+      i = liste.findIndex((x) => x.chap === chap);
+    }
+    return { liste, i: i < 0 ? 0 : i };
+  }
+
+  function aller(cle, garderDefilement) {
+    const { liste, i } = trouver(cle);
+    const ecran = liste[i];
+    ecranCourant = ecran;
+    if (ecran.cle !== "intro") {
+      if (etat.position !== ecran.cle && ecran.cle !== "recap") etat.positionPrecedente = ecran.cle;
+      etat.position = ecran.cle;
+      sauvegarder();
+    }
+
+    const zone = document.getElementById("ecran");
+    zone.textContent = "";
+    // Relance l'animation d'apparition.
+    zone.classList.remove("ecran"); void zone.offsetWidth; zone.classList.add("ecran");
+    boitesCourantes = [];
+
+    const idx = CHAPITRES.findIndex((ch) => ch[0] === ecran.chap);
+    const construire = (ch) => {
+      const b = construireChamp(Object.assign({}, ch, {
+        seul: ecran.champs && ecran.champs.length === 1 && !ecran.rendu,
+        question: ecran.question,
+        apresSaisie: (cleChamp) => {
+          // Les règles croisées et les champs conditionnels dépendent de
+          // plusieurs réponses.
+          if (cleChamp === "current") { rafraichir(); return; }
+          boitesCourantes.forEach((autre) => autre.afficher());
+          majBoutonSuivant();
+        }
+      }));
+      boitesCourantes.push(b);
+      return b;
+    };
+
+    if (ecran.sansNav) {
+      ecran.rendu(zone, ecran, construire);
+    } else {
+      zone.appendChild(el("p", { classe: "surtitre", texte: CHAPITRES[idx][1] + " · " + (idx + 1) + "/" + (CHAPITRES.length - 1) }));
+      zone.appendChild(el("h2", { classe: "question", tabindex: "-1", id: "question", texte: ecran.question }));
+      if (ecran.aide) zone.appendChild(el("p", { classe: "aide-question", texte: ecran.aide }));
+      const corps = el("div", { classe: "corps" });
+      if (ecran.rendu) ecran.rendu(corps, ecran, construire);
+      else (ecran.champs || []).forEach((ch) => corps.appendChild(construire(ch)));
+      zone.appendChild(corps);
+      const avertissement = el("p", { classe: "note ko", id: "avertissement", hidden: true, role: "alert" });
+      zone.appendChild(avertissement);
+      zone.appendChild(navigation(ecran, liste, i));
+    }
+    boitesCourantes.forEach((b) => b.afficher());
+    majProgression(idx);
+
+    if (!garderDefilement) window.scrollTo({ top: 0 });
+    const premier = zone.querySelector(".corps input:not([type=checkbox]):not([type=range]), .corps textarea, .corps select");
+    const titre = zone.querySelector(".question");
+    // Sur écran tactile, ouvrir le clavier à chaque question masquerait la
+    // question elle-même : on ne focalise le champ qu'avec un pointeur fin.
+    if (premier && matchMedia("(pointer: fine)").matches && !ecran.rendu) premier.focus({ preventScroll: true });
+    else if (titre) titre.focus({ preventScroll: true });
+  }
+
+  /** Redessine l'écran courant (après un ajout, un retrait…). */
+  function rafraichir(focaliserDernier) {
+    const y = window.scrollY;
+    aller(ecranCourant.cle, true);
+    window.scrollTo({ top: y });
+    if (focaliserDernier) {
+      const champs = document.querySelectorAll(".corps input[type=text]");
+      if (champs.length) { const d = champs[champs.length - 1]; d.focus({ preventScroll: true }); d.scrollIntoView({ block: "center" }); }
+    }
+  }
+
+  function navigation(ecran, liste, i) {
+    const nav = el("div", { classe: "nav-ecran" });
+    if (i > 0) nav.appendChild(el("button", { classe: "btn btn-discret", type: "button", texte: "← Retour", onclick: precedent }));
+    const droite = el("div", { classe: "droite" });
+    if (ecran.index !== undefined) {
+      droite.appendChild(el("button", { classe: "btn-lien danger", type: "button", texte: "Supprimer",
+        onclick: () => supprimerElement(ecran.liste, ecran.index) }));
+    }
+    if (!ecran.sansSuivant) {
+      droite.appendChild(el("span", { classe: "indice", texte: "Entrée ↵" }));
+      droite.appendChild(el("button", { classe: "btn btn-plein", type: "button", id: "btn-suivant",
+        texte: libelleSuivant(ecran, liste, i), onclick: suivant }));
+    }
+    nav.appendChild(droite);
+    return nav;
+  }
+
+  /** « Passer » tant qu'un écran facultatif est vide, « Continuer » sinon. */
+  function libelleSuivant(ecran, liste, i) {
+    const facultatif = ecran.champs && ecran.champs.length && ecran.champs.every((c) => !c.def.requis)
+      && ecran.champs.every((c) => c.def.type === "bool" || !String(c.objet[c.def.cle] || "").trim());
+    if (facultatif) return "Passer";
+    return liste[i + 1] && liste[i + 1].cle === "recap" ? "Voir le récapitulatif" : "Continuer";
+  }
+  function majBoutonSuivant() {
+    const b = document.getElementById("btn-suivant");
+    if (!b || !ecranCourant) return;
+    const { liste, i } = trouver(ecranCourant.cle);
+    b.textContent = libelleSuivant(ecranCourant, liste, i);
+  }
+
+  function supprimerElement(liste, index) {
+    const x = etat.listes[liste][index];
+    const rempli = MODELE[liste].champs.some((c) => !c.cache && c.type !== "bool" && String(x[c.cle] || "").trim());
+    if (rempli && !confirm("Supprimer cet élément ?")) return;
+    etat.listes[liste].splice(index, 1);
+    if (!etat.listes[liste].length) delete etat.choix[liste];
+    sauvegarder();
+    aller(etat.listes[liste].length ? liste + ".encore" : liste + ".choix");
+  }
+
+  function verifierEcran(ecran) {
+    let premierInvalide = null;
+    boitesCourantes.forEach((b) => {
+      touches[b.dataset.champ] = true;
+      const m = b.afficher();
+      if (m && !premierInvalide) premierInvalide = b;
+    });
+    const avert = document.getElementById("avertissement");
+    const m = ecran.valider ? ecran.valider() : "";
+    if (avert) { avert.hidden = !m; avert.textContent = m || ""; }
+    if (premierInvalide) {
+      premierInvalide.scrollIntoView({ block: "center" });
+      const s = premierInvalide.querySelector("input, select, textarea");
+      if (s) s.focus({ preventScroll: true });
+      return false;
+    }
+    return !m;
+  }
+
+  function suivant() {
+    if (!ecranCourant || ecranCourant.sansNav) return;
+    if (!ecranCourant.sansSuivant && !verifierEcran(ecranCourant)) return;
+    // Recalcul : la réponse donnée peut avoir ajouté ou retiré des écrans.
+    const { liste, i } = trouver(ecranCourant.cle);
+    const prochain = liste[i + 1];
+    if (prochain) aller(prochain.cle);
+  }
+
+  function precedent() {
+    const { liste, i } = trouver(ecranCourant.cle);
+    if (i > 0) aller(liste[i - 1].cle);
+  }
+
+  function majProgression(idxChap) {
+    const p = Math.max(0, idxChap) / (CHAPITRES.length - 1) * 100;
+    document.getElementById("barre").style.width = p + "%";
+    document.getElementById("progression").setAttribute("aria-valuenow", String(Math.round(p)));
+  }
+
+  document.addEventListener("keydown", (ev) => {
+    if (document.getElementById("sommaire").open || !ecranCourant) return;
+    const t = ev.target;
+    // Entrée dans un champ d'une ligne, ou Ctrl/Cmd + Entrée partout.
+    if (ev.key === "Enter" && !ev.shiftKey && !ev.isComposing) {
+      const ligne = t.tagName === "INPUT" && !["checkbox", "range", "file"].includes(t.type);
+      if (ligne || ev.ctrlKey || ev.metaKey) {
+        if (!ecranCourant.sansSuivant) { ev.preventDefault(); suivant(); }
+        return;
+      }
+    }
+    // A, B, C… choisissent une option, hors saisie de texte.
+    const enSaisie = ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName);
+    if (!enSaisie && !ev.ctrlKey && !ev.metaKey && !ev.altKey && /^[a-z]$/i.test(ev.key)) {
+      const b = document.querySelector('.option[data-touche="' + ev.key.toUpperCase() + '"]');
+      if (b) { ev.preventDefault(); b.click(); }
+    }
+  });
+
+  /* ═══ RÉCAPITULATIF ═══════════════════════════════════════════════ */
+  /** Toutes les erreurs du parcours, écran par écran. */
+  function toutesLesErreurs() {
+    const out = [];
+    ecrans().forEach((ecran) => {
+      (ecran.champs || []).forEach((c) => {
+        const m = erreurChamp(c.def, c.objet[c.def.cle]) || (c.croise ? c.croise()[c.def.cle] : "");
+        if (m) out.push({ ecran: ecran.cle, texte: ecran.question + (libelle(c.def, c.objet) ? " — " + libelle(c.def, c.objet) : "") + " : " + m });
+      });
+      const m = ecran.valider ? ecran.valider() : "";
+      if (m) out.push({ ecran: ecran.cle, texte: ecran.question + " : " + m });
+    });
+    return out;
+  }
+
+  function rRecap(c) {
+    const e = etat;
+    const erreurs = toutesLesErreurs();
+    c.appendChild(el("p", { classe: "surtitre", texte: "Récapitulatif" }));
+    c.appendChild(el("h2", { classe: "question", tabindex: "-1", texte: "Voici ce que j'ai retenu." }));
+    c.appendChild(el("p", { classe: "aide-question", texte: "Relis tranquillement ; « Modifier » te ramène à la question concernée. Rien n'est envoyé où que ce soit depuis cette page." }));
+
+    const recap = el("div", { classe: "recap corps" });
+    const bloc = (titre, cle, lignes) => {
+      const dl = el("dl");
+      lignes.forEach(([k, v]) => dl.appendChild(el("div", {}, el("dt", { texte: k }), v instanceof Node ? el("dd", {}, v) : el("dd", { texte: v || "—" }))));
+      recap.appendChild(el("div", { classe: "carte" },
+        el("div", { classe: "carte-tete" }, el("h3", { texte: titre }),
+          el("button", { classe: "btn-lien", type: "button", texte: "Modifier", onclick: () => aller(cle) })), dl));
+    };
+    const coupe = (s, n) => (s = String(s || "").trim()).length > n ? s.slice(0, n) + "…" : s;
+
+    bloc("Toi", "nom", [["Nom", e.profil.name], ["Titre", e.profil.title], ["Présentation", coupe(e.profil.bio, 180)],
+      ["Lieu", e.profil.location]]);
+    bloc("Te joindre", "contact", [["E-mail", e.profil.email], ["Téléphone", e.profil.phone]]);
+    bloc("Images et CV", "photo", [["Photo", e.profil.photoUrl], ["Illustration", e.profil.aboutPhotoUrl], ["Logo", e.profil.logoUrl], ["CV", e.profil.cvUrl]]);
+    bloc("Tes chiffres", "chiffres", [["Projets", e.parametres.stats_projects || "inchangé"], ["Années", e.parametres.stats_years || "inchangé"],
+      ["Technologies", e.parametres.stats_techs || "inchangé"]]);
+
+    const noms = {
+      reseaux: ["Réseaux", (x) => x.platform], services: ["Services", (x) => x.title],
+      competences: ["Compétences", (x) => x.name + " (" + x.category + ", " + x.level + " %)"],
+      parcours: ["Parcours", (x) => [x.title, x.organization].filter(Boolean).join(" — ")],
+      projets: ["Projets", (x) => x.title], publications: ["Publications", (x) => x.title],
+      articles: ["Blog", (x) => x.title], faq: ["FAQ", (x) => x.question], temoignages: ["Témoignages", (x) => x.name]
+    };
+    LISTES.forEach((l) => {
+      const [titre, nom] = noms[l];
+      const ch = e.choix[l];
+      let etatTxt, classe = "etat";
+      if (ch === "oui") etatTxt = e.listes[l].length + " élément(s) — remplaceront ceux du site";
+      else if (ch === "non") { etatTxt = "Aucun — la section sera vidée"; classe += " vide"; }
+      else if (ch === "garder") { etatTxt = "Inchangée — on garde ce qui est en ligne"; classe += " garde"; }
+      else { etatTxt = "Pas encore répondu — ce qui est en ligne est conservé"; classe += " garde"; }
+      const lignes = [["Réponse", el("span", { classe, texte: etatTxt })]];
+      if (ch === "oui" && e.listes[l].length) lignes.push(["Contenu", e.listes[l].map(nom).filter(Boolean).join(" · ")]);
+      bloc(titre, l + ".choix", lignes);
+    });
+    const s = sectionsEffectives();
+    bloc("Ton site", "sections", [["Sections affichées", SECTIONS_SITE.filter(([id]) => s[id]).map(([, n]) => n).join(", ") || "aucune"]]);
+    c.appendChild(recap);
+
+    const fin = el("div", { classe: "corps" });
+    if (erreurs.length) {
+      const liste = el("ul", { classe: "erreurs" });
+      erreurs.forEach((er) => liste.appendChild(el("li", {}, el("button", { type: "button", texte: er.texte, onclick: () => aller(er.ecran) }))));
+      fin.appendChild(el("div", { classe: "carte" },
+        el("p", { classe: "note ko", texte: erreurs.length + " réponse(s) à compléter ou corriger avant de générer le fichier. Clique sur une ligne pour y aller." }), liste));
+    } else {
+      const json = JSON.stringify(construireFichier(), null, 2);
+      fin.appendChild(el("div", { classe: "carte" },
+        el("p", { classe: "note ok", texte: "Tout est prêt. Télécharge le fichier de tes réponses." }),
+        el("div", { classe: "nav-ecran", style: "margin-top:1rem;justify-content:flex-start" },
+          el("button", { classe: "btn btn-plein", type: "button", texte: "Télécharger mes-infos.json", onclick: () => { telecharger(json); toast("Fichier téléchargé"); } }),
+          el("button", { classe: "btn", type: "button", texte: "Copier le contenu", onclick: () => copier(json).then(() => toast("Contenu copié"), () => toast("Copie impossible — utilise le téléchargement")) }))));
+      fin.appendChild(el("div", { classe: "carte" },
+        el("h3", { texte: "Et ensuite ?", style: "font-size:1rem;margin-bottom:.875rem" }),
+        el("ol", { classe: "etapes" },
+          el("li", {}, "Place le fichier téléchargé dans le projet, sous ce nom exact :", el("pre", { classe: "commande", texte: "prisma/donnees/mes-infos.json" })),
+          el("li", {}, "Fais un essai à blanc : tout est écrit puis annulé, rien ne change en base.", el("pre", { classe: "commande", texte: "npm run db:injecter:simulation" })),
+          el("li", {}, "Si le tableau affiché te convient, injecte pour de bon :", el("pre", { classe: "commande", texte: "npm run db:injecter" })))));
+    }
+    fin.appendChild(el("div", { classe: "nav-ecran", style: "margin-top:.5rem" },
+      el("button", { classe: "btn btn-discret", type: "button", texte: "← Retour aux questions", onclick: () => aller("sections") }),
+      el("button", { classe: "btn-lien danger", type: "button", texte: "Effacer mes réponses", onclick: () => {
+        if (!confirm("Effacer toutes tes réponses de ce navigateur ?")) return;
+        try { localStorage.removeItem(CLE); localStorage.removeItem(ANCIENNE_CLE); } catch (err) { /* stockage indisponible */ }
+        remplacerEtat(etatVide()); aller("intro"); toast("Réponses effacées");
+      } })));
+    c.appendChild(fin);
   }
 
   /* ═══ EXPORT ══════════════════════════════════════════════════════ */
   function valeurFichier(def, v) {
-    var s = typeof v === "string" ? v.trim() : v;
+    const s = typeof v === "string" ? v.trim() : v;
     switch (def.type) {
       case "bool": return !!v;
-      case "liste": return decouper(s);
-      case "listeLiens": return decouper(s);
-      case "entier": case "niveau": return s === "" ? null : Number(s);
+      case "liste": case "listeLiens": return decouper(s);
+      case "entier": case "niveau": return s === "" || s === null || s === undefined ? null : Number(s);
       case "choix": return def.cle === "rating" ? Number(s) : s;
-      default: return s === "" ? null : s;
+      default: return s === "" || s === null || s === undefined ? null : s;
     }
   }
 
-  function objetFichier(champs, source) {
-    var o = {};
-    champs.forEach(function (c) {
-      var v = valeurFichier(c, source[c.cle]);
-      if (v === null && c.omettre) return;
-      o[c.cle] = v;
-    });
-    return o;
-  }
-
   function construireFichier() {
-    var f = { version: 1, profil: objetFichier(PROFIL, etat.profil) };
+    const e = etat;
+    const p = e.profil;
+    const vide = (v) => { const s = String(v || "").trim(); return s || null; };
+    const f = { version: 1, profil: {
+      name: p.name.trim(), title: p.title.trim(), bio: p.bio.trim(),
+      email: vide(p.email), phone: vide(p.phone), location: vide(p.location),
+      photoUrl: vide(p.photoUrl), aboutPhotoUrl: vide(p.aboutPhotoUrl), logoUrl: vide(p.logoUrl), cvUrl: vide(p.cvUrl),
+      isAvailable: p.isAvailable !== false
+    } };
+    const pa = { site_name: vide(e.parametres.site_name) || p.name.trim() };
+    ["stats_projects", "stats_years", "stats_techs"].forEach((k) => { const v = String(e.parametres[k] || "").trim(); if (v) pa[k] = Number(v); });
+    pa.sections = Object.assign({}, sectionsEffectives());
+    f.parametres = pa;
 
-    var p = {};
-    PARAMETRES.forEach(function (c) {
-      var v = valeurFichier(c, etat.parametres[c.cle]);
-      if (v !== null) p[c.cle] = v;
-    });
-    p.sections = {};
-    SECTIONS_SITE.forEach(function (s) { p.sections[s[0]] = !!etat.parametres.sections[s[0]]; });
-    f.parametres = p;
-
-    LISTES.forEach(function (l) {
-      if (!etat.inclure[l.id]) return;
-      f[l.id] = etat.listes[l.id].map(function (x) {
-        var o = objetFichier(l.champs, x);
-        // Un poste en cours n'a pas de date de fin.
-        if (l.id === "parcours" && o.current) o.endDate = null;
+    LISTES.forEach((l) => {
+      const ch = e.choix[l];
+      if (ch === "non") { f[l] = []; return; }
+      if (ch !== "oui") return;               // « garder » ou sans réponse : section absente
+      f[l] = e.listes[l].map((x) => {
+        const o = {};
+        MODELE[l].champs.forEach((c) => {
+          const v = valeurFichier(c, x[c.cle]);
+          if (v === null && c.omettre) return;
+          o[c.cle] = v;
+        });
+        if (l === "parcours" && o.current) o.endDate = null;
         return o;
       });
     });
@@ -873,162 +1380,24 @@ body { padding-bottom:5.5rem; }
   }
 
   function telecharger(texte) {
-    var blob = new Blob([texte], { type: "application/json" });
-    var url = URL.createObjectURL(blob);
-    var a = el("a", { href: url, download: "mes-infos.json" });
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    const url = URL.createObjectURL(new Blob([texte], { type: "application/json" }));
+    const a = el("a", { href: url, download: "mes-infos.json" });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
 
   function copier(texte) {
-    if (navigator.clipboard && window.isSecureContext) {
-      return navigator.clipboard.writeText(texte);
-    }
-    // Repli pour les pages ouvertes en file:// sur certains navigateurs.
-    var zone = el("textarea", { style: "position:fixed;opacity:0" });
-    zone.value = texte;
-    document.body.appendChild(zone);
-    zone.select();
-    var ok = document.execCommand("copy");
-    zone.remove();
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(texte);
+    const zone = el("textarea", { style: "position:fixed;opacity:0" });
+    zone.value = texte; document.body.appendChild(zone); zone.select();
+    const ok = document.execCommand("copy"); zone.remove();
     return ok ? Promise.resolve() : Promise.reject(new Error("copie refusée"));
-  }
-
-  function panneauExport() {
-    toutMontrer = true;
-    var erreurs = toutesLesErreurs();
-    majNav();
-
-    var corps = el("tbody");
-    corps.appendChild(ligneResume("Identité", "—", true, erreurs.filter(function (e) { return e.section === "profil"; }).length, "Écrasée"));
-    corps.appendChild(ligneResume("Réglages du site", "—", true, erreurs.filter(function (e) { return e.section === "parametres"; }).length, "Mise à jour clé par clé"));
-    LISTES.forEach(function (l) {
-      corps.appendChild(ligneResume(l.titre, etat.listes[l.id].length, etat.inclure[l.id],
-        erreurs.filter(function (e) { return e.section === l.id; }).length));
-    });
-
-    var bloc = [titrePanneau("Vérifier et exporter", "Le fichier produit est injecté en base par le seed. Rien n'est envoyé où que ce soit depuis cette page."),
-      el("div", { classe: "carte defile" }, el("table", { classe: "tableau" },
-        el("thead", {}, el("tr", {}, el("th", { texte: "Section" }), el("th", { texte: "Entrées" }), el("th", { texte: "Effet de l'injection" }), el("th", { texte: "État" }))),
-        corps))];
-
-    if (erreurs.length) {
-      var liste = el("ul", { classe: "erreurs" });
-      erreurs.forEach(function (e) {
-        liste.appendChild(el("li", {}, el("button", { type: "button", texte: e.libelle + " : " + e.message,
-          onclick: function () { allerAuChamp(e); } })));
-      });
-      bloc.push(el("div", { classe: "carte" },
-        el("p", { classe: "bandeau ko", texte: erreurs.length + " problème(s) à corriger avant l'export. Cliquer sur une ligne mène au champ." }),
-        el("div", { style: "margin-top:.875rem" }, liste)));
-    } else {
-      var json = JSON.stringify(construireFichier(), null, 2);
-      bloc.push(el("div", { classe: "carte" },
-        el("p", { classe: "bandeau ok", texte: "Tout est valide. Le fichier est prêt." }),
-        el("div", { classe: "pas", style: "justify-content:flex-start;flex-wrap:wrap" },
-          el("button", { classe: "btn btn-plein", type: "button", texte: "Télécharger mes-infos.json", onclick: function () { telecharger(json); toast("Fichier téléchargé"); } }),
-          el("button", { classe: "btn", type: "button", texte: "Copier le contenu", onclick: function () {
-            copier(json).then(function () { toast("Contenu copié"); }, function () { toast("Copie impossible — utiliser le téléchargement"); });
-          } }))));
-
-      bloc.push(el("div", { classe: "carte" },
-        el("h3", { texte: "Injecter en base", style: "font-size:.9375rem;margin-bottom:.875rem" }),
-        el("ol", { classe: "etapes" },
-          el("li", {}, "Placer le fichier téléchargé dans le projet, sous ce nom exact :",
-            el("pre", { classe: "commande", texte: "prisma/donnees/mes-infos.json" })),
-          el("li", {}, "Faire un essai à blanc : tout est écrit puis annulé, rien ne change en base.",
-            el("pre", { classe: "commande", texte: "npm run db:injecter:simulation" })),
-          el("li", {}, "Si le tableau affiché convient, injecter pour de bon :",
-            el("pre", { classe: "commande", texte: "npm run db:injecter" })))));
-    }
-
-    bloc.push(el("div", { classe: "carte" },
-      el("p", { style: "margin:0;font-size:.8125rem;color:var(--texte-2)" },
-        "Le brouillon est conservé dans ce navigateur. ",
-        el("button", { classe: "btn-lien", type: "button", texte: "Effacer le brouillon", onclick: function () {
-          if (!confirm("Effacer toutes les informations saisies dans ce navigateur ?")) return;
-          try { localStorage.removeItem(CLE_STOCKAGE); } catch (err) {}
-          etat = etatVide(); touches = {}; toutMontrer = false;
-          aller("profil"); toast("Brouillon effacé");
-        } }))));
-    bloc.push(boutonsPas());
-    return bloc;
-  }
-
-  function ligneResume(titre, nb, inclus, nbErreurs, effetForce) {
-    var effet = effetForce || (!inclus ? "Non modifiée" : (nb === 0 ? "Vidée" : "Remplacée"));
-    return el("tr", {},
-      el("td", { texte: titre }),
-      el("td", { texte: String(nb) }),
-      el("td", { classe: inclus ? "" : "statut-neutre", texte: effet }),
-      el("td", { classe: nbErreurs ? "statut-ko" : "statut-ok", texte: nbErreurs ? nbErreurs + " à corriger" : "Valide" }));
-  }
-
-  /* ═══ NAVIGATION ══════════════════════════════════════════════════ */
-  function majNav() {
-    var erreurs = toutesLesErreurs();
-    var nav = document.getElementById("nav");
-    nav.textContent = "";
-    ORDRE.forEach(function (o) {
-      var nbErr = erreurs.filter(function (e) { return e.section === o.id; }).length;
-      var liste = LISTES.filter(function (l) { return l.id === o.id; })[0];
-      var pastille = null;
-      if (nbErr && (toutMontrer || o.id === courant)) {
-        pastille = el("span", { classe: "pastille-nb erreur", texte: String(nbErr), title: nbErr + " problème(s)" });
-      } else if (liste) {
-        pastille = el("span", { classe: "pastille-nb", texte: etat.inclure[o.id] ? String(etat.listes[o.id].length) : "—" });
-      }
-      nav.appendChild(el("button", { type: "button", "aria-current": o.id === courant ? "true" : "false",
-        onclick: function () { aller(o.id); } }, el("span", { texte: o.titre }), pastille));
-    });
-  }
-
-  /* `scrollIntoView` ferait aussi défiler la PAGE jusqu'au ruban : on ne
-     déplace que le ruban lui-même, et seulement au changement de section. */
-  function centrerOngletActif() {
-    var nav = document.getElementById("nav");
-    var actif = nav.querySelector('[aria-current="true"]');
-    if (!actif || window.innerWidth >= 900) return;
-    nav.scrollLeft = actif.offsetLeft - (nav.clientWidth - actif.offsetWidth) / 2;
-  }
-
-  function aller(id, sansDefilement) {
-    courant = id;
-    if (location.hash.slice(1) !== id) history.replaceState(null, "", "#" + id);
-    var p = document.getElementById("panneau");
-    p.textContent = "";
-    var contenu;
-    if (id === "profil") contenu = panneauProfil();
-    else if (id === "parametres") contenu = panneauParametres();
-    else if (id === "export") contenu = panneauExport();
-    else contenu = panneauListe(LISTES.filter(function (l) { return l.id === id; })[0]);
-    contenu.forEach(function (n) { p.appendChild(n); });
-    majNav();
-    centrerOngletActif();
-    if (!sansDefilement) window.scrollTo({ top: 0 });
-    var h = p.querySelector("h2");
-    if (h) h.focus({ preventScroll: true });
-  }
-
-  function allerAuChamp(e) {
-    touches[e.section + (e.index >= 0 ? "." + e.index : "") + "." + e.cle] = true;
-    aller(e.section);
-    var cle = e.section === "profil" ? "profil." + e.cle
-      : e.section === "parametres" ? "parametres." + e.cle
-      : e.section + "." + e.index + "." + e.cle;
-    var boite = document.querySelector('[data-champ="' + cle.replace(/"/g, "") + '"]');
-    if (boite) {
-      boite.scrollIntoView({ block: "center" });
-      var champ = boite.querySelector("input, select, textarea");
-      if (champ) champ.focus({ preventScroll: true });
-    }
   }
 
   /* ═══ IMPORT ══════════════════════════════════════════════════════
      Relit un fichier au format du seed (un export précédent, ou
-     `exemple.json`) pour reprendre ou corriger une saisie. */
+     `exemple.json`) : section présente et remplie → « oui », présente et
+     vide → « non », absente → « garder ». */
   function versChamp(def, v) {
     if (def.type === "bool") return !!v;
     if (v === null || v === undefined) return "";
@@ -1037,54 +1406,78 @@ body { padding-bottom:5.5rem; }
   }
 
   function importer(f) {
-    if (!f || typeof f !== "object" || f.version !== 1 || !f.profil) {
-      throw new Error("Ce fichier n'est pas au format attendu (version 1).");
-    }
-    var e = etatVide();
-    PROFIL.forEach(function (c) { if (c.cle in f.profil) e.profil[c.cle] = versChamp(c, f.profil[c.cle]); });
-    var pa = f.parametres || {};
-    PARAMETRES.forEach(function (c) { if (c.cle in pa) e.parametres[c.cle] = versChamp(c, pa[c.cle]); });
-    SECTIONS_SITE.forEach(function (s) { if (pa.sections && s[0] in pa.sections) e.parametres.sections[s[0]] = !!pa.sections[s[0]]; });
-    LISTES.forEach(function (l) {
-      // Section absente du fichier = section ignorée à l'injection.
-      e.inclure[l.id] = Array.isArray(f[l.id]);
-      e.listes[l.id] = (f[l.id] || []).map(function (x) {
-        var item = l.nouveau();
-        l.champs.forEach(function (c) { if (x && c.cle in x) item[c.cle] = versChamp(c, x[c.cle]); });
+    if (!f || typeof f !== "object" || f.version !== 1 || !f.profil) throw new Error("ce fichier n'est pas au format attendu (version 1)");
+    const e = etatVide();
+    Object.keys(e.profil).forEach((k) => {
+      if (!(k in f.profil)) return;
+      e.profil[k] = k === "isAvailable" ? !!f.profil[k] : versChamp({}, f.profil[k]);
+    });
+    const pa = f.parametres || {};
+    Object.keys(e.parametres).forEach((k) => { if (k in pa) e.parametres[k] = versChamp({}, pa[k]); });
+    if (pa.sections) { e.sections = {}; SECTIONS_SITE.forEach(([id]) => { e.sections[id] = pa.sections[id] !== false; }); }
+    LISTES.forEach((l) => {
+      if (!Array.isArray(f[l])) { e.choix[l] = "garder"; return; }
+      e.choix[l] = f[l].length ? "oui" : "non";
+      e.listes[l] = f[l].map((x) => {
+        const item = MODELE[l].nouveau(x && x.type);
+        MODELE[l].champs.forEach((c) => { if (x && c.cle in x) item[c.cle] = versChamp(c, x[c.cle]); });
+        if (l === "reseaux") item.perso = !PLATEFORMES.some((p) => p[0] === item.platform);
         return item;
       });
     });
+    e.domaines = [...new Set(e.listes.competences.map((c) => c.category).filter(Boolean))];
+    e.position = "recap";
     return e;
   }
 
-  document.getElementById("btn-importer").addEventListener("click", function () {
-    document.getElementById("fichier-import").click();
-  });
-  document.getElementById("fichier-import").addEventListener("change", function (ev) {
-    var fichier = ev.target.files && ev.target.files[0];
+  function remplacerEtat(nouveau) { etat = nouveau; touches = {}; sauvegarder(); }
+
+  function ouvrirImport() { document.getElementById("fichier-import").click(); }
+  document.getElementById("btn-importer").addEventListener("click", () => { document.getElementById("sommaire").close(); ouvrirImport(); });
+  document.getElementById("fichier-import").addEventListener("change", (ev) => {
+    const fichier = ev.target.files && ev.target.files[0];
     ev.target.value = "";
     if (!fichier) return;
     if (fichier.size > 2 * 1024 * 1024) { toast("Fichier trop volumineux (2 Mo maximum)"); return; }
-    fichier.text().then(function (texte) {
-      var nouveau = importer(JSON.parse(texte.replace(/^﻿/, "")));
-      var rempli = etat.profil.name || LISTES.some(function (l) { return etat.listes[l.id].length; });
-      if (rempli && !confirm("Remplacer la saisie en cours par le contenu de « " + fichier.name + " » ?")) return;
-      etat = nouveau; touches = {}; toutMontrer = false;
-      sauvegarder();
-      aller("profil");
-      toast("Fichier importé");
-    }).catch(function (err) {
-      toast("Import impossible : " + (err && err.message ? err.message : "fichier illisible"));
+    fichier.text().then((texte) => {
+      const nouveau = importer(JSON.parse(texte.replace(/^﻿/, "")));
+      const dejaRempli = etat.profil.name || LISTES.some((l) => etat.listes[l].length);
+      if (dejaRempli && !confirm("Remplacer tes réponses actuelles par celles de « " + fichier.name + " » ?")) return;
+      remplacerEtat(nouveau);
+      aller("recap");
+      toast("Réponses reprises depuis le fichier");
+    }).catch((err) => toast("Import impossible : " + (err && err.message ? err.message : "fichier illisible")));
+  });
+
+  /* ═══ SOMMAIRE ════════════════════════════════════════════════════ */
+  function chapitreRepondu(chap) {
+    const e = etat;
+    if (LISTES.includes(chap)) return !!e.choix[chap];
+    if (chap === "toi") return !!(e.profil.name && e.profil.title && e.profil.bio);
+    if (chap === "contact") return !!(e.profil.email || e.profil.phone);
+    if (chap === "visuels") return !!(e.profil.photoUrl || e.profil.aboutPhotoUrl || e.profil.logoUrl || e.profil.cvUrl);
+    if (chap === "chiffres") return !!(e.parametres.stats_projects || e.parametres.stats_years || e.parametres.stats_techs);
+    if (chap === "site") return !!e.sections;
+    return false;
+  }
+
+  const dialogue = document.getElementById("sommaire");
+  document.getElementById("btn-sommaire").addEventListener("click", () => {
+    const ul = document.getElementById("sommaire-liste");
+    ul.textContent = "";
+    const liste = ecrans();
+    CHAPITRES.forEach(([id, nom]) => {
+      const premier = liste.find((x) => x.chap === id);
+      if (!premier) return;
+      ul.appendChild(el("li", {}, el("button", { type: "button", "aria-current": ecranCourant && ecranCourant.chap === id ? "true" : "false",
+        onclick: () => { dialogue.close(); aller(premier.cle); } },
+        el("span", { texte: nom }), chapitreRepondu(id) ? el("span", { classe: "fait", texte: "✓ répondu" }) : null)));
     });
+    dialogue.showModal();
   });
+  document.getElementById("fermer-sommaire").addEventListener("click", () => dialogue.close());
 
-  document.getElementById("btn-verifier").addEventListener("click", function () { aller("export"); });
-  addEventListener("hashchange", function () {
-    var id = location.hash.slice(1);
-    if (id !== courant && ORDRE.some(function (o) { return o.id === id; })) aller(id);
-  });
-
-  aller(courant, true);
+  aller("intro");
 })();
 </script>
 </body>
