@@ -50,7 +50,12 @@ export function SectionShell({
         whileInView={reduce ? undefined : "show"}
         viewport={{ once: true, amount: 0.2 }}
         className={cn(
-          "mx-auto max-w-7xl px-6 py-10 sm:px-16 sm:py-16",
+          // Le confinement est porté par le conteneur d'animation, jamais par
+          // la <section> : celle-ci n'a aucun rembourrage, découper à son bord
+          // trancherait l'encre des titres. Ici les 24 px de `px-6` et les
+          // 40 px de `py-10` offrent déjà une réserve, doublée par
+          // `overflow-clip-margin`.
+          "piste-animee mx-auto max-w-7xl px-6 py-10 sm:px-16 sm:py-16",
           innerClassName,
         )}
       >

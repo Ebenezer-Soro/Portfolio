@@ -278,6 +278,32 @@
     transform: translateY(0);
   }
 
+  /* ── Piste d'animation confinée ───────────────────────────
+     Les variantes d'entrée du modèle décalent leurs enfants de 100 px en X
+     (`fadeIn("left"/"right")`). Une transformation ne modifie pas la mise en
+     page, mais elle compte dans la zone de débordement défilable : tant
+     qu'une section n'est pas entrée dans le champ, son contenu élargit la
+     page de 100 px. Sur un écran de 320 px, la page naissait donc à 396 px
+     et il fallait pousser vers la droite pour atteindre le menu.
+
+     `clip` et non `hidden` : `clip` ne crée pas de conteneur de défilement,
+     donc `position: sticky` et les ancres continuent de fonctionner. Comme
+     une valeur `visible` accolée à `clip` devient elle-même `clip`, l'axe
+     vertical est également découpé — d'où `overflow-clip-margin`, qui rend
+     la zone de peinture plus large que la boîte sans rien changer à la mise
+     en page : l'encre des glyphes (accents en capitale, hampes des grands
+     titres) et les ombres portées restent intactes. */
+  .piste-animee {
+    overflow-x: clip;
+    /* 9rem (144 px) couvre le plus grand dépassement mesuré : 121 px pour
+       le halo de la section « À propos » sur écran de 320 px, et 100 px pour
+       la distance d'entrée des variantes `fadeIn`. Sans cela, le bas des
+       éléments encore en mouvement se faisait trancher pendant la transition. `overflow-clip-margin`
+       n'élargit que la zone de PEINTURE — il ne crée aucun débordement
+       défilable, donc la page ne s'élargit pas d'un pixel. */
+    overflow-clip-margin: 9rem;
+  }
+
   .glow-ring {
     box-shadow: var(--glow-primary);
   }

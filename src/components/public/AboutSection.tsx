@@ -40,10 +40,18 @@ export function AboutSection({
           */}
           <div className="group relative mx-auto w-full max-w-md">
             {/* Halo doré et anneau pointillé : même grammaire que le hero,
-                en plus discret pour ne pas concurrencer l'illustration. */}
+                en plus discret pour ne pas concurrencer l'illustration.
+
+                Centrage par `inset-0 m-auto` et NON par
+                `left-1/2 -translate-x-1/2`. `transform` est une propriété
+                unique : l'anneau porte `animate-spin-slow`, dont l'image clé
+                écrit `transform: rotate(...)` et efface donc la translation de
+                centrage. L'anneau partait alors d'une demi-largeur vers la
+                droite et élargissait la page sur petit écran. Les marges
+                automatiques centrent sans toucher à `transform`. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-full -translate-x-1/2 -translate-y-1/2 rounded-full opacity-60 blur-3xl"
+              className="pointer-events-none absolute inset-0 m-auto aspect-square h-fit w-full rounded-full opacity-60 blur-3xl"
               style={{
                 background:
                   "radial-gradient(circle, rgba(212,175,55,0.28) 0%, transparent 68%)",
@@ -51,7 +59,7 @@ export function AboutSection({
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[97%] -translate-x-1/2 -translate-y-1/2 animate-spin-slow rounded-full border border-dashed border-primary/25"
+              className="pointer-events-none absolute inset-0 m-auto aspect-square h-fit w-[97%] animate-spin-slow rounded-full border border-dashed border-primary/25"
             />
 
             <div className="relative aspect-[4/5] w-full">

@@ -41,7 +41,18 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          <div className="relative min-h-[260px]">
+          {/*
+            Piste de défilement CONFINÉE. Les témoignages entrent depuis
+            `x: 40` et sortent vers `x: -40` : une transformation ne modifie
+            pas la mise en page, mais elle compte dans la zone de débordement
+            défilable. Sans confinement, la page gagnait 40 px de largeur
+            toutes les trois secondes — sur un écran de 320 px, c'est la
+            barre latérale parasite que l'on constatait sur mobile.
+
+            Le rembourrage compensé par une marge négative laisse respirer
+            l'ombre portée de la carte, que `overflow-hidden` trancherait.
+          */}
+          <div className="relative -mx-3 -my-3 min-h-[260px] overflow-hidden px-3 py-3">
             <AnimatePresence mode="wait">
               <motion.div
                 key={t.id}
