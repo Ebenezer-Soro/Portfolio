@@ -9,6 +9,26 @@ type Node = {
   marks?: Mark[];
 };
 
+/*
+ * Le contenu vient du back-office, mais un document Tiptap reste du JSON
+ * arbitraire : on ne rend jamais une URL sans en vérifier le protocole.
+ * `javascript:` ou `data:` dans un lien ou une image serait exécutable ou
+ * trompeur ; `//hote` est une URL externe déguisée en chemin.
+ */
+function urlSure(valeur: unknown, protocoles: string[]): string | undefined {
+  const s = String(valeur ?? "").trim();
+  if (!s) return undefined;
+  if (s.startsWith("#")) return s;
+  if (s.startsWith("/")) return s.startsWith("//") ? undefined : s;
+  try {
+    return protocoles.includes(new URL(s).protocol) ? s : undefined;
+  } catch {
+    return undefined;
+  }
+}
+const lienSur = (v: unknown) => urlSure(v, ["https:", "http:", "mailto:", "tel:"]);
+const imageSure = (v: unknown) => urlSure(v, ["https:", "http:"]);
+
 function renderText(node: Node, key: number) {
   let el: React.ReactNode = node.text;
   for (const mark of node.marks ?? []) {
@@ -20,11 +40,11 @@ function renderText(node: Node, key: number) {
           {el}
         </code>
       );
-    else if (mark.type === "link")
+    else if (mark.type === "link" && lienSur(mark.attrs?.href))
       el = (
         <a
           key={key}
-          href={String(mark.attrs?.href ?? "#")}
+          href={lienSur(mark.attrs?.href)}
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary underline [overflow-wrap:anywhere]"
@@ -96,21 +116,31 @@ function renderNode(node: Node, key: number): React.ReactNode {
       return (
         <pre
           key={key}
-          className="my-4 overflow-x-auto rounded-lg bg-[var(--slate-900)] p-4 font-mono text-sm text-slate-100"
+          // Fond sombre fixe : lisible dans les deux thèmes. L'ancienne
+          // variable `--slate-900` n'était définie nulle part — fond
+          // transparent et texte quasi blanc, illisible en mode clair.
+          className="my-4 overflow-x-auto rounded-lg border border-[var(--border)] bg-[#1a1a1a] p-4 font-mono text-sm text-[#f7f3e8]"
         >
           <code>{children}</code>
         </pre>
       );
-    case "image":
+    case "image": {
+      const src = imageSure(node.attrs?.src);
+      if (!src) return null;
       return (
+        // Dimensions inconnues (contenu libre) : `next/image` exigerait une
+        // taille fixe. Chargement différé pour ne pas alourdir la page.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={key}
-          src={String(node.attrs?.src ?? "")}
+          src={src}
           alt={String(node.attrs?.alt ?? "")}
-          className="my-6 w-full rounded-xl"
+          loading="lazy"
+          decoding="async"
+          className="my-6 h-auto w-full rounded-xl"
         />
       );
+    }
     case "hardBreak":
       return <br key={key} />;
     case "text":

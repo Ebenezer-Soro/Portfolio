@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -14,6 +14,18 @@ import { loginSchema, type LoginFormData } from "@/lib/validations";
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  /*
+   * Avant hydratation, le formulaire n'a pas encore son gestionnaire
+   * JavaScript : validé à ce moment-là, le navigateur l'envoyait lui-même en
+   * GET — mot de passe DANS L'URL, donc dans l'historique et les journaux du
+   * serveur. Sur un téléphone en connexion lente, la fenêtre est large.
+   * Double parade : bouton inactif tant que la page n'est pas prête (la
+   * validation par Entrée est alors bloquée elle aussi), et `method="post"`
+   * pour qu'un envoi natif, s'il survenait, garde le secret dans le corps.
+   */
+  const [pret, setPret] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- marqueur d'hydratation
+  useEffect(() => setPret(true), []);
   const {
     register,
     handleSubmit,
@@ -61,7 +73,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <form
+            method="post"
+            action="/admin/login"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4"
+            noValidate
+          >
             <Input
               label="Email"
               type="email"
@@ -83,6 +101,7 @@ export default function LoginPage() {
               variant="primary"
               size="lg"
               loading={loading}
+              disabled={!pret}
               className="w-full"
             >
               <LogIn className="h-4 w-4" /> Se connecter
