@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "profil": {
+    "name": "Soro Z. Ebenezer",
+    "title": "Développeur Full Stack & Ingénieur Informatique",
+    "bio": "Passionné par le développement web, la cybersécurité et l'intelligence artificielle. Je conçois des applications web performantes, élégantes et sécurisées, de l'idée jusqu'au déploiement.",
+    "email": "contact@exemple.dev",
+    "phone": null,
+    "location": "Abidjan, Côte d'Ivoire",
+    "photoUrl": null,
+    "aboutPhotoUrl": null,
+    "logoUrl": null,
+    "cvUrl": null,
+    "isAvailable": true
+  },
+  "parametres": {
+    "site_name": "Soro Z. Ebenezer",
+    "stats_projects": 15,
+    "stats_years": 3,
+    "stats_techs": 20
+  },
+  "reseaux": [
+    { "platform": "GitHub", "url": "https://github.com", "iconName": "Github", "active": true },
+    { "platform": "LinkedIn", "url": "https://linkedin.com", "iconName": "Linkedin", "active": true },
+    { "platform": "Twitter", "url": "https://twitter.com", "iconName": "Twitter", "active": true }
+  ],
+  "services": [
+    {
+      "title": "Développement Web Full Stack",
+      "description": "Conception d'applications web modernes, du front-end réactif au back-end robuste, avec une attention particulière à la performance et l'UX.",
+      "iconName": "Code",
+      "published": true
+    },
+    {
+      "title": "Audit & Sécurité",
+      "description": "Tests d'intrusion, audit de code et mise en conformité aux bonnes pratiques OWASP pour protéger vos applications.",
+      "iconName": "ShieldCheck",
+      "published": true
+    },
+    {
+      "title": "Intégration IA",
+      "description": "Intégration de modèles d'IA (chatbots, RAG, automatisation) au sein de vos produits pour décupler leur valeur.",
+      "iconName": "Sparkles",
+      "published": true
+    },
+    {
+      "title": "Conseil & Architecture",
+      "description": "Accompagnement technique, choix de stack et conception d'architectures scalables adaptées à vos besoins.",
+      "iconName": "Network",
+      "published": true
+    }
+  ],
+  "competences": [
+    { "name": "React / Next.js", "level": 92, "category": "Frontend" },
+    { "name": "TypeScript", "level": 88, "category": "Frontend" },
+    { "name": "Tailwind CSS", "level": 90, "category": "Frontend" },
+    { "name": "Node.js", "level": 85, "category": "Backend" },
+    { "name": "PostgreSQL / Prisma", "level": 82, "category": "Backend" },
+    { "name": "Python", "level": 80, "category": "Backend" },
+    { "name": "Docker", "level": 75, "category": "DevOps" },
+    { "name": "CI/CD", "level": 70, "category": "DevOps" },
+    { "name": "Pentest / OWASP", "level": 78, "category": "Sécurité" },
+    { "name": "Cryptographie", "level": 72, "category": "Sécurité" },
+    { "name": "LLM / RAG", "level": 76, "category": "IA" },
+    { "name": "TensorFlow", "level": 65, "category": "IA" }
+  ],
+  "parcours": [
+    {
+      "type": "work",
+      "title": "Développeur Full Stack",
+      "organization": "Freelance",
+      "location": "Abidjan, Côte d'Ivoire",
+      "startDate": "2023-01",
+      "endDate": null,
+      "current": true,
+      "description": "Conception et développement d'applications web sur mesure pour divers clients."
+    },
+    {
+      "type": "work",
+      "title": "Développeur Web Junior",
+      "organization": "Entreprise d'exemple",
+      "location": "Abidjan",
+      "startDate": "2022-01",
+      "endDate": "2022-12",
+      "current": false,
+      "description": "Développement de sites vitrines et maintenance applicative."
+    },
+    {
+      "type": "education",
+      "title": "Ingénierie Informatique",
+      "organization": "École d'exemple",
+      "location": "Abidjan",
+      "startDate": "2019-09",
+      "endDate": "2022-07",
+      "current": false,
+      "description": "Spécialisation en génie logiciel et systèmes d'information."
+    }
+  ],
+  "projets": [
+    {
+      "title": "Plateforme E-commerce",
+      "description": "Boutique en ligne complète avec paiement, gestion de stock et tableau de bord administrateur.",
+      "images": [],
+      "tags": ["E-commerce", "SaaS"],
+      "techStack": ["Next.js", "PostgreSQL", "Stripe", "Prisma"],
+      "featured": true,
+      "published": true
+    },
+    {
+      "title": "Dashboard Analytics IA",
+      "description": "Tableau de bord temps réel avec prédictions basées sur le machine learning.",
+      "images": [],
+      "tags": ["Data", "IA"],
+      "techStack": ["React", "Python", "FastAPI", "TensorFlow"],
+      "featured": true,
+      "published": true
+    },
+    {
+      "title": "Scanner de Vulnérabilités",
+      "description": "Outil d'analyse automatisée de sécurité pour applications web suivant les standards OWASP.",
+      "images": [],
+      "tags": ["Sécurité", "CLI"],
+      "techStack": ["Python", "Docker", "PostgreSQL"],
+      "featured": false,
+      "published": true
+    }
+  ],
+  "publications": [
+    {
+      "platform": "LinkedIn",
+      "title": "Comment sécuriser une API Next.js",
+      "description": "Mes meilleures pratiques pour protéger vos routes API.",
+      "url": "https://linkedin.com",
+      "featured": true,
+      "active": true
+    }
+  ],
+  "articles": [
+    {
+      "title": "Démarrer avec Next.js et l'App Router",
+      "excerpt": "Guide pratique pour bien débuter avec l'App Router de Next.js.",
+      "content": "L'App Router change la façon de construire des applications Next.js avec les Server Components.",
+      "tags": ["Next.js", "Tutoriel"],
+      "published": true,
+      "featured": true
+    }
+  ],
+  "faq": [
+    {
+      "question": "Quels types de projets réalisez-vous ?",
+      "answer": "Applications web full stack, plateformes SaaS, sites vitrines, intégrations d'IA et audits de sécurité.",
+      "active": true
+    },
+    {
+      "question": "Travaillez-vous à distance ?",
+      "answer": "Oui, je travaille avec des clients partout dans le monde, en remote.",
+      "active": true
+    }
+  ],
+  "temoignages": [
+    {
+      "name": "Exemple — à remplacer",
+      "role": "Poste",
+      "company": "Entreprise",
+      "content": "Un témoignage d'exemple. Il n'est pas publié : un avis inventé ne doit jamais apparaître sur le site.",
+      "rating": 5,
+      "published": false
+    }
+  ]
+}

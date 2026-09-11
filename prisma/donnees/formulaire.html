@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mes informations — portfolio</title>
+<!-- ═══════════════════════════════════════════════════════════════════
+     FORMULAIRE D'INFORMATIONS DU PORTFOLIO
+     Produit `mes-infos.json`, que `prisma/seed.ts` injecte en base.
+
+     - Fonctionne hors ligne : aucune ressource externe, aucune police
+       distante. Double-cliquer sur le fichier suffit.
+     - Rien ne quitte le navigateur : pas de requête réseau. Le brouillon
+       est gardé dans le stockage local de CE navigateur, et le bouton
+       « Effacer le brouillon » le supprime.
+     - Les règles de validation reproduisent celles de
+       `prisma/donnees/schema.ts` : un fichier accepté ici l'est par le seed.
+     ═══════════════════════════════════════════════════════════════ -->
+<style>
+:root {
+  --fond:#f7f5ef; --surface:#ffffff; --surface-2:#faf8f2;
+  --bordure:#e5dfd0; --bordure-forte:#d3cbb6;
+  --texte:#14130f; --texte-2:#565245; --texte-3:#8b8574;
+  --accent:#8a6d1f; --accent-fonce:#6b5417; --accent-doux:#f4ecd6;
+  --danger:#b42318; --danger-doux:#fef3f2;
+  --succes:#067647; --succes-doux:#ecfdf3;
+  --r:10px; --r-lg:14px;
+  --ombre:0 1px 2px rgba(20,19,15,.05), 0 6px 18px -8px rgba(69,54,16,.14);
+  --police:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Code","Consolas",monospace;
+}
+*,*::before,*::after { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+body { margin:0; background:var(--fond); color:var(--texte); font:15px/1.55 var(--police); }
+h1,h2,h3 { margin:0; line-height:1.25; }
+button,input,select,textarea { font:inherit; color:inherit; }
+button { cursor:pointer; }
+:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+[hidden] { display:none !important; }
+
+/* ── Structure ───────────────────────────────────────────── */
+.entete {
+  position:sticky; top:0; z-index:20; background:rgba(247,245,239,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--bordure);
+}
+.entete-contenu { max-width:1180px; margin:0 auto; padding:.75rem 1rem;
+  display:flex; align-items:center; justify-content:space-between; gap:.75rem; }
+.marque { display:flex; align-items:center; gap:.625rem; min-width:0; }
+.marque b { flex:0 0 auto; width:2.25rem; height:2.25rem; border-radius:9px; display:grid; place-items:center;
+  background:linear-gradient(135deg,#b8912b,#d4af37); color:#0d0d0d; font-weight:800; }
+.marque div { min-width:0; }
+.marque h1 { font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.marque p { margin:0; font-size:.75rem; color:var(--texte-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.etat-brouillon { font-size:.75rem; color:var(--texte-3); text-align:right; flex:0 0 auto; }
+
+.cadre { max-width:1180px; margin:0 auto; padding:1rem; display:grid; gap:1rem; }
+@media (min-width:900px) {
+  .cadre { grid-template-columns:230px minmax(0,1fr); gap:1.5rem; padding:1.5rem 1rem 6rem; }
+}
+
+/* Navigation : colonne sur grand écran, ruban défilant sur mobile. La
+   barre de défilement est masquée, le geste tactile suffit. */
+.nav { display:flex; gap:.375rem; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+  margin:0 -1rem; padding:0 1rem .25rem; }
+.nav::-webkit-scrollbar { display:none; }
+@media (min-width:900px) {
+  .nav { flex-direction:column; overflow:visible; margin:0; padding:0; position:sticky; top:5rem; align-self:start; }
+}
+.nav button {
+  flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+  padding:.5rem .75rem; border-radius:999px; border:1px solid var(--bordure); background:var(--surface);
+  color:var(--texte-2); font-size:.875rem; white-space:nowrap; text-align:left;
+}
+@media (min-width:900px) { .nav button { border-radius:var(--r); width:100%; } }
+.nav button[aria-current="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+.pastille-nb { font-size:.6875rem; font-weight:600; min-width:1.25rem; padding:0 .375rem; border-radius:999px;
+  background:var(--surface-2); color:var(--texte-3); text-align:center; line-height:1.25rem; }
+.nav button[aria-current="true"] .pastille-nb { background:rgba(255,255,255,.2); color:#fff; }
+.pastille-nb.erreur { background:var(--danger); color:#fff; }
+
+/* ── Panneaux ────────────────────────────────────────────── */
+.panneau { min-width:0; }
+.panneau-tete { margin-bottom:1rem; }
+.panneau-tete h2 { font-size:1.375rem; }
+.panneau-tete p { margin:.375rem 0 0; color:var(--texte-2); max-width:62ch; }
+
+.carte { background:var(--surface); border:1px solid var(--bordure); border-radius:var(--r-lg);
+  box-shadow:var(--ombre); padding:1rem; }
+@media (min-width:640px) { .carte { padding:1.25rem; } }
+.carte + .carte { margin-top:.875rem; }
+
+.grille { display:grid; gap:.875rem 1rem; }
+@media (min-width:640px) { .grille { grid-template-columns:1fr 1fr; } .grille .large { grid-column:1 / -1; } }
+
+/* ── Champs ──────────────────────────────────────────────── */
+.champ { display:grid; gap:.3rem; min-width:0; }
+.champ > label, .champ > .etiquette { font-size:.8125rem; font-weight:600; color:var(--texte); }
+.champ .requis { color:var(--danger); margin-left:.125rem; }
+.champ input:not([type=checkbox]):not([type=range]), .champ select, .champ textarea {
+  width:100%; min-width:0; padding:.625rem .75rem; border-radius:var(--r);
+  border:1px solid var(--bordure-forte); background:var(--surface); transition:border-color .15s, box-shadow .15s;
+}
+.champ textarea { min-height:6.5rem; resize:vertical; }
+.champ input:focus, .champ select:focus, .champ textarea:focus {
+  outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(138,109,31,.15);
+}
+.champ .aide { font-size:.75rem; color:var(--texte-3); }
+.champ .message { font-size:.75rem; color:var(--danger); font-weight:500; }
+.champ.invalide input, .champ.invalide select, .champ.invalide textarea { border-color:var(--danger); }
+.champ.invalide input:focus, .champ.invalide textarea:focus { box-shadow:0 0 0 3px rgba(180,35,24,.14); }
+
+.bascule { display:flex; align-items:center; gap:.625rem; font-size:.875rem; cursor:pointer; user-select:none; }
+.bascule input { width:1.125rem; height:1.125rem; accent-color:var(--accent); flex:0 0 auto; }
+
+.jauge { display:flex; align-items:center; gap:.75rem; }
+.jauge input { flex:1; accent-color:var(--accent); min-width:0; }
+.jauge output { font-family:var(--mono); font-size:.8125rem; min-width:3ch; text-align:right; }
+
+/* ── Éléments de liste ───────────────────────────────────── */
+.element-tete { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.875rem; }
+.element-tete h3 { font-size:.9375rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.element-tete h3 span { color:var(--texte-3); font-weight:500; margin-right:.375rem; }
+.outils-element { display:flex; gap:.25rem; flex:0 0 auto; }
+.bouton-icone { width:2.125rem; height:2.125rem; display:grid; place-items:center; border-radius:8px;
+  border:1px solid var(--bordure); background:var(--surface); color:var(--texte-2); font-size:1rem; line-height:1; }
+.bouton-icone:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+.bouton-icone.danger:hover { border-color:var(--danger); color:var(--danger); }
+.bouton-icone:disabled { opacity:.35; cursor:default; }
+
+.inclure { display:flex; align-items:flex-start; gap:.625rem; padding:.75rem .875rem; margin-bottom:1rem;
+  border-radius:var(--r); background:var(--accent-doux); border:1px solid #ead9a8; font-size:.875rem; }
+.inclure input { margin-top:.2rem; width:1.125rem; height:1.125rem; accent-color:var(--accent); flex:0 0 auto; }
+.inclure.exclue { background:var(--surface-2); border-color:var(--bordure); color:var(--texte-2); }
+
+.vide { text-align:center; padding:1.75rem 1rem; color:var(--texte-3); border:1px dashed var(--bordure-forte);
+  border-radius:var(--r-lg); background:var(--surface); }
+
+/* ── Boutons ─────────────────────────────────────────────── */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.625rem 1rem;
+  border-radius:var(--r); border:1px solid var(--bordure-forte); background:var(--surface);
+  font-weight:600; font-size:.875rem; transition:background .15s, border-color .15s; }
+.btn:hover { border-color:var(--accent); color:var(--accent); }
+.btn-plein { background:var(--accent); border-color:var(--accent); color:#fff; }
+.btn-plein:hover { background:var(--accent-fonce); border-color:var(--accent-fonce); color:#fff; }
+.btn-ajout { width:100%; margin-top:.875rem; border-style:dashed; color:var(--accent); }
+.btn-lien { border:none; background:none; padding:0; color:var(--danger); font-weight:500; font-size:.8125rem; text-decoration:underline; }
+
+.pas { display:flex; justify-content:space-between; gap:.75rem; margin-top:1.25rem; }
+
+/* ── Vérification & export ───────────────────────────────── */
+.tableau { width:100%; border-collapse:collapse; font-size:.875rem; }
+.tableau th, .tableau td { padding:.5rem .625rem; border-bottom:1px solid var(--bordure); text-align:left; }
+.tableau th { font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; color:var(--texte-3); font-weight:600; }
+.defile { overflow-x:auto; }
+.statut-ok { color:var(--succes); font-weight:600; }
+.statut-ko { color:var(--danger); font-weight:600; }
+.statut-neutre { color:var(--texte-3); }
+
+.erreurs { margin:0; padding:0; list-style:none; display:grid; gap:.375rem; }
+.erreurs button { width:100%; text-align:left; padding:.5rem .75rem; border-radius:8px;
+  border:1px solid #fecdca; background:var(--danger-doux); color:var(--danger); font-size:.8125rem; }
+.bandeau { padding:.875rem 1rem; border-radius:var(--r); font-size:.875rem; }
+.bandeau.ok { background:var(--succes-doux); color:var(--succes); border:1px solid #abefc6; }
+.bandeau.ko { background:var(--danger-doux); color:var(--danger); border:1px solid #fecdca; }
+
+pre.commande { margin:.375rem 0 0; padding:.625rem .75rem; border-radius:8px; background:#1a1a1a; color:#f7f3e8;
+  font:.8125rem/1.5 var(--mono); overflow-x:auto; white-space:pre; }
+.etapes { margin:0; padding-left:1.25rem; display:grid; gap:.875rem; }
+
+/* ── Barre d'actions ─────────────────────────────────────── */
+.barre { position:fixed; inset:auto 0 0; z-index:20; background:var(--surface); border-top:1px solid var(--bordure);
+  box-shadow:0 -6px 18px -12px rgba(20,19,15,.25); }
+/* Une seule ligne quelle que soit la largeur : sur deux lignes, la barre
+   dépassait le rembourrage bas du corps et masquait la fin du contenu. */
+.barre-contenu { max-width:1180px; margin:0 auto; padding:.625rem 1rem; display:flex;
+  align-items:center; justify-content:space-between; gap:.5rem; }
+.barre-contenu .groupe { display:flex; gap:.5rem; min-width:0; }
+.court { display:none; }
+@media (max-width:479px) {
+  .barre-contenu .groupe { flex:1; }
+  .barre-contenu .btn { width:100%; padding-inline:.5rem; }
+  .long { display:none; } .court { display:inline; }
+}
+body { padding-bottom:5.5rem; }
+
+.toast { position:fixed; left:50%; bottom:5.5rem; transform:translateX(-50%) translateY(1rem); opacity:0;
+  background:#14130f; color:#fff; padding:.625rem 1rem; border-radius:var(--r); font-size:.875rem;
+  transition:opacity .2s, transform .2s; pointer-events:none; z-index:30; max-width:calc(100% - 2rem); }
+.toast.visible { opacity:1; transform:translateX(-50%) translateY(0); }
+
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none !important; } }
+</style>
+</head>
+<body>
+
+<header class="entete">
+  <div class="entete-contenu">
+    <div class="marque">
+      <b aria-hidden="true">S</b>
+      <div>
+        <h1>Mes informations</h1>
+        <p>Formulaire du seed du portfolio</p>
+      </div>
+    </div>
+    <p class="etat-brouillon" id="etat-brouillon" aria-live="polite">Brouillon local</p>
+  </div>
+</header>
+
+<div class="cadre">
+  <nav class="nav" id="nav" aria-label="Sections du formulaire"></nav>
+  <main class="panneau" id="panneau"></main>
+</div>
+
+<div class="barre">
+  <div class="barre-contenu">
+    <div class="groupe">
+      <button class="btn" type="button" id="btn-importer"><span class="long">Importer un fichier</span><span class="court">Importer</span></button>
+      <input type="file" id="fichier-import" accept="application/json,.json" hidden>
+    </div>
+    <div class="groupe">
+      <button class="btn btn-plein" type="button" id="btn-verifier"><span class="long">Vérifier et exporter</span><span class="court">Exporter</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ═══ RÉFÉRENTIELS ════════════════════════════════════════════════
+     Les noms d'icônes sont ceux de lucide-react, vérifiés sur la version
+     installée dans le projet. Un nom inconnu retomberait sur l'icône par
+     défaut du site. */
+  var ICONES_SERVICES = [
+    ["Code", "Code — développement"], ["Layers", "Couches — full stack"], ["Smartphone", "Mobile"],
+    ["Monitor", "Écran — web"], ["Server", "Serveur — back-end"], ["Database", "Base de données"],
+    ["Cloud", "Cloud"], ["Workflow", "Automatisation"], ["Terminal", "Terminal — DevOps"],
+    ["ShieldCheck", "Bouclier — sécurité"], ["Lock", "Cadenas"], ["KeyRound", "Clé — cryptographie"],
+    ["Fingerprint", "Empreinte — identité"], ["Bug", "Bug — audit"], ["Network", "Réseau"],
+    ["Router", "Routeur"], ["Wifi", "Wi-Fi"], ["Brain", "Cerveau — IA"], ["Bot", "Robot — IA"],
+    ["Sparkles", "Étincelles"], ["Cpu", "Processeur"], ["LineChart", "Courbe — données"],
+    ["Palette", "Palette — design"], ["PenTool", "Plume — UI"], ["Search", "Recherche — SEO"],
+    ["Rocket", "Fusée — lancement"], ["Zap", "Éclair — performance"], ["Wrench", "Clé — maintenance"],
+    ["GraduationCap", "Formation"], ["Globe", "Globe"]
+  ];
+  var PLATEFORMES = [
+    ["GitHub", "Github"], ["LinkedIn", "Linkedin"], ["Twitter / X", "Twitter"], ["Instagram", "Instagram"],
+    ["Facebook", "Facebook"], ["YouTube", "Youtube"], ["GitLab", "Gitlab"], ["Dribbble", "Dribbble"],
+    ["Figma", "Figma"], ["Twitch", "Twitch"], ["CodePen", "Codepen"], ["WhatsApp", "MessageCircle"],
+    ["Telegram", "Send"], ["E-mail", "Mail"], ["Site web", "Globe"], ["Blog", "Rss"]
+  ];
+  var ICONES_RESEAUX = PLATEFORMES.map(function (p) { return [p[1], p[1]]; })
+    .filter(function (v, i, t) { return t.findIndex(function (w) { return w[0] === v[0]; }) === i; })
+    .concat([["Link", "Link"], ["AtSign", "AtSign"], ["Phone", "Phone"], ["BookOpen", "BookOpen"], ["Newspaper", "Newspaper"]]);
+  var CATEGORIES = ["Frontend", "Backend", "Mobile", "DevOps", "Cloud", "Sécurité", "Cryptographie", "Réseau", "IA", "Data", "Outils"];
+
+  // Miroir de `src/lib/sections.ts` (SECTIONS_MASQUABLES).
+  var SECTIONS_SITE = [
+    ["about", "À propos"], ["services", "Services"], ["skills", "Compétences"], ["experience", "Parcours"],
+    ["projects", "Projets"], ["publications", "Publications"], ["blog", "Blog"], ["faq", "FAQ"],
+    ["testimonials", "Témoignages"], ["contact", "Contact"]
+  ];
+
+  /* ═══ RÈGLES DE VALIDATION ════════════════════════════════════════
+     Reproduction de `prisma/donnees/schema.ts`. */
+  var R = {
+    lien: function (v) {
+      if (v.charAt(0) === "/") return v.charAt(1) !== "/";
+      try { var p = new URL(v).protocol; return p === "https:" || p === "http:"; } catch (e) { return false; }
+    },
+    lienReseau: function (v) {
+      try { var p = new URL(v).protocol; return p === "https:" || p === "http:" || p === "mailto:"; } catch (e) { return false; }
+    },
+    email: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); },
+    mois: function (v) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(v); },
+    jour: function (v) { return /^\d{4}-\d{2}-\d{2}$/.test(v); }
+  };
+  var MSG = {
+    requis: "Champ obligatoire.",
+    lien: "URL https:// ou chemin commençant par / (ex. /images/moi.png).",
+    lienReseau: "URL https:// ou mailto:.",
+    email: "Adresse e-mail invalide.",
+    mois: "Mois au format AAAA-MM.",
+    jour: "Date au format AAAA-MM-JJ."
+  };
+
+  /* ═══ DÉFINITION DES SECTIONS ═════════════════════════════════════
+     Chaque champ : cle, label, type, et au besoin requis, aide, large,
+     options, omettre (clé retirée du fichier si vide, pour les champs que
+     le schéma accepte absents mais pas nuls). */
+  var PROFIL = [
+    { cle: "name", label: "Nom complet", type: "texte", requis: true },
+    { cle: "title", label: "Titre professionnel", type: "texte", requis: true, aide: "Sous le nom, dans l'accueil." },
+    { cle: "bio", label: "Biographie", type: "zone", requis: true, large: true, aide: "Affichée dans l'accueil et la section « À propos »." },
+    { cle: "email", label: "E-mail de contact", type: "email" },
+    { cle: "phone", label: "Téléphone", type: "tel", aide: "Format libre : +225 07 00 00 00 00" },
+    { cle: "location", label: "Localisation", type: "texte" },
+    { cle: "cvUrl", label: "CV", type: "lien", aide: "Chemin depuis public/ (ex. /cv.pdf) ou URL https://" },
+    { cle: "photoUrl", label: "Photo de l'accueil", type: "lien", aide: "Idéalement détourée (PNG transparent). Ex. /images/moi.png" },
+    { cle: "aboutPhotoUrl", label: "Illustration « À propos »", type: "lien", aide: "Affichée sans rognage, format 4/5 conseillé." },
+    { cle: "logoUrl", label: "Logo", type: "lien", large: true },
+    { cle: "isAvailable", label: "Afficher la pastille « Disponible pour de nouveaux projets »", type: "bool", large: true }
+  ];
+
+  var PARAMETRES = [
+    { cle: "site_name", label: "Nom du site", type: "texte", aide: "Titre de l'onglet et des partages." },
+    { cle: "stats_projects", label: "Projets réalisés", type: "entier", min: 0, aide: "Compteur de la section « À propos »." },
+    { cle: "stats_years", label: "Années d'expérience", type: "entier", min: 0 },
+    { cle: "stats_techs", label: "Technologies maîtrisées", type: "entier", min: 0 }
+  ];
+
+  var LISTES = [
+    { id: "reseaux", titre: "Réseaux sociaux", singulier: "réseau",
+      aide: "Les icônes sous votre nom dans l'accueil et le pied de page.",
+      titreCarte: function (x) { return x.platform || "Nouveau réseau"; },
+      nouveau: function () { return { platform: "", url: "", iconName: "Link", active: true }; },
+      champs: [
+        { cle: "platform", label: "Plateforme", type: "texte", requis: true, suggestions: PLATEFORMES.map(function (p) { return p[0]; }), aide: "Choisir dans la liste règle l'icône automatiquement." },
+        { cle: "iconName", label: "Icône", type: "choix", options: ICONES_RESEAUX, requis: true },
+        { cle: "url", label: "Adresse", type: "lienReseau", requis: true, large: true, aide: "https://github.com/votre-compte ou mailto:vous@exemple.com" },
+        { cle: "active", label: "Afficher sur le site", type: "bool", large: true }
+      ] },
+
+    { id: "services", titre: "Services", singulier: "service",
+      aide: "Les cartes de la section « Ce que je propose ».",
+      titreCarte: function (x) { return x.title || "Nouveau service"; },
+      nouveau: function () { return { title: "", description: "", iconName: "Code", published: true }; },
+      champs: [
+        { cle: "title", label: "Intitulé", type: "texte", requis: true },
+        { cle: "iconName", label: "Icône", type: "choix", options: ICONES_SERVICES, requis: true },
+        { cle: "description", label: "Description", type: "zone", requis: true, large: true },
+        { cle: "published", label: "Publier", type: "bool", large: true }
+      ] },
+
+    { id: "competences", titre: "Compétences", singulier: "compétence", feminin: true,
+      aide: "Regroupées par catégorie : chaque catégorie devient un filtre sur le site.",
+      titreCarte: function (x) { return (x.name || "Nouvelle compétence") + (x.category ? " · " + x.category : ""); },
+      nouveau: function () { return { name: "", category: "", level: "80", iconUrl: "" }; },
+      champs: [
+        { cle: "name", label: "Compétence", type: "texte", requis: true },
+        { cle: "category", label: "Catégorie", type: "texte", requis: true, suggestions: CATEGORIES },
+        { cle: "level", label: "Niveau de maîtrise", type: "niveau", min: 0, max: 100, requis: true, large: true },
+        { cle: "iconUrl", label: "Icône (facultatif)", type: "lien", large: true, aide: "Image affichée dans les billes 3D. Ex. /icones/react.svg" }
+      ] },
+
+    { id: "parcours", titre: "Parcours", singulier: "étape", feminin: true,
+      aide: "Expériences et formations. Le site les trie du plus récent au plus ancien.",
+      titreCarte: function (x) { return (x.title || "Nouvelle étape") + (x.organization ? " · " + x.organization : ""); },
+      nouveau: function () { return { type: "work", title: "", organization: "", location: "", startDate: "", endDate: "", current: false, description: "" }; },
+      champs: [
+        { cle: "type", label: "Nature", type: "choix", options: [["work", "Expérience professionnelle"], ["education", "Formation"]], requis: true },
+        { cle: "title", label: "Poste ou diplôme", type: "texte", requis: true },
+        { cle: "organization", label: "Entreprise ou établissement", type: "texte", requis: true },
+        { cle: "location", label: "Lieu", type: "texte" },
+        { cle: "startDate", label: "Début", type: "mois", requis: true },
+        { cle: "endDate", label: "Fin", type: "mois", aide: "Laisser vide si en cours." },
+        { cle: "current", label: "En cours actuellement", type: "bool", large: true },
+        { cle: "description", label: "Description", type: "zone", large: true }
+      ] },
+
+    { id: "projets", titre: "Projets", singulier: "projet",
+      aide: "Les projets « mis en avant » apparaissent en premier.",
+      titreCarte: function (x) { return x.title || "Nouveau projet"; },
+      nouveau: function () { return { title: "", slug: "", description: "", content: "", coverUrl: "", images: "", tags: "", techStack: "", demoUrl: "", repoUrl: "", featured: false, published: true }; },
+      champs: [
+        { cle: "title", label: "Titre", type: "texte", requis: true },
+        { cle: "slug", label: "Adresse de la page (facultatif)", type: "texte", omettre: true, aide: "Déduite du titre si vide." },
+        { cle: "description", label: "Résumé", type: "zone", requis: true, large: true, aide: "Affiché sur la carte du projet." },
+        { cle: "content", label: "Présentation détaillée (facultatif)", type: "zone", large: true, aide: "Une ligne vide sépare deux paragraphes." },
+        { cle: "techStack", label: "Technologies", type: "liste", large: true, aide: "Séparées par des virgules : Next.js, PostgreSQL, Prisma" },
+        { cle: "tags", label: "Catégories", type: "liste", aide: "Servent de filtres : Web, IA, Sécurité" },
+        { cle: "coverUrl", label: "Image de couverture", type: "lien" },
+        { cle: "images", label: "Galerie (facultatif)", type: "listeLiens", large: true, aide: "Chemins ou URL séparés par des virgules." },
+        { cle: "demoUrl", label: "Démo en ligne", type: "lien" },
+        { cle: "repoUrl", label: "Code source", type: "lien" },
+        { cle: "featured", label: "Mettre en avant", type: "bool" },
+        { cle: "published", label: "Publier", type: "bool" }
+      ] },
+
+    { id: "publications", titre: "Publications", singulier: "publication", feminin: true,
+      aide: "Vos contenus publiés ailleurs (LinkedIn, GitHub, Medium…), avec un lien vers l'original.",
+      titreCarte: function (x) { return x.title || "Nouvelle publication"; },
+      nouveau: function () { return { platform: "", title: "", description: "", url: "", thumbnailUrl: "", publishedAt: "", featured: false, active: true }; },
+      champs: [
+        { cle: "platform", label: "Plateforme", type: "texte", requis: true, suggestions: ["LinkedIn", "GitHub", "Medium", "Dev.to", "YouTube", "Twitter / X"] },
+        { cle: "title", label: "Titre", type: "texte", requis: true },
+        { cle: "url", label: "Lien vers la publication", type: "lien", requis: true, large: true },
+        { cle: "description", label: "Description", type: "zone", large: true },
+        { cle: "thumbnailUrl", label: "Vignette", type: "lien" },
+        { cle: "publishedAt", label: "Date de publication", type: "jour", omettre: true },
+        { cle: "featured", label: "Mettre en avant", type: "bool" },
+        { cle: "active", label: "Afficher sur le site", type: "bool" }
+      ] },
+
+    { id: "articles", titre: "Articles de blog", singulier: "article",
+      aide: "Rédigés en texte simple : une ligne vide sépare deux paragraphes. La mise en forme riche se fait ensuite dans le back-office.",
+      titreCarte: function (x) { return x.title || "Nouvel article"; },
+      nouveau: function () { return { title: "", slug: "", excerpt: "", content: "", coverUrl: "", tags: "", readingTime: "", featured: false, published: true }; },
+      champs: [
+        { cle: "title", label: "Titre", type: "texte", requis: true, large: true },
+        { cle: "excerpt", label: "Chapeau", type: "zone", large: true, aide: "Résumé affiché dans la liste des articles." },
+        { cle: "content", label: "Contenu", type: "zone", requis: true, large: true, grand: true },
+        { cle: "tags", label: "Étiquettes", type: "liste", aide: "Séparées par des virgules." },
+        { cle: "coverUrl", label: "Image de couverture", type: "lien" },
+        { cle: "slug", label: "Adresse de la page (facultatif)", type: "texte", omettre: true, aide: "Déduite du titre si vide." },
+        { cle: "readingTime", label: "Temps de lecture en minutes (facultatif)", type: "entier", min: 1, omettre: true, aide: "Calculé automatiquement si vide." },
+        { cle: "featured", label: "Mettre en avant", type: "bool" },
+        { cle: "published", label: "Publier", type: "bool" }
+      ] },
+
+    { id: "faq", titre: "FAQ", singulier: "question", feminin: true,
+      aide: "Les questions fréquentes, dans l'ordre d'affichage.",
+      titreCarte: function (x) { return x.question || "Nouvelle question"; },
+      nouveau: function () { return { question: "", answer: "", active: true }; },
+      champs: [
+        { cle: "question", label: "Question", type: "texte", requis: true, large: true },
+        { cle: "answer", label: "Réponse", type: "zone", requis: true, large: true },
+        { cle: "active", label: "Afficher sur le site", type: "bool", large: true }
+      ] },
+
+    { id: "temoignages", titre: "Témoignages", singulier: "témoignage",
+      aide: "Uniquement des avis réels, avec l'accord de leur auteur. Les témoignages de démonstration actuellement en base seront retirés si cette section est remplacée.",
+      titreCarte: function (x) { return (x.name || "Nouveau témoignage") + (x.company ? " · " + x.company : ""); },
+      nouveau: function () { return { name: "", role: "", company: "", content: "", avatarUrl: "", rating: "5", published: true }; },
+      champs: [
+        { cle: "name", label: "Nom", type: "texte", requis: true },
+        { cle: "role", label: "Fonction", type: "texte", requis: true },
+        { cle: "company", label: "Entreprise", type: "texte" },
+        { cle: "rating", label: "Note", type: "choix", options: [["5", "★★★★★ — 5"], ["4", "★★★★ — 4"], ["3", "★★★ — 3"], ["2", "★★ — 2"], ["1", "★ — 1"]], requis: true },
+        { cle: "content", label: "Témoignage", type: "zone", requis: true, large: true },
+        { cle: "avatarUrl", label: "Photo (facultatif)", type: "lien", large: true },
+        { cle: "published", label: "Publier", type: "bool", large: true }
+      ] }
+  ];
+
+  var ORDRE = [{ id: "profil", titre: "Identité" }, { id: "parametres", titre: "Réglages du site" }]
+    .concat(LISTES.map(function (l) { return { id: l.id, titre: l.titre }; }))
+    .concat([{ id: "export", titre: "Vérifier et exporter" }]);
+
+  /* ═══ ÉTAT ════════════════════════════════════════════════════════
+     Tout est stocké en chaînes (valeurs des champs) et booléens. La mise
+     au format du seed n'a lieu qu'à l'export. */
+  var CLE_STOCKAGE = "portfolio-formulaire-seed-v1";
+
+  function etatVide() {
+    var e = { profil: {}, parametres: { sections: {} }, listes: {}, inclure: {} };
+    PROFIL.forEach(function (c) { e.profil[c.cle] = c.type === "bool" ? true : ""; });
+    PARAMETRES.forEach(function (c) { e.parametres[c.cle] = ""; });
+    SECTIONS_SITE.forEach(function (s) { e.parametres.sections[s[0]] = true; });
+    LISTES.forEach(function (l) { e.listes[l.id] = []; e.inclure[l.id] = true; });
+    return e;
+  }
+
+  function charger() {
+    try {
+      var brut = localStorage.getItem(CLE_STOCKAGE);
+      if (!brut) return null;
+      var lu = JSON.parse(brut);
+      // Fusion avec un état vide : un brouillon d'une version antérieure du
+      // formulaire récupère les champs ajoutés depuis.
+      var e = etatVide();
+      Object.assign(e.profil, lu.profil || {});
+      Object.assign(e.parametres, lu.parametres || {});
+      e.parametres.sections = Object.assign(etatVide().parametres.sections, (lu.parametres || {}).sections || {});
+      LISTES.forEach(function (l) {
+        if (lu.listes && Array.isArray(lu.listes[l.id])) {
+          e.listes[l.id] = lu.listes[l.id].map(function (x) { return Object.assign(l.nouveau(), x); });
+        }
+        if (lu.inclure && typeof lu.inclure[l.id] === "boolean") e.inclure[l.id] = lu.inclure[l.id];
+      });
+      return e;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  var etat = charger() || etatVide();
+  var touches = {};          // champs déjà quittés : on n'affiche l'erreur qu'après
+  var toutMontrer = false;   // passe à vrai à la première vérification
+  var courant = (location.hash || "").slice(1);
+  if (!ORDRE.some(function (o) { return o.id === courant; })) courant = "profil";
+
+  var minuteur = null;
+  function sauvegarder() {
+    clearTimeout(minuteur);
+    minuteur = setTimeout(function () {
+      var zone = document.getElementById("etat-brouillon");
+      try {
+        localStorage.setItem(CLE_STOCKAGE, JSON.stringify(etat));
+        var h = new Date();
+        zone.textContent = "Brouillon enregistré à " + String(h.getHours()).padStart(2, "0") + ":" + String(h.getMinutes()).padStart(2, "0");
+      } catch (err) {
+        zone.textContent = "Brouillon non enregistré (stockage indisponible) — pensez à exporter";
+      }
+    }, 350);
+  }
+
+  /* ═══ VALIDATION ══════════════════════════════════════════════════ */
+  function erreurChamp(def, v, objet) {
+    var s = typeof v === "string" ? v.trim() : v;
+    if (def.type === "bool") return "";
+    if (def.requis && !s) return MSG.requis;
+    if (!s) return "";
+    switch (def.type) {
+      case "email": return R.email(s) ? "" : MSG.email;
+      case "lien": return R.lien(s) ? "" : MSG.lien;
+      case "lienReseau": return R.lienReseau(s) ? "" : MSG.lienReseau;
+      case "mois": return R.mois(s) ? "" : MSG.mois;
+      case "jour": return R.jour(s) ? "" : MSG.jour;
+      case "listeLiens":
+        var mauvais = decouper(s).filter(function (x) { return !R.lien(x); });
+        return mauvais.length ? "Lien invalide : " + mauvais[0] + ". " + MSG.lien : "";
+      case "entier":
+      case "niveau":
+        if (!/^\d+$/.test(s)) return "Nombre entier attendu.";
+        var n = Number(s);
+        if (def.min !== undefined && n < def.min) return "Minimum : " + def.min + ".";
+        if (def.max !== undefined && n > def.max) return "Maximum : " + def.max + ".";
+        return "";
+    }
+    return "";
+  }
+
+  function erreursCroisees(listeId, x) {
+    var r = {};
+    if (listeId === "parcours") {
+      if (!x.current && !String(x.endDate || "").trim()) r.endDate = "Date de fin requise si l'étape n'est pas en cours.";
+      else if (!x.current && R.mois(x.startDate) && R.mois(x.endDate) && x.endDate < x.startDate) r.endDate = "La fin précède le début.";
+    }
+    return r;
+  }
+
+  /** Toutes les erreurs : [{ section, index, cle, message, libelle }] */
+  function toutesLesErreurs() {
+    var liste = [];
+    PROFIL.forEach(function (c) {
+      var m = erreurChamp(c, etat.profil[c.cle]);
+      if (m) liste.push({ section: "profil", index: -1, cle: c.cle, message: m, libelle: c.label });
+    });
+    PARAMETRES.forEach(function (c) {
+      var m = erreurChamp(c, etat.parametres[c.cle]);
+      if (m) liste.push({ section: "parametres", index: -1, cle: c.cle, message: m, libelle: c.label });
+    });
+    LISTES.forEach(function (l) {
+      if (!etat.inclure[l.id]) return;
+      etat.listes[l.id].forEach(function (x, i) {
+        var croisees = erreursCroisees(l.id, x);
+        l.champs.forEach(function (c) {
+          var m = erreurChamp(c, x[c.cle]) || croisees[c.cle];
+          if (m) liste.push({ section: l.id, index: i, cle: c.cle, message: m, libelle: l.singulier + " " + (i + 1) + " — " + c.label });
+        });
+      });
+    });
+    return liste;
+  }
+
+  /* ═══ OUTILS DOM ══════════════════════════════════════════════════
+     Les valeurs saisies ne passent JAMAIS par innerHTML : uniquement par
+     `value` et `textContent`. */
+  function el(tag, attrs) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v === undefined || v === null || v === false) return;
+      if (k === "texte") n.textContent = v;
+      else if (k === "classe") n.className = v;
+      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? "" : v);
+    });
+    for (var i = 2; i < arguments.length; i++) {
+      var enfant = arguments[i];
+      if (enfant === null || enfant === undefined || enfant === false) continue;
+      n.appendChild(typeof enfant === "string" ? document.createTextNode(enfant) : enfant);
+    }
+    return n;
+  }
+
+  /* Quitter un champ invalide fait apparaître son message d'erreur, qui
+     décale ce qui suit. Or `blur` survient au `mousedown` : le bouton visé
+     glissait sous le pointeur avant le `mouseup`, et le clic était perdu —
+     il fallait cliquer deux fois sur « Ajouter ». Pendant un geste du
+     pointeur, l'affichage est donc différé jusqu'après le clic. */
+  var pointeurEnfonce = false, differes = [];
+  document.addEventListener("pointerdown", function () { pointeurEnfonce = true; }, true);
+  document.addEventListener("pointerup", function () {
+    // `click` est émis dans la même tâche que `pointerup` : le délai nul
+    // passe après lui.
+    setTimeout(function () {
+      pointeurEnfonce = false;
+      differes.splice(0).forEach(function (fn) { fn(); });
+    }, 0);
+  }, true);
+  function apresGeste(fn) { if (pointeurEnfonce) differes.push(fn); else fn(); }
+
+  var compteurId = 0;
+  function nouvelId() { return "c" + (++compteurId); }
+
+  function decouper(s) { return String(s || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean); }
+
+  function toast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("visible");
+    clearTimeout(toast.m);
+    toast.m = setTimeout(function () { t.classList.remove("visible"); }, 2600);
+  }
+
+  /**
+   * Construit un champ lié à `objet[def.cle]`.
+   * `apresSaisie` est appelé à chaque modification (titre de carte, etc.).
+   */
+  function construireChamp(def, objet, cleTouche, verifierCroise, apresSaisie) {
+    var id = nouvelId();
+    var boite = el("div", { classe: "champ" + (def.large ? " large" : ""), "data-champ": cleTouche });
+    var message = el("p", { classe: "message", id: id + "-m", hidden: true });
+
+    function afficher() {
+      var m = erreurChamp(def, objet[def.cle]) || (verifierCroise ? verifierCroise()[def.cle] : "");
+      var visible = m && (touches[cleTouche] || toutMontrer);
+      boite.classList.toggle("invalide", !!visible);
+      message.hidden = !visible;
+      message.textContent = visible ? m : "";
+      if (entree) entree.setAttribute("aria-invalid", visible ? "true" : "false");
+    }
+
+    function changer(valeur) {
+      objet[def.cle] = valeur;
+      afficher();
+      if (apresSaisie) apresSaisie(def.cle);
+      majNav();
+      sauvegarder();
+    }
+
+    var entree;
+    if (def.type === "bool") {
+      entree = el("input", { type: "checkbox", id: id });
+      entree.checked = !!objet[def.cle];
+      entree.addEventListener("change", function () { changer(entree.checked); });
+      boite.appendChild(el("label", { classe: "bascule", for: id }, entree, def.label));
+      boite.afficher = afficher;
+      return boite;
+    }
+
+    var etiquette = el("label", { for: id }, def.label, def.requis ? el("span", { classe: "requis", "aria-hidden": "true", texte: "*" }) : null);
+    boite.appendChild(etiquette);
+
+    if (def.type === "zone") {
+      entree = el("textarea", { id: id, rows: def.grand ? 12 : 4 });
+    } else if (def.type === "choix") {
+      entree = el("select", { id: id });
+      def.options.forEach(function (o) { entree.appendChild(el("option", { value: o[0], texte: o[1] })); });
+    } else if (def.type === "niveau") {
+      var sortie = el("output", { for: id });
+      entree = el("input", { type: "range", id: id, min: def.min, max: def.max, step: 1 });
+      boite.appendChild(el("div", { classe: "jauge" }, entree, sortie));
+      entree.value = objet[def.cle] || "0";
+      sortie.textContent = entree.value + " %";
+      entree.addEventListener("input", function () { sortie.textContent = entree.value + " %"; changer(entree.value); });
+      boite.appendChild(message);
+      boite.afficher = afficher;
+      return boite;
+    } else {
+      var types = { email: "email", tel: "tel", mois: "month", jour: "date", entier: "number" };
+      entree = el("input", { type: types[def.type] || "text", id: id });
+      if (def.type === "entier") { entree.setAttribute("inputmode", "numeric"); if (def.min !== undefined) entree.min = def.min; }
+      if (def.type === "lien" || def.type === "lienReseau" || def.type === "listeLiens") { entree.setAttribute("inputmode", "url"); entree.setAttribute("spellcheck", "false"); }
+      if (def.type === "mois") entree.placeholder = "AAAA-MM";
+      if (def.type === "email") entree.autocomplete = "email";
+      if (def.type === "tel") entree.autocomplete = "tel";
+      if (def.suggestions) {
+        var dl = el("datalist", { id: id + "-l" });
+        def.suggestions.forEach(function (s) { dl.appendChild(el("option", { value: s })); });
+        boite.appendChild(dl);
+        entree.setAttribute("list", id + "-l");
+      }
+    }
+
+    entree.value = objet[def.cle] === undefined || objet[def.cle] === null ? "" : objet[def.cle];
+    entree.addEventListener(def.type === "choix" ? "change" : "input", function () { changer(entree.value); });
+    entree.addEventListener("blur", function () { touches[cleTouche] = true; apresGeste(afficher); });
+    if (def.aide) entree.setAttribute("aria-describedby", id + "-a " + id + "-m");
+
+    boite.appendChild(entree);
+    if (def.aide) boite.appendChild(el("p", { classe: "aide", id: id + "-a", texte: def.aide }));
+    boite.appendChild(message);
+    boite.afficher = afficher;
+    boite.entree = entree;
+    return boite;
+  }
+
+  /* ═══ RENDU DES PANNEAUX ══════════════════════════════════════════ */
+  function titrePanneau(titre, aide) {
+    return el("div", { classe: "panneau-tete" }, el("h2", { texte: titre, tabindex: "-1" }), aide ? el("p", { texte: aide }) : null);
+  }
+
+  function boutonsPas() {
+    var i = ORDRE.findIndex(function (o) { return o.id === courant; });
+    var prec = ORDRE[i - 1], suiv = ORDRE[i + 1];
+    return el("div", { classe: "pas" },
+      prec ? el("button", { classe: "btn", type: "button", texte: "← " + prec.titre, onclick: function () { aller(prec.id); } }) : el("span"),
+      suiv ? el("button", { classe: "btn btn-plein", type: "button", texte: suiv.titre + " →", onclick: function () { aller(suiv.id); } }) : el("span"));
+  }
+
+  function panneauProfil() {
+    var grille = el("div", { classe: "grille" });
+    PROFIL.forEach(function (c) {
+      var ch = construireChamp(c, etat.profil, "profil." + c.cle);
+      grille.appendChild(ch);
+      ch.afficher();
+    });
+    return [titrePanneau("Identité", "Les informations qui vous présentent. Pour les images, déposez les fichiers dans le dossier public/ du projet et indiquez leur chemin."),
+      el("div", { classe: "carte" }, grille), boutonsPas()];
+  }
+
+  function panneauParametres() {
+    var grille = el("div", { classe: "grille" });
+    PARAMETRES.forEach(function (c) {
+      var ch = construireChamp(c, etat.parametres, "parametres." + c.cle);
+      grille.appendChild(ch);
+      ch.afficher();
+    });
+    var vis = el("div", { classe: "grille" });
+    SECTIONS_SITE.forEach(function (s) {
+      vis.appendChild(construireChamp({ cle: s[0], label: s[1], type: "bool" }, etat.parametres.sections, "sections." + s[0]));
+    });
+    return [titrePanneau("Réglages du site", "Les compteurs de la section « À propos » et les sections affichées sur la page d'accueil."),
+      el("div", { classe: "carte" }, grille),
+      el("div", { classe: "carte" },
+        el("h3", { texte: "Sections visibles", style: "font-size:.9375rem;margin-bottom:.25rem" }),
+        el("p", { classe: "aide", texte: "Une section décochée disparaît du site ; son contenu reste en base.", style: "margin:0 0 .875rem;font-size:.8125rem;color:var(--texte-3)" }),
+        vis),
+      boutonsPas()];
+  }
+
+  function panneauListe(def) {
+    var items = etat.listes[def.id];
+    var zone = el("div");
+
+    var caseInclure = el("input", { type: "checkbox", id: "inclure-" + def.id });
+    caseInclure.checked = etat.inclure[def.id];
+    var texteInclure = el("span");
+    var bandeau = el("label", { classe: "inclure", for: "inclure-" + def.id }, caseInclure, texteInclure);
+    function majInclure() {
+      var oui = etat.inclure[def.id];
+      bandeau.classList.toggle("exclue", !oui);
+      texteInclure.textContent = oui
+        ? "Remplacer cette section en base par le contenu ci-dessous" + (items.length ? "." : " — la liste étant vide, la section sera VIDÉE.")
+        : "Section ignorée : le contenu actuellement en base ne sera pas modifié.";
+    }
+    caseInclure.addEventListener("change", function () {
+      etat.inclure[def.id] = caseInclure.checked;
+      majInclure(); majNav(); sauvegarder();
+    });
+    majInclure();
+
+    function redessiner(focaliser) {
+      zone.textContent = "";
+      if (!items.length) {
+        zone.appendChild(el("p", { classe: "vide", texte: (def.feminin ? "Aucune " : "Aucun ") + def.singulier + " pour l'instant." }));
+      }
+      items.forEach(function (x, i) {
+        var titre = el("h3", {}, el("span", { texte: "#" + (i + 1) }), def.titreCarte(x));
+        var grille = el("div", { classe: "grille" });
+        var champs = [];
+        var croise = function () { return erreursCroisees(def.id, x); };
+
+        def.champs.forEach(function (c) {
+          var ch = construireChamp(c, x, def.id + "." + i + "." + c.cle, croise, function (cle) {
+            titre.lastChild.textContent = def.titreCarte(x);
+            // Plateforme reconnue : l'icône suit automatiquement.
+            if (def.id === "reseaux" && cle === "platform") {
+              var trouve = PLATEFORMES.filter(function (p) { return p[0].toLowerCase() === String(x.platform).trim().toLowerCase(); })[0];
+              if (trouve) {
+                x.iconName = trouve[1];
+                champs.forEach(function (autre) { if (autre.dataset.champ.slice(-9) === ".iconName") autre.entree.value = trouve[1]; });
+              }
+            }
+            // Les règles croisées dépendent de plusieurs champs.
+            champs.forEach(function (autre) { autre.afficher(); });
+          });
+          champs.push(ch);
+          grille.appendChild(ch);
+        });
+        champs.forEach(function (ch) { ch.afficher(); });
+
+        var outils = el("div", { classe: "outils-element" },
+          el("button", { classe: "bouton-icone", type: "button", "aria-label": "Monter", title: "Monter", disabled: i === 0, texte: "↑",
+            onclick: function () { deplacer(i, -1); } }),
+          el("button", { classe: "bouton-icone", type: "button", "aria-label": "Descendre", title: "Descendre", disabled: i === items.length - 1, texte: "↓",
+            onclick: function () { deplacer(i, 1); } }),
+          el("button", { classe: "bouton-icone danger", type: "button", "aria-label": "Supprimer", title: "Supprimer", texte: "✕",
+            onclick: function () {
+              var rempli = def.champs.some(function (c) { return c.type !== "bool" && String(x[c.cle] || "").trim(); });
+              if (rempli && !confirm("Supprimer « " + def.titreCarte(x) + " » ?")) return;
+              items.splice(i, 1); redessiner(); majInclure(); majNav(); sauvegarder();
+            } }));
+
+        var carte = el("div", { classe: "carte" }, el("div", { classe: "element-tete" }, titre, outils), grille);
+        zone.appendChild(carte);
+        if (focaliser === i) {
+          // Focus IMMÉDIAT : différé, il volait la saisie si l'on avait
+          // entre-temps touché un autre champ. `preventScroll` laisse le
+          // défilement doux amener la carte sans à-coup.
+          var premier = carte.querySelector("input:not([type=checkbox]), select, textarea");
+          if (premier) premier.focus({ preventScroll: true });
+          carte.scrollIntoView({ block: "start", behavior: "smooth" });
+        }
+      });
+    }
+
+    function deplacer(i, sens) {
+      var j = i + sens;
+      var tmp = items[i]; items[i] = items[j]; items[j] = tmp;
+      redessiner(); majNav(); sauvegarder();
+    }
+
+    redessiner();
+
+    var ajout = el("button", { classe: "btn btn-ajout", type: "button",
+      texte: "+ Ajouter " + (def.feminin ? "une " : "un ") + def.singulier,
+      onclick: function () { items.push(def.nouveau()); redessiner(items.length - 1); majInclure(); majNav(); sauvegarder(); } });
+
+    return [titrePanneau(def.titre, def.aide), bandeau, zone, ajout, boutonsPas()];
+  }
+
+  /* ═══ EXPORT ══════════════════════════════════════════════════════ */
+  function valeurFichier(def, v) {
+    var s = typeof v === "string" ? v.trim() : v;
+    switch (def.type) {
+      case "bool": return !!v;
+      case "liste": return decouper(s);
+      case "listeLiens": return decouper(s);
+      case "entier": case "niveau": return s === "" ? null : Number(s);
+      case "choix": return def.cle === "rating" ? Number(s) : s;
+      default: return s === "" ? null : s;
+    }
+  }
+
+  function objetFichier(champs, source) {
+    var o = {};
+    champs.forEach(function (c) {
+      var v = valeurFichier(c, source[c.cle]);
+      if (v === null && c.omettre) return;
+      o[c.cle] = v;
+    });
+    return o;
+  }
+
+  function construireFichier() {
+    var f = { version: 1, profil: objetFichier(PROFIL, etat.profil) };
+
+    var p = {};
+    PARAMETRES.forEach(function (c) {
+      var v = valeurFichier(c, etat.parametres[c.cle]);
+      if (v !== null) p[c.cle] = v;
+    });
+    p.sections = {};
+    SECTIONS_SITE.forEach(function (s) { p.sections[s[0]] = !!etat.parametres.sections[s[0]]; });
+    f.parametres = p;
+
+    LISTES.forEach(function (l) {
+      if (!etat.inclure[l.id]) return;
+      f[l.id] = etat.listes[l.id].map(function (x) {
+        var o = objetFichier(l.champs, x);
+        // Un poste en cours n'a pas de date de fin.
+        if (l.id === "parcours" && o.current) o.endDate = null;
+        return o;
+      });
+    });
+    return f;
+  }
+
+  function telecharger(texte) {
+    var blob = new Blob([texte], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = el("a", { href: url, download: "mes-infos.json" });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  }
+
+  function copier(texte) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(texte);
+    }
+    // Repli pour les pages ouvertes en file:// sur certains navigateurs.
+    var zone = el("textarea", { style: "position:fixed;opacity:0" });
+    zone.value = texte;
+    document.body.appendChild(zone);
+    zone.select();
+    var ok = document.execCommand("copy");
+    zone.remove();
+    return ok ? Promise.resolve() : Promise.reject(new Error("copie refusée"));
+  }
+
+  function panneauExport() {
+    toutMontrer = true;
+    var erreurs = toutesLesErreurs();
+    majNav();
+
+    var corps = el("tbody");
+    corps.appendChild(ligneResume("Identité", "—", true, erreurs.filter(function (e) { return e.section === "profil"; }).length, "Écrasée"));
+    corps.appendChild(ligneResume("Réglages du site", "—", true, erreurs.filter(function (e) { return e.section === "parametres"; }).length, "Mise à jour clé par clé"));
+    LISTES.forEach(function (l) {
+      corps.appendChild(ligneResume(l.titre, etat.listes[l.id].length, etat.inclure[l.id],
+        erreurs.filter(function (e) { return e.section === l.id; }).length));
+    });
+
+    var bloc = [titrePanneau("Vérifier et exporter", "Le fichier produit est injecté en base par le seed. Rien n'est envoyé où que ce soit depuis cette page."),
+      el("div", { classe: "carte defile" }, el("table", { classe: "tableau" },
+        el("thead", {}, el("tr", {}, el("th", { texte: "Section" }), el("th", { texte: "Entrées" }), el("th", { texte: "Effet de l'injection" }), el("th", { texte: "État" }))),
+        corps))];
+
+    if (erreurs.length) {
+      var liste = el("ul", { classe: "erreurs" });
+      erreurs.forEach(function (e) {
+        liste.appendChild(el("li", {}, el("button", { type: "button", texte: e.libelle + " : " + e.message,
+          onclick: function () { allerAuChamp(e); } })));
+      });
+      bloc.push(el("div", { classe: "carte" },
+        el("p", { classe: "bandeau ko", texte: erreurs.length + " problème(s) à corriger avant l'export. Cliquer sur une ligne mène au champ." }),
+        el("div", { style: "margin-top:.875rem" }, liste)));
+    } else {
+      var json = JSON.stringify(construireFichier(), null, 2);
+      bloc.push(el("div", { classe: "carte" },
+        el("p", { classe: "bandeau ok", texte: "Tout est valide. Le fichier est prêt." }),
+        el("div", { classe: "pas", style: "justify-content:flex-start;flex-wrap:wrap" },
+          el("button", { classe: "btn btn-plein", type: "button", texte: "Télécharger mes-infos.json", onclick: function () { telecharger(json); toast("Fichier téléchargé"); } }),
+          el("button", { classe: "btn", type: "button", texte: "Copier le contenu", onclick: function () {
+            copier(json).then(function () { toast("Contenu copié"); }, function () { toast("Copie impossible — utiliser le téléchargement"); });
+          } }))));
+
+      bloc.push(el("div", { classe: "carte" },
+        el("h3", { texte: "Injecter en base", style: "font-size:.9375rem;margin-bottom:.875rem" }),
+        el("ol", { classe: "etapes" },
+          el("li", {}, "Placer le fichier téléchargé dans le projet, sous ce nom exact :",
+            el("pre", { classe: "commande", texte: "prisma/donnees/mes-infos.json" })),
+          el("li", {}, "Faire un essai à blanc : tout est écrit puis annulé, rien ne change en base.",
+            el("pre", { classe: "commande", texte: "npm run db:injecter:simulation" })),
+          el("li", {}, "Si le tableau affiché convient, injecter pour de bon :",
+            el("pre", { classe: "commande", texte: "npm run db:injecter" })))));
+    }
+
+    bloc.push(el("div", { classe: "carte" },
+      el("p", { style: "margin:0;font-size:.8125rem;color:var(--texte-2)" },
+        "Le brouillon est conservé dans ce navigateur. ",
+        el("button", { classe: "btn-lien", type: "button", texte: "Effacer le brouillon", onclick: function () {
+          if (!confirm("Effacer toutes les informations saisies dans ce navigateur ?")) return;
+          try { localStorage.removeItem(CLE_STOCKAGE); } catch (err) {}
+          etat = etatVide(); touches = {}; toutMontrer = false;
+          aller("profil"); toast("Brouillon effacé");
+        } }))));
+    bloc.push(boutonsPas());
+    return bloc;
+  }
+
+  function ligneResume(titre, nb, inclus, nbErreurs, effetForce) {
+    var effet = effetForce || (!inclus ? "Non modifiée" : (nb === 0 ? "Vidée" : "Remplacée"));
+    return el("tr", {},
+      el("td", { texte: titre }),
+      el("td", { texte: String(nb) }),
+      el("td", { classe: inclus ? "" : "statut-neutre", texte: effet }),
+      el("td", { classe: nbErreurs ? "statut-ko" : "statut-ok", texte: nbErreurs ? nbErreurs + " à corriger" : "Valide" }));
+  }
+
+  /* ═══ NAVIGATION ══════════════════════════════════════════════════ */
+  function majNav() {
+    var erreurs = toutesLesErreurs();
+    var nav = document.getElementById("nav");
+    nav.textContent = "";
+    ORDRE.forEach(function (o) {
+      var nbErr = erreurs.filter(function (e) { return e.section === o.id; }).length;
+      var liste = LISTES.filter(function (l) { return l.id === o.id; })[0];
+      var pastille = null;
+      if (nbErr && (toutMontrer || o.id === courant)) {
+        pastille = el("span", { classe: "pastille-nb erreur", texte: String(nbErr), title: nbErr + " problème(s)" });
+      } else if (liste) {
+        pastille = el("span", { classe: "pastille-nb", texte: etat.inclure[o.id] ? String(etat.listes[o.id].length) : "—" });
+      }
+      nav.appendChild(el("button", { type: "button", "aria-current": o.id === courant ? "true" : "false",
+        onclick: function () { aller(o.id); } }, el("span", { texte: o.titre }), pastille));
+    });
+  }
+
+  /* `scrollIntoView` ferait aussi défiler la PAGE jusqu'au ruban : on ne
+     déplace que le ruban lui-même, et seulement au changement de section. */
+  function centrerOngletActif() {
+    var nav = document.getElementById("nav");
+    var actif = nav.querySelector('[aria-current="true"]');
+    if (!actif || window.innerWidth >= 900) return;
+    nav.scrollLeft = actif.offsetLeft - (nav.clientWidth - actif.offsetWidth) / 2;
+  }
+
+  function aller(id, sansDefilement) {
+    courant = id;
+    if (location.hash.slice(1) !== id) history.replaceState(null, "", "#" + id);
+    var p = document.getElementById("panneau");
+    p.textContent = "";
+    var contenu;
+    if (id === "profil") contenu = panneauProfil();
+    else if (id === "parametres") contenu = panneauParametres();
+    else if (id === "export") contenu = panneauExport();
+    else contenu = panneauListe(LISTES.filter(function (l) { return l.id === id; })[0]);
+    contenu.forEach(function (n) { p.appendChild(n); });
+    majNav();
+    centrerOngletActif();
+    if (!sansDefilement) window.scrollTo({ top: 0 });
+    var h = p.querySelector("h2");
+    if (h) h.focus({ preventScroll: true });
+  }
+
+  function allerAuChamp(e) {
+    touches[e.section + (e.index >= 0 ? "." + e.index : "") + "." + e.cle] = true;
+    aller(e.section);
+    var cle = e.section === "profil" ? "profil." + e.cle
+      : e.section === "parametres" ? "parametres." + e.cle
+      : e.section + "." + e.index + "." + e.cle;
+    var boite = document.querySelector('[data-champ="' + cle.replace(/"/g, "") + '"]');
+    if (boite) {
+      boite.scrollIntoView({ block: "center" });
+      var champ = boite.querySelector("input, select, textarea");
+      if (champ) champ.focus({ preventScroll: true });
+    }
+  }
+
+  /* ═══ IMPORT ══════════════════════════════════════════════════════
+     Relit un fichier au format du seed (un export précédent, ou
+     `exemple.json`) pour reprendre ou corriger une saisie. */
+  function versChamp(def, v) {
+    if (def.type === "bool") return !!v;
+    if (v === null || v === undefined) return "";
+    if (Array.isArray(v)) return v.join(", ");
+    return String(v);
+  }
+
+  function importer(f) {
+    if (!f || typeof f !== "object" || f.version !== 1 || !f.profil) {
+      throw new Error("Ce fichier n'est pas au format attendu (version 1).");
+    }
+    var e = etatVide();
+    PROFIL.forEach(function (c) { if (c.cle in f.profil) e.profil[c.cle] = versChamp(c, f.profil[c.cle]); });
+    var pa = f.parametres || {};
+    PARAMETRES.forEach(function (c) { if (c.cle in pa) e.parametres[c.cle] = versChamp(c, pa[c.cle]); });
+    SECTIONS_SITE.forEach(function (s) { if (pa.sections && s[0] in pa.sections) e.parametres.sections[s[0]] = !!pa.sections[s[0]]; });
+    LISTES.forEach(function (l) {
+      // Section absente du fichier = section ignorée à l'injection.
+      e.inclure[l.id] = Array.isArray(f[l.id]);
+      e.listes[l.id] = (f[l.id] || []).map(function (x) {
+        var item = l.nouveau();
+        l.champs.forEach(function (c) { if (x && c.cle in x) item[c.cle] = versChamp(c, x[c.cle]); });
+        return item;
+      });
+    });
+    return e;
+  }
+
+  document.getElementById("btn-importer").addEventListener("click", function () {
+    document.getElementById("fichier-import").click();
+  });
+  document.getElementById("fichier-import").addEventListener("change", function (ev) {
+    var fichier = ev.target.files && ev.target.files[0];
+    ev.target.value = "";
+    if (!fichier) return;
+    if (fichier.size > 2 * 1024 * 1024) { toast("Fichier trop volumineux (2 Mo maximum)"); return; }
+    fichier.text().then(function (texte) {
+      var nouveau = importer(JSON.parse(texte.replace(/^﻿/, "")));
+      var rempli = etat.profil.name || LISTES.some(function (l) { return etat.listes[l.id].length; });
+      if (rempli && !confirm("Remplacer la saisie en cours par le contenu de « " + fichier.name + " » ?")) return;
+      etat = nouveau; touches = {}; toutMontrer = false;
+      sauvegarder();
+      aller("profil");
+      toast("Fichier importé");
+    }).catch(function (err) {
+      toast("Import impossible : " + (err && err.message ? err.message : "fichier illisible"));
+    });
+  });
+
+  document.getElementById("btn-verifier").addEventListener("click", function () { aller("export"); });
+  addEventListener("hashchange", function () {
+    var id = location.hash.slice(1);
+    if (id !== courant && ORDRE.some(function (o) { return o.id === id; })) aller(id);
+  });
+
+  aller(courant, true);
+})();
+</script>
+</body>
+</html>

@@ -10,6 +10,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
+    "db:injecter": "tsx prisma/seed.ts",
+    "db:injecter:simulation": "tsx prisma/seed.ts --simulation",
     "db:studio": "prisma studio",
     "format": "prettier --write ."
   },
