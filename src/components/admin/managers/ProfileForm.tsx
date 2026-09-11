@@ -4,7 +4,6 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Switch } from "@/components/admin/Switch";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { updateProfile } from "@/lib/actions/profile";
 import type { Profile } from "@prisma/client";
@@ -57,15 +56,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <Input label="Téléphone" value={form.phone} onChange={(e) => set("phone", e.target.value)} />
         </div>
         <Input label="Localisation" value={form.location} onChange={(e) => set("location", e.target.value)} />
-
-        <div className="rounded-lg border border-[var(--border)] p-4">
-          <Switch
-            id="available"
-            checked={form.isAvailable}
-            onCheckedChange={(v) => set("isAvailable", v)}
-            label="Disponible pour de nouveaux projets"
-          />
-        </div>
       </div>
 
       <div className="space-y-6">

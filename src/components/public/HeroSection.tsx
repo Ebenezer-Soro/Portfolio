@@ -27,8 +27,7 @@ export function HeroSection({
       if (reduce) return;
       const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.7 } });
       tl.from(".hero-rail", { opacity: 0, scaleY: 0, transformOrigin: "top", duration: 0.9 })
-        .from(".hero-badge", { opacity: 0, y: 20 }, "-=0.6")
-        .from(".hero-greeting", { opacity: 0, y: 20 }, "-=0.45")
+        .from(".hero-greeting", { opacity: 0, y: 20 }, "-=0.6")
         .from(".hero-name", { opacity: 0, y: 24 }, "-=0.45")
         .from(".hero-title", { opacity: 0, y: 24 }, "-=0.45")
         .from(".hero-subtitle", { opacity: 0, y: 20 }, "-=0.45")
@@ -57,16 +56,6 @@ export function HeroSection({
           </div>
 
           <div className="flex-1">
-            {profile.isAvailable && (
-              <span className="hero-badge mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                </span>
-                Disponible pour de nouveaux projets
-              </span>
-            )}
-
             <p className="hero-greeting text-lg text-lavender-300">Bonjour, je suis</p>
 
             <h1 className="hero-head-text hero-name mt-1 text-white">
