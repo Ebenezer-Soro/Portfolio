@@ -10,6 +10,15 @@ export interface SocialLinksProps {
   iconSize?: number;
 }
 
+/**
+ * Texte de l'info-bulle : pour un lien e-mail ou telephone, la destination
+ * reelle plutot que le seul nom de la plateforme.
+ */
+function intitule(link: SocialLink): string {
+  const m = /^(mailto|tel):(.+)$/i.exec(link.url.trim());
+  return m ? `${link.platform} — ${decodeURIComponent(m[2])}` : link.platform;
+}
+
 export function SocialLinks({ links, className, iconSize = 20 }: SocialLinksProps) {
   if (!links.length) return null;
 
@@ -21,8 +30,8 @@ export function SocialLinks({ links, className, iconSize = 20 }: SocialLinksProp
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={link.platform}
-            title={link.platform}
+            aria-label={intitule(link)}
+            title={intitule(link)}
             className="group flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all duration-300 hover:-translate-y-1 hover:scale-110"
             style={{ ["--hover" as string]: platformColor(link.platform) }}
             onMouseEnter={(e) => {

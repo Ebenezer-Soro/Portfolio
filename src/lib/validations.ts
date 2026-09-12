@@ -100,9 +100,40 @@ export const testimonialSchema = z.object({
 export type TestimonialFormData = z.infer<typeof testimonialSchema>;
 
 // ── Lien social ───────────────────────────────────────────
+/**
+ * Adresse d'un profil social.
+ *
+ * Une adresse e-mail saisie telle quelle devient un `mailto:`. Sans cela,
+ * « ebenezer@exemple.com » etait enregistre en « https://ebenezer@exemple.com » :
+ * une URL web dont l'hote est exemple.com, la partie avant l'arobase passant
+ * pour un identifiant. Le lien menait donc au site du fournisseur de
+ * messagerie au lieu d'ouvrir un message.
+ */
+const urlReseau = z
+  .string()
+  .trim()
+  .min(1, "Adresse requise.")
+  .transform((v) => {
+    const sansSchema = v.replace(/^https?:\/\//i, "");
+    return /^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(sansSchema) ? `mailto:${sansSchema}` : v;
+  })
+  .refine(
+    (v) => {
+      try {
+        const u = new URL(v);
+        if (["mailto:", "tel:"].includes(u.protocol)) return true;
+        // `https://nom@hote` : l'identifiant fait croire a une adresse e-mail.
+        return ["https:", "http:"].includes(u.protocol) && !u.username;
+      } catch {
+        return false;
+      }
+    },
+    { message: "Adresse invalide. Pour un e-mail, écris mailto:adresse@exemple.com" },
+  );
+
 export const socialLinkSchema = z.object({
   platform: z.string().min(1),
-  url: z.string().url("URL invalide."),
+  url: urlReseau,
   iconName: z.string().min(1),
   order: z.number().int().default(0),
   active: z.boolean().default(true),
