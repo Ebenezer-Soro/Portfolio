@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
   // moins pour cibler une faille connue.
   poweredByHeader: false,
 
+  /* `sharp` est un module natif : il doit rester hors du paquet compilé et
+     être chargé depuis node_modules à l'exécution. Next l'externalise déjà
+     par défaut ; le déclarer ici rend la contrainte explicite et la protège
+     d'un changement de valeur par défaut. */
+  serverExternalPackages: ["sharp"],
+
   images: {
     // Les médias du CMS sont servis localement depuis /public/uploads (chemins
     // relatifs) : aucun remotePattern n'est nécessaire pour eux. N'ajoute ici que

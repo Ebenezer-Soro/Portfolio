@@ -7,12 +7,15 @@ export const runtime = "nodejs";
 
 // POST /api/upload — upload protégé (session admin requise).
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
-
+  // Tout est dans le try, y compris la lecture de session : une exception
+  // levée en dehors remonterait en 500 avec une page HTML, que le
+  // navigateur ne saurait pas expliquer à l'administrateur.
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const files = formData.getAll("file").filter((f): f is File => f instanceof File);
 
@@ -42,8 +45,11 @@ export async function POST(req: NextRequest) {
       url: results[0]?.url,
     });
   } catch (e) {
+    // Journalisé côté serveur : sans cela, les journaux de production ne
+    // contiennent que le code d'état, et la cause reste invisible.
+    console.error("[upload] échec :", e);
     return NextResponse.json(
-      { error: (e as Error).message || "Erreur d'upload" },
+      { error: (e as Error)?.message || "Erreur d'upload" },
       { status: 400 },
     );
   }

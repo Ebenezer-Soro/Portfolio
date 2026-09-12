@@ -2,7 +2,6 @@ import { put, del } from "@vercel/blob";
 import { randomUUID } from "crypto";
 import { mkdir, writeFile, unlink } from "fs/promises";
 import path from "path";
-import sharp from "sharp";
 import { etatStockage } from "./stockage";
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
@@ -15,6 +14,26 @@ export const ALLOWED_IMAGE_TYPES = [
 ];
 export const ALLOWED_DOC_TYPES = ["application/pdf"];
 export const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOC_TYPES];
+
+/**
+ * `sharp` est chargé À LA DEMANDE, jamais à l'import du module.
+ *
+ * C'est un module natif : s'il ne se charge pas dans l'environnement de
+ * déploiement, un import en tête de fichier fait échouer la fonction entière
+ * au démarrage — 500 FUNCTION_INVOCATION_FAILED, avant même notre code, donc
+ * sans message exploitable. Chargé ici, l'échec est rattrapable : l'image est
+ * alors stockée telle quelle, le navigateur l'ayant déjà réduite.
+ */
+type Sharp = (typeof import("sharp"))["default"];
+
+async function chargerSharp(): Promise<Sharp | null> {
+  try {
+    return (await import("sharp")).default;
+  } catch (e) {
+    console.error("[upload] sharp indisponible, image stockée sans retraitement :", e);
+    return null;
+  }
+}
 
 export type SavedFile = {
   url: string;
@@ -78,6 +97,14 @@ export async function saveUpload(file: File): Promise<SavedFile> {
   if (file.type === "image/gif") {
     const url = await stocker(`${id}.gif`, buffer, "image/gif");
     return { url, filename: `${id}.gif`, size: buffer.length, type: "image" };
+  }
+
+  const sharp = await chargerSharp();
+  if (!sharp) {
+    // Repli : format d'origine conservé, sans retraitement.
+    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const url = await stocker(`${id}.${ext}`, buffer, file.type);
+    return { url, filename: `${id}.${ext}`, size: buffer.length, type: "image" };
   }
 
   // Images : redimensionnement + conversion webp
