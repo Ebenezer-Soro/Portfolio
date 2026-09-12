@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { mkdir, writeFile, unlink } from "fs/promises";
 import path from "path";
 import sharp from "sharp";
+import { etatStockage } from "./stockage";
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
 
@@ -28,21 +29,10 @@ const BLOB_HOST = "blob.vercel-storage.com";
 /** Préfixe des fichiers stockés localement, en développement uniquement. */
 const PREFIXE_LOCAL = "/uploads/";
 
-export type EtatStockage = "blob" | "local" | "absent";
-
-/**
- * Où vont les fichiers :
- *  - « blob »  : Vercel Blob, dès qu'un jeton est configuré ;
- *  - « local » : sans jeton, EN DÉVELOPPEMENT, dans public/uploads (dossier
- *    non versionné) — pour travailler sans compte Vercel ;
- *  - « absent » : sans jeton en production. Le système de fichiers de Vercel
- *    est en lecture seule : aucun envoi ne peut réussir.
+/*
+ * L'état du stockage vit dans `stockage.ts`, sans dépendance : une page qui
+ * veut seulement l'afficher n'embarque ainsi ni sharp ni le client Blob.
  */
-export function etatStockage(): EtatStockage {
-  if (process.env.BLOB_READ_WRITE_TOKEN) return "blob";
-  return process.env.NODE_ENV === "production" ? "absent" : "local";
-}
-
 async function stocker(nom: string, contenu: Buffer, contentType: string): Promise<string> {
   const etat = etatStockage();
   if (etat === "blob") {

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { MediaLibrary } from "@/components/admin/MediaLibrary";
-import { etatStockage } from "@/lib/upload";
+import { etatStockage } from "@/lib/stockage";
 import type { Media } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
