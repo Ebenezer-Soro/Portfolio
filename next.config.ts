@@ -37,8 +37,12 @@ const nextConfig: NextConfig = {
     // relatifs) : aucun remotePattern n'est nécessaire pour eux. N'ajoute ici que
     // les domaines externes réellement utilisés (évite le proxy d'images ouvert).
     remotePatterns: [
-      // Vercel Blob : stockage des médias uploadés depuis l'admin.
-      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+      /* Vercel Blob : stockage des médias envoyés depuis l'admin.
+         `**` et non `*` : selon l'âge et le type du magasin, l'hôte prend la
+         forme `<id>.public.blob.vercel-storage.com` ou
+         `<id>.blob.vercel-storage.com`. Un motif trop étroit ferait refuser
+         l'image par l'optimiseur, alors même qu'elle est bien stockée. */
+      { protocol: "https", hostname: "**.blob.vercel-storage.com" },
       // Exemple domaine externe : { protocol: "https", hostname: "images.exemple.com" },
       { protocol: "http", hostname: "localhost" },
     ],

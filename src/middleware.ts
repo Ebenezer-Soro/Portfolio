@@ -41,7 +41,8 @@ function construireCsp(nonce: string): string {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${enDev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
+    // Tout hôte Vercel Blob : l'adresse dépend de l'âge et du type du magasin.
+    "img-src 'self' data: blob: https://*.blob.vercel-storage.com",
     `connect-src 'self'${enDev ? " ws: wss:" : ""}`,
     "media-src 'self'",
     "worker-src 'self' blob:",

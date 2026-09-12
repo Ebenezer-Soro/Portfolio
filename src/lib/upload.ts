@@ -74,7 +74,9 @@ async function stocker(nom: string, contenu: Buffer, contentType: string): Promi
 /**
  * Sauvegarde un fichier uploadé sur Vercel Blob (stockage persistant + CDN).
  * Les images sont redimensionnées (max 1920px, qualité 85, conversion webp)
- * via sharp. Requiert la variable d'environnement BLOB_READ_WRITE_TOKEN.
+ * via sharp, quand il est disponible. Le stockage exige soit
+ * BLOB_READ_WRITE_TOKEN, soit un magasin Blob connecté au projet
+ * (BLOB_STORE_ID) ; à défaut, en développement, le dossier public/uploads.
  */
 export async function saveUpload(file: File): Promise<SavedFile> {
   if (!ALLOWED_TYPES.includes(file.type)) {
