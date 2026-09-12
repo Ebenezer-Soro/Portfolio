@@ -100,42 +100,60 @@ export function HeroSection({
         {/* Photo flottante sur halo doré */}
         <div className="order-1 flex justify-center md:order-2">
           {/*
+            L'image de l'accueil n'est pas forcément une photo détourée : ce
+            peut être une illustration rectangulaire, avec son propre fond.
+            Elle est donc présentée DANS UN CADRE, en `object-contain` : rien
+            n'est rogné, et les bandes éventuelles se fondent dans le fond
+            sombre du cadre. Le décor se limite à un balayage lumineux et à
+            un halo — une tache pleine donnait l'impression d'une vignette
+            collée sur une bulle dorée.
+
             Tout le décor est dimensionné en POURCENTAGE de ce conteneur, et
-            le conteneur lui-même en `min(rem, vw)`. Les tailles absolues
-            précédentes ne connaissaient que trois paliers : entre deux
-            points de rupture l'orbe ne suivait plus la largeur de l'écran, et
-            débordait franchement sous 380 px.
+            le conteneur lui-même en `min(rem, vw)` : des tailles absolues ne
+            connaîtraient que trois paliers, et déborderaient entre deux
+            points de rupture.
           */}
-          <div className="hero-photo relative flex aspect-[13/16] w-[min(24rem,72vw)] items-center justify-center md:w-[min(26rem,38vw)]">
+          <div className="hero-photo relative flex aspect-square w-[min(26rem,78vw)] items-center justify-center md:w-[min(30rem,42vw)]">
+            {/* Balayage doré : c'est lui que l'on perçoit tourner. */}
             <div
-              className="absolute aspect-square w-[150%] animate-spin-slow rounded-full opacity-55 blur-2xl"
+              aria-hidden
+              className="absolute aspect-square w-[130%] animate-spin-slow rounded-full opacity-45 blur-3xl"
               style={{
                 background:
-                  "conic-gradient(from 0deg, transparent 0deg, rgba(212,175,55,0.38) 60deg, transparent 140deg, rgba(229,229,85,0.22) 220deg, transparent 320deg)",
+                  "conic-gradient(from 0deg, transparent 0deg, rgba(212,175,55,0.5) 70deg, transparent 150deg, rgba(229,229,85,0.28) 235deg, transparent 330deg)",
               }}
             />
-            <div className="absolute aspect-square w-[138%] animate-spin-slow rounded-full border-2 border-dashed border-[#d4af37]/30" />
-            <div className="absolute aspect-square w-[126%] animate-blob bg-gradient-to-br from-[#3a2e0d] via-[#8a6d1f] to-[#b8912b] opacity-70 blur-[3px]" />
+            {/* Halo fixe : détache le cadre du fond. */}
             <div
-              className="absolute aspect-square w-[114%] animate-blob bg-gradient-to-tr from-[#6b5417]/55 to-[#d4af37]/35 blur-3xl"
-              style={{ animationDelay: "2s" }}
+              aria-hidden
+              className="absolute aspect-square w-[116%] rounded-full opacity-80 blur-2xl"
+              style={{
+                background: "radial-gradient(circle, rgba(212,175,55,0.22) 0%, transparent 66%)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="absolute aspect-square w-[108%] animate-spin-slow rounded-full border border-dashed border-[#d4af37]/35"
+              style={{ animationDirection: "reverse" }}
             />
 
-            <div className="relative z-10 h-full w-full animate-float-slow">
-              {profile.photoUrl ? (
-                <Image
-                  src={profile.photoUrl}
-                  alt={profile.name}
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 320px, 416px"
-                  className="object-contain object-bottom drop-shadow-[0_24px_45px_rgba(0,0,0,0.65)]"
-                />
-              ) : (
-                <div className="hero-head-text flex h-full w-full items-end justify-center pb-6 text-white drop-shadow-[0_10px_30px_rgba(212,175,55,0.55)]">
-                  {profile.name.charAt(0)}
-                </div>
-              )}
+            <div className="relative z-10 h-full w-full animate-float-slow rounded-[28px] border border-[#d4af37]/25 bg-white/[0.03] p-2 shadow-[0_30px_90px_-25px_rgba(0,0,0,0.85)] backdrop-blur-[2px]">
+              <div className="relative h-full w-full overflow-hidden rounded-[22px] bg-[#0d0d0d]">
+                {profile.photoUrl ? (
+                  <Image
+                    src={profile.photoUrl}
+                    alt={profile.name}
+                    fill
+                    priority
+                    sizes="(max-width: 768px) 78vw, 30rem"
+                    className="object-contain"
+                  />
+                ) : (
+                  <div className="hero-head-text flex h-full w-full items-center justify-center text-white/85">
+                    {profile.name.charAt(0)}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

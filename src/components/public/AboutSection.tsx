@@ -51,7 +51,7 @@ export function AboutSection({
                 automatiques centrent sans toucher à `transform`. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 m-auto aspect-square h-fit w-full rounded-full opacity-60 blur-3xl"
+              className="pointer-events-none absolute inset-0 m-auto aspect-square h-fit w-[108%] rounded-full opacity-70 blur-3xl"
               style={{
                 background:
                   "radial-gradient(circle, rgba(212,175,55,0.28) 0%, transparent 68%)",
@@ -59,23 +59,27 @@ export function AboutSection({
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 m-auto aspect-square h-fit w-[97%] animate-spin-slow rounded-full border border-dashed border-primary/25"
+              className="pointer-events-none absolute inset-0 m-auto aspect-square h-fit w-[112%] animate-spin-slow rounded-full border border-dashed border-primary/25"
             />
 
-            <div className="relative aspect-[4/5] w-full">
-              {profile.aboutPhotoUrl || profile.photoUrl ? (
-                <Image
-                  src={(profile.aboutPhotoUrl || profile.photoUrl) as string}
-                  alt={profile.name}
-                  fill
-                  sizes="(max-width: 768px) 90vw, 448px"
-                  className="animate-float-slow object-contain drop-shadow-[0_18px_40px_rgba(0,0,0,0.45)] transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-[20px] bg-gradient-to-br from-primary via-accent to-accent2 font-display text-8xl font-black text-white shadow-card">
-                  {profile.name.charAt(0)}
-                </div>
-              )}
+            {/* Même cadre que l'accueil : l'illustration garde son
+                intégralité, le cadre lui donne une assise. */}
+            <div className="relative aspect-square w-full animate-float-slow rounded-[28px] border border-primary/25 bg-[var(--bg-card)] p-2 shadow-[0_0_70px_-20px_rgba(212,175,55,0.55),var(--shadow-card)] transition-transform duration-500 group-hover:scale-[1.02]">
+              <div className="relative h-full w-full overflow-hidden rounded-[22px] bg-[#0d0d0d]">
+                {profile.aboutPhotoUrl || profile.photoUrl ? (
+                  <Image
+                    src={(profile.aboutPhotoUrl || profile.photoUrl) as string}
+                    alt={profile.name}
+                    fill
+                    sizes="(max-width: 768px) 90vw, 28rem"
+                    className="object-contain"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary via-accent to-accent2 font-display text-8xl font-black text-[#14120b]">
+                    {profile.name.charAt(0)}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
