@@ -100,7 +100,9 @@ export default auth((req) => {
   reponse.headers.set("Content-Security-Policy", csp);
   // L'admin n'est pas listé dans robots.txt (cela trahirait son adresse) :
   // il est exclu de l'indexation par cet en-tête, redirections comprises.
-  if (routeAdmin) reponse.headers.set("X-Robots-Tag", "noindex, nofollow");
+  // Même valeur que l'en-tête statique de next.config.ts : posé ici, il
+  // l'emporte, et une valeur plus courte aurait fait perdre « noarchive ».
+  if (routeAdmin) reponse.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
   return reponse;
 });
 
