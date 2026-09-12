@@ -43,6 +43,7 @@
   --ivoire-100: #f7f3e8;
   --ivoire-300: #ded7c4;
   --ivoire-400: #a8a296; /* texte courant en sombre */
+  --ivoire-500: #8b8577; /* texte atténué en sombre — 5:1 sur le noir du logo */
   --ivoire-600: #6f6a5e;
 
   --emerald-500: #10b981;
@@ -163,7 +164,7 @@
 
   --text-primary: var(--ivoire-100);
   --text-secondary: var(--ivoire-400);
-  --text-muted: var(--ivoire-600);
+  --text-muted: var(--ivoire-500);
 
   --border: var(--noir-700);
 
@@ -195,7 +196,7 @@
 
     --text-primary: var(--ivoire-100);
     --text-secondary: var(--ivoire-400);
-    --text-muted: var(--ivoire-600);
+    --text-muted: var(--ivoire-500);
 
     --border: var(--noir-700);
 

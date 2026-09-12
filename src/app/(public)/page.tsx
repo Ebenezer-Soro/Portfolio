@@ -115,7 +115,7 @@ export default async function HomePage() {
 
       {/* Bloc final sur ciel étoilé, comme dans le modèle : le champ
           d'étoiles n'habille que la fin de page. */}
-      <div className="relative z-0 bg-[var(--bg-secondary)]">
+      <div className="bloc-nuit relative z-0">
         <StarsCanvas />
         <div className="relative z-10">
           {affiche("testimonials") && (

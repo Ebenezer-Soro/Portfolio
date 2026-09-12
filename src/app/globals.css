@@ -304,6 +304,57 @@
     overflow-clip-margin: 9rem;
   }
 
+  /* ── Bloc nocturne ────────────────────────────────────────
+     Le ciel étoilé du bas de page ne se voit que sur fond sombre. Ce bloc
+     garde donc la palette de nuit même en thème clair. On redéfinit les
+     JETONS plutôt que d'imposer des couleurs : cartes, champs du
+     formulaire, bordures et textes suivent sans qu'aucun composant ne
+     sache qu'il se trouve là. */
+  .bloc-nuit {
+    --bg-primary: var(--noir-950);
+    --bg-secondary: var(--noir-850);
+    --bg-elevated: var(--noir-800);
+    --bg-card: var(--noir-800);
+    --surface-raised: var(--noir-850);
+    --surface-deep: var(--noir-900);
+    --surface-timeline: var(--noir-750);
+
+    --text-primary: var(--ivoire-100);
+    --text-secondary: var(--ivoire-400);
+    --text-muted: var(--ivoire-500);
+
+    --border: var(--noir-700);
+    --border-focus: var(--or-500);
+
+    --c-primary: 212 175 55;
+    --c-primary-400: 229 229 85;
+    --c-accent: 220 194 94;
+    --c-accent2: 229 229 85;
+
+    --color-primary: var(--or-500);
+    --color-primary-hover: var(--or-400);
+
+    --glow-primary: 0 0 40px rgba(212, 175, 55, 0.26);
+    --shadow-card: 0px 35px 120px -15px #000000;
+    --shadow-sky: 0 4px 20px rgba(212, 175, 55, 0.3);
+
+    background-color: var(--noir-950);
+    color: var(--text-primary);
+    /* Les champs du formulaire de contact (bordures, curseur, saisie
+       automatique) doivent être rendus en sombre par le navigateur. */
+    color-scheme: dark;
+  }
+
+  /* Aplats d'accent : texte sombre là où l'or reprend sa pleine saturation
+     (thème sombre et bloc nocturne). Du blanc sur #d4af37 tombe à 2:1 ;
+     en thème clair l'accent est un bronze foncé, où le blanc convient. */
+  [data-theme="dark"] .bg-primary,
+  [data-theme="dark"] .hover\:bg-primary:hover,
+  .bloc-nuit .bg-primary,
+  .bloc-nuit .hover\:bg-primary:hover {
+    color: #14120b;
+  }
+
   .glow-ring {
     box-shadow: var(--glow-primary);
   }

@@ -11,7 +11,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-primary text-white shadow-[0_4px_20px_rgba(145,94,255,0.28)] hover:bg-primary-400 hover:shadow-[0_6px_28px_rgba(145,94,255,0.45)]",
+          // Ombre dorée : la précédente était violette, reste du modèle d'origine.
+          "bg-primary text-white shadow-[0_4px_20px_rgba(212,175,55,0.28)] hover:bg-primary-400 hover:shadow-[0_6px_28px_rgba(212,175,55,0.42)]",
         secondary:
           "bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border)] hover:border-primary-400",
         outline:
@@ -20,7 +21,8 @@ const buttonVariants = cva(
           "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]",
         danger: "bg-danger text-white hover:opacity-90",
         gradient:
-          "bg-gradient-to-r from-primary via-accent to-accent2 bg-[length:200%_auto] text-white hover:bg-[position:right_center]",
+          // Texte sombre : du blanc sur l'or du dégradé ne donne que 2:1.
+          "bg-gradient-to-r from-primary via-accent to-accent2 bg-[length:200%_auto] text-[#14120b] hover:bg-[position:right_center]",
       },
       size: {
         sm: "h-9 px-3 text-sm",
