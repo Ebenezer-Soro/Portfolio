@@ -255,7 +255,7 @@ Variables à définir dans **Vercel › Settings › Environment Variables** :
 | `DATABASE_URL` | Base PostgreSQL de production |
 | `AUTH_SECRET`, `NEXTAUTH_SECRET` | Signature des sessions (`openssl rand -base64 32`), même valeur pour les deux — et **jamais** celle d'un ancien `.env` |
 | `NEXTAUTH_URL` | Adresse publique du site, par exemple `https://mon-domaine.com` |
-| `BLOB_READ_WRITE_TOKEN` | **Indispensable aux images.** Créé en connectant un stockage : onglet **Storage › Create › Blob**, puis *Connect to project*. Sans lui, tout envoi d'image échoue en ligne, et la médiathèque l'indique. |
+| Stockage des images | **Indispensable aux images.** Connecter un stockage **Storage › Blob** au projet suffit : la connexion fournit `BLOB_STORE_ID`, et le SDK s'authentifie par le jeton OIDC de l'exécution. Une variable `BLOB_READ_WRITE_TOKEN` reste possible (utile hors de Vercel). Sans l'un ni l'autre, tout envoi d'image échoue en ligne, et la médiathèque l'indique. |
 | `NEXT_PUBLIC_SITE_URL` | Facultatif : domaine personnalisé pour les URL canoniques, le sitemap et les partages. À défaut, le domaine de production Vercel est utilisé. |
 
 Après tout changement de variable : **Redeploy**. Un changement de secret

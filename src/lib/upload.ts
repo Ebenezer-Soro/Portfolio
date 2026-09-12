@@ -48,7 +48,7 @@ async function stocker(nom: string, contenu: Buffer, contentType: string): Promi
   // Message destiné à l'administrateur : il remplace l'erreur technique
   // anglaise de Vercel Blob (« No blob credentials found… »).
   throw new Error(
-    "Stockage des médias non configuré : connecte un stockage Blob au projet dans Vercel (onglet Storage), ce qui crée BLOB_READ_WRITE_TOKEN, puis redéploie.",
+    "Stockage des médias non configuré : connecte un stockage Blob au projet dans Vercel (onglet Storage) — la connexion fournit BLOB_STORE_ID — ou définis BLOB_READ_WRITE_TOKEN, puis redéploie.",
   );
 }
 
