@@ -13,11 +13,14 @@ export function ImageUploader({
   onChange,
   accept = "image",
   label,
+  coteMax,
 }: {
   value?: string | null;
   onChange: (url: string | null) => void;
   accept?: "image" | "pdf" | "all";
   label?: string;
+  /** Côté le plus long de l'image envoyée (ex. 512 pour un logo). */
+  coteMax?: number;
 }) {
   const [uploading, setUploading] = useState(false);
 
@@ -28,7 +31,7 @@ export function ImageUploader({
       setUploading(true);
       try {
         // Réduction, conversion et messages d'erreur : voir lib/televersement.
-        const [media] = await televerser([file]);
+        const [media] = await televerser([file], { coteMax });
         onChange(media.url);
         toast.success("Fichier envoyé");
       } catch (e) {
@@ -37,7 +40,7 @@ export function ImageUploader({
         setUploading(false);
       }
     },
-    [onChange],
+    [onChange, coteMax],
   );
 
   const acceptMap: Record<string, string[]> =

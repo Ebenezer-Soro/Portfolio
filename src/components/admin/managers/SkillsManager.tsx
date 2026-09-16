@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import { createSkill, updateSkill, deleteSkill } from "@/lib/actions/skills";
 import type { Skill } from "@prisma/client";
 
@@ -115,7 +117,24 @@ export function SkillsManager({ initial }: { initial: Skill[] }) {
                     key={skill.id}
                     className="flex items-center gap-4 rounded-lg border border-[var(--border)] p-3"
                   >
-                    <span className="flex-1 font-medium text-[var(--text-primary)]">{skill.name}</span>
+                    {skill.iconUrl ? (
+                      <Image
+                        src={skill.iconUrl}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 shrink-0 object-contain"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden
+                        title="Aucun logo : les initiales s'affichent sur le site"
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--bg-secondary)] text-[10px] font-bold text-[var(--text-muted)]"
+                      >
+                        {skill.name.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1 truncate font-medium text-[var(--text-primary)]">{skill.name}</span>
                     <div className="hidden h-2 w-40 overflow-hidden rounded-full bg-[var(--bg-secondary)] sm:block">
                       <div className="h-full rounded-full bg-primary" style={{ width: `${skill.level}%` }} />
                     </div>
@@ -148,6 +167,14 @@ export function SkillsManager({ initial }: { initial: Skill[] }) {
               value={draft.category}
               onChange={(e) => setDraft({ ...draft, category: e.target.value })}
               placeholder="Frontend, Mobile, Sécurité…"
+            />
+            {/* Le logo s'affiche sur la bille 3D de la section Compétences ;
+                sans logo, la bille montre les initiales. */}
+            <ImageUploader
+              label="Logo (PNG, WebP ou SVG — fond transparent conseillé)"
+              coteMax={512}
+              value={draft.iconUrl}
+              onChange={(url) => setDraft({ ...draft, iconUrl: url })}
             />
             <datalist id="categories-competences">
               {categories.map((c) => (

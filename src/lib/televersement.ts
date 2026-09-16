@@ -36,6 +36,18 @@ const SEUIL_REDUCTION = 1.5 * 1024 * 1024;
 
 const FORMATS_SERVEUR = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
+export type OptionsEnvoi = {
+  /**
+   * Côté le plus long visé, en pixels. Un logo de compétence n'occupe que
+   * quelques dizaines de pixels sur sa bille : l'envoyer en 1000 px et 1 Mo
+   * ferait télécharger des mégaoctets à chaque visiteur, pour rien.
+   */
+  coteMax?: number;
+};
+
+/** En dessous de ce poids, une image déjà assez petite part telle quelle. */
+const SEUIL_PETITE_IMAGE = 200 * 1024;
+
 function typeDe(f: File): string {
   if (f.type) return f.type;
   // Certains navigateurs (fichiers glissés, HEIC sous Windows) laissent le
@@ -44,6 +56,7 @@ function typeDe(f: File): string {
   const parExtension: Record<string, string> = {
     jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
     gif: "image/gif", heic: "image/heic", heif: "image/heif", avif: "image/avif", pdf: "application/pdf",
+    svg: "image/svg+xml",
   };
   return parExtension[ext] ?? "";
 }
@@ -54,9 +67,45 @@ function versBlob(canvas: HTMLCanvasElement, type: string, qualite?: number): Pr
   return new Promise((resoudre) => canvas.toBlob(resoudre, type, qualite));
 }
 
+/**
+ * Les logos de technologies sont souvent fournis en SVG. Le serveur refuse ce
+ * format — un SVG peut embarquer du script — : il est donc converti ici en
+ * image matricielle transparente, et le fichier SVG ne quitte jamais le
+ * navigateur.
+ */
+async function rasteriserSvg(fichier: File, coteMax = 1024): Promise<File> {
+  const url = URL.createObjectURL(fichier);
+  try {
+    const img = new Image();
+    await new Promise<void>((ok, ko) => {
+      img.onload = () => ok();
+      img.onerror = () => ko(new Error(`« ${fichier.name} » : ce SVG est illisible.`));
+      img.src = url;
+    });
+    // Un SVG sans dimensions intrinsèques reçoit un carré par défaut.
+    const w0 = img.naturalWidth || 512;
+    const h0 = img.naturalHeight || 512;
+    const echelle = Math.min(coteMax, 1024) / Math.max(w0, h0);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(w0 * echelle);
+    canvas.height = Math.round(h0 * echelle);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Impossible de préparer le logo dans ce navigateur.");
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob = (await versBlob(canvas, "image/webp", 0.92)) ?? (await versBlob(canvas, "image/png"));
+    if (!blob) throw new Error(`Impossible de convertir « ${fichier.name} ».`);
+    const ext = blob.type === "image/webp" ? "webp" : "png";
+    return new File([blob], fichier.name.replace(/\.[^.]+$/, "") + "." + ext, { type: blob.type });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 /** Rend un fichier envoyable : format accepté par le serveur, taille sous la limite. */
-export async function preparerFichier(fichier: File): Promise<File> {
+export async function preparerFichier(fichier: File, options: OptionsEnvoi = {}): Promise<File> {
   const type = typeDe(fichier);
+  const limite = options.coteMax ?? COTE_MAX;
+  const seuilPoids = options.coteMax ? SEUIL_PETITE_IMAGE : SEUIL_REDUCTION;
 
   if (type === "application/pdf") {
     if (fichier.size > LIMITE_ENVOI) {
@@ -64,6 +113,7 @@ export async function preparerFichier(fichier: File): Promise<File> {
     }
     return fichier;
   }
+  if (type === "image/svg+xml") return rasteriserSvg(fichier, options.coteMax);
   if (!type.startsWith("image/")) {
     throw new Error(`« ${fichier.name} » n'est ni une image ni un PDF.`);
   }
@@ -90,12 +140,12 @@ export async function preparerFichier(fichier: File): Promise<File> {
   }
 
   const cote = Math.max(image.width, image.height);
-  if (formatAccepte && cote <= COTE_MAX && fichier.size <= SEUIL_REDUCTION) {
+  if (formatAccepte && cote <= limite && fichier.size <= seuilPoids) {
     image.close();
     return fichier;
   }
 
-  const ratio = Math.min(1, COTE_MAX / cote);
+  const ratio = Math.min(1, limite / cote);
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(image.width * ratio);
   canvas.height = Math.round(image.height * ratio);
@@ -139,10 +189,10 @@ async function lireReponse(res: Response): Promise<{ media: MediaEnvoye[] }> {
  * Prépare puis envoie les fichiers, UN PAR REQUÊTE : plusieurs photos dans
  * un même envoi dépasseraient ensemble la limite de Vercel.
  */
-export async function televerser(fichiers: File[]): Promise<MediaEnvoye[]> {
+export async function televerser(fichiers: File[], options: OptionsEnvoi = {}): Promise<MediaEnvoye[]> {
   const envoyes: MediaEnvoye[] = [];
   for (const fichier of fichiers) {
-    const pret = await preparerFichier(fichier);
+    const pret = await preparerFichier(fichier, options);
     const fd = new FormData();
     fd.append("file", pret);
     const res = await fetch("/api/upload", { method: "POST", body: fd });
