@@ -63,6 +63,13 @@ export function ExperienceSection({ experiences }: { experiences: Experience[] }
                 variants={
                   reduce ? undefined : fadeIn(isLeft ? "right" : "left", "spring", i * 0.15, 0.7)
                 }
+                // Apparition déclenchée par l'élément lui-même. Héritée de la
+                // section, elle ne se jouait qu'une fois : après un changement de
+                // filtre, les nouveaux éléments restaient à opacité nulle —
+                // présents, occupant leur place, mais invisibles.
+                initial={reduce ? undefined : "hidden"}
+                whileInView={reduce ? undefined : "show"}
+                viewport={{ once: true, amount: 0.2 }}
                 className={cn(
                   "relative pl-12 md:w-1/2 md:pl-0",
                   isLeft ? "md:pr-12 md:text-right" : "md:ml-auto md:pl-12",

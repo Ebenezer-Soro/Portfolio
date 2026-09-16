@@ -60,6 +60,13 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
           <motion.div
             key={project.id}
             variants={reduce ? undefined : fadeIn("up", "spring", i * 0.2, 0.75)}
+            // Apparition déclenchée par l'élément lui-même. Héritée de la
+            // section, elle ne se jouait qu'une fois : après un changement de
+            // filtre, les nouveaux éléments restaient à opacité nulle —
+            // présents, occupant leur place, mais invisibles.
+            initial={reduce ? undefined : "hidden"}
+            whileInView={reduce ? undefined : "show"}
+            viewport={{ once: true, amount: 0.2 }}
           >
             <ProjectCard project={project} />
           </motion.div>
