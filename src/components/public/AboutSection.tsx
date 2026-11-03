@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Download } from "lucide-react";
 import { SectionHeading } from "./Reveal";
 import { SectionShell } from "./SectionShell";
@@ -19,7 +19,6 @@ export function AboutSection({
   settings: Record<string, string>;
   index?: string;
 }) {
-  const reduce = useReducedMotion();
 
   const stats = [
     { label: "Projets réalisés", value: Number(settings.stats_projects ?? 15), suffix: "+" },
@@ -40,7 +39,7 @@ export function AboutSection({
       />
 
       <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <motion.div variants={reduce ? undefined : fadeIn("right", "tween", 0.1, 0.9)}>
+        <motion.div variants={fadeIn("right", "tween", 0.1, 0.9)}>
           {/*
             Le cadre suit le format 3/2 de l'image, et non l'inverse :
             un cadre portrait imposait deux bandes vides considérables à
@@ -70,7 +69,7 @@ export function AboutSection({
         </motion.div>
 
         <motion.div
-          variants={reduce ? undefined : fadeIn("left", "tween", 0.2, 0.9)}
+          variants={fadeIn("left", "tween", 0.2, 0.9)}
           className="space-y-8"
         >
           <p className="text-[17px] leading-[30px] text-[var(--text-secondary)]">{profile.bio}</p>

@@ -7,6 +7,7 @@ import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import type { Profile } from "@prisma/client";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { MotionProvider } from "@/components/providers/MotionProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 
@@ -129,10 +130,12 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col overflow-x-hidden">
         <ThemeProvider nonce={nonce}>
-          <AuthProvider>
-            {children}
-            <ToastProvider />
-          </AuthProvider>
+          <MotionProvider>
+            <AuthProvider>
+              {children}
+              <ToastProvider />
+            </AuthProvider>
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

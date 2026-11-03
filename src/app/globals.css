@@ -920,4 +920,14 @@
     opacity: 1 !important;
     transform: none !important;
   }
+  /* La regle globale ramene les durees a 0,01 ms : une boucle infinie
+     n'est pas arretee pour autant, elle se rejoue des milliers de fois
+     par seconde. Les animations qui tournent en continu doivent etre
+     coupees nommement. */
+  .ruban .defile,
+  .badge-pilule .diode::after,
+  .tube-defilement::after,
+  .animate-levitation {
+    animation: none !important;
+  }
 }

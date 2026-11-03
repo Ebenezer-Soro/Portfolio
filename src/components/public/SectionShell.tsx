@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { staggerContainer } from "@/lib/motion";
@@ -39,7 +39,6 @@ export function SectionShell({
    *  deux en porte un : c'est ce qui donne son rythme à la page. */
   plage?: boolean;
 }) {
-  const reduce = useReducedMotion();
 
   return (
     // Pas d'`overflow` ici : `overflow-x: clip` forcerait `overflow-y` à
@@ -49,9 +48,9 @@ export function SectionShell({
     // sur `body`.
     <section id={id} className={cn("relative z-0 scroll-mt-24", className)}>
       <motion.div
-        variants={reduce ? undefined : staggerContainer(stagger, delayChildren)}
-        initial={reduce ? undefined : "hidden"}
-        whileInView={reduce ? undefined : "show"}
+        variants={staggerContainer(stagger, delayChildren)}
+        initial="hidden"
+        whileInView="show"
         viewport={{ once: true, amount: 0.2 }}
         className={cn(
           // Le confinement est porté par le conteneur d'animation, jamais par

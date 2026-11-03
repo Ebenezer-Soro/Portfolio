@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { ProjectCard } from "./ProjectCard";
 import { SectionHeading } from "./Reveal";
@@ -20,7 +20,6 @@ export function ProjectsSection({ projects, index }: { projects: Project[]; inde
   }, [projects]);
 
   const [filter, setFilter] = useState("Tous");
-  const reduce = useReducedMotion();
 
   if (!projects.length) return null;
 
@@ -63,12 +62,12 @@ export function ProjectsSection({ projects, index }: { projects: Project[]; inde
         {shown.map((project, i) => (
           <motion.div
             key={project.id}
-            variants={reduce ? undefined : fadeIn("up", "spring", i * 0.14, 0.75)}
+            variants={fadeIn("up", "spring", i * 0.14, 0.75)}
             // Apparition déclenchée par l'élément lui-même : héritée de
             // la section, elle ne se jouait qu'une fois et les éléments
             // d'un nouveau filtre restaient invisibles.
-            initial={reduce ? undefined : "hidden"}
-            whileInView={reduce ? undefined : "show"}
+            initial="hidden"
+            whileInView="show"
             viewport={{ once: true, amount: 0.2 }}
             className={cn(i === 0 && "md:col-span-2")}
           >

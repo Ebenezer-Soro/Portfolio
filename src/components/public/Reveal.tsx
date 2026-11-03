@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { textVariant } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -62,14 +62,13 @@ export function SectionHeading({
   align?: "center" | "left";
   className?: string;
 }) {
-  const reduce = useReducedMotion();
 
   return (
     <motion.div
       data-section-heading
-      variants={reduce ? undefined : textVariant()}
-      initial={reduce ? undefined : "hidden"}
-      whileInView={reduce ? undefined : "show"}
+      variants={textVariant()}
+      initial="hidden"
+      whileInView="show"
       viewport={{ once: true, amount: 0.4 }}
       className={cn("mb-10 sm:mb-16", align === "center" && "text-center", className)}
     >

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { FileText, PenTool, Rocket, Search, ShieldCheck, Code2 } from "lucide-react";
 import { SectionHeading } from "./Reveal";
 import { SectionShell } from "./SectionShell";
@@ -49,7 +49,6 @@ const ETAPES = [
 ];
 
 export function ProcessSection({ index }: { index?: string }) {
-  const reduce = useReducedMotion();
 
   return (
     <SectionShell id="processus">
@@ -70,7 +69,7 @@ export function ProcessSection({ index }: { index?: string }) {
           <motion.article
             key={etape.titre}
             className="etape-processus"
-            variants={reduce ? undefined : fadeIn("up", "tween", i * 0.08, 0.6)}
+            variants={fadeIn("up", "tween", i * 0.08, 0.6)}
           >
             <span className="pastille-etape">
               <etape.icone className="h-6 w-6" />

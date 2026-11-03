@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Briefcase, GraduationCap, MapPin } from "lucide-react";
 import { SectionHeading } from "./Reveal";
 import { SectionShell } from "./SectionShell";
@@ -21,7 +21,6 @@ import type { Experience } from "@prisma/client";
  */
 export function ExperienceSection({ experiences, index }: { experiences: Experience[]; index?: string }) {
   const [filter, setFilter] = useState<"all" | "work" | "education">("all");
-  const reduce = useReducedMotion();
 
   if (!experiences.length) return null;
 
@@ -71,12 +70,12 @@ export function ExperienceSection({ experiences, index }: { experiences: Experie
           {filtered.map((exp, i) => (
             <motion.li
               key={exp.id}
-              variants={reduce ? undefined : fadeIn("up", "spring", i * 0.12, 0.7)}
+              variants={fadeIn("up", "spring", i * 0.12, 0.7)}
               // Apparition déclenchée par l'élément lui-même : héritée
               // de la section, elle ne se jouait qu'une fois et les
               // éléments d'un nouveau filtre restaient invisibles.
-              initial={reduce ? undefined : "hidden"}
-              whileInView={reduce ? undefined : "show"}
+              initial="hidden"
+              whileInView="show"
               viewport={{ once: true, amount: 0.2 }}
               className="group relative pl-9"
             >

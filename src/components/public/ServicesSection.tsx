@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { SectionHeading } from "./Reveal";
 import { SectionShell } from "./SectionShell";
@@ -21,7 +21,6 @@ import type { Service } from "@prisma/client";
  * se décide quelle discipline occupe la place centrale.
  */
 export function ServicesSection({ services, index }: { services: Service[]; index?: string }) {
-  const reduce = useReducedMotion();
   if (!services.length) return null;
 
   return (
@@ -38,11 +37,17 @@ export function ServicesSection({ services, index }: { services: Service[]; inde
         {services.map((service, i) => {
           const noyau = i === 0;
           return (
-            <motion.article
+            // Le survol vit sur l'article, les variantes sur le div qui
+            // l'enveloppe : framer laisse un `transform` en ligne apres
+            // l'entree, et un style en ligne l'emporte sur une classe
+            // utilitaire — la carte ne se soulevait jamais.
+            <motion.div
               key={service.id}
-              variants={reduce ? undefined : fadeIn("up", "spring", i * 0.12, 0.7)}
+              variants={fadeIn("up", "spring", i * 0.12, 0.7)}
+            >
+            <article
               className={cn(
-                "group relative flex flex-col gap-[1.125rem] overflow-hidden rounded-3xl border p-[clamp(1.75rem,1.2rem+1.4vw,2.5rem)] shadow-card transition-all duration-300",
+                "group relative flex h-full flex-col gap-[1.125rem] overflow-hidden rounded-3xl border p-[clamp(1.75rem,1.2rem+1.4vw,2.5rem)] shadow-card transition-all duration-300",
                 "bg-[image:var(--nappe)] hover:-translate-y-1 hover:shadow-[var(--shadow-lg),var(--glow-primary)]",
                 noyau
                   ? "border-primary/40 shadow-[var(--shadow-md),var(--glow-primary)]"
@@ -90,7 +95,8 @@ export function ServicesSection({ services, index }: { services: Service[]; inde
               <p className="relative text-[15px] leading-[1.7] text-[var(--text-secondary)]">
                 {service.description}
               </p>
-            </motion.article>
+            </article>
+            </motion.div>
           );
         })}
       </div>

@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Globe, Mail, MapPin, Phone, Send } from "lucide-react";
 import toast from "react-hot-toast";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -22,7 +22,6 @@ import type { Profile } from "@prisma/client";
  * les sépare, la colonne de gauche est posée sur une surface creuse.
  */
 export function ContactSection({ profile, index }: { profile: Profile; index?: string }) {
-  const reduce = useReducedMotion();
 
   const {
     register,
@@ -86,7 +85,7 @@ export function ContactSection({ profile, index }: { profile: Profile; index?: s
       />
 
       <motion.div
-        variants={reduce ? undefined : fadeIn("up", "tween", 0.1, 0.8)}
+        variants={fadeIn("up", "tween", 0.1, 0.8)}
         className="relative grid overflow-hidden rounded-3xl border border-[var(--border)] bg-[image:var(--nappe)] shadow-card lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]"
       >
         <div className="border-b border-[var(--border)] bg-[var(--surface-deep)] p-[clamp(1.75rem,1.2rem+1.6vw,3rem)] lg:border-b-0 lg:border-r">

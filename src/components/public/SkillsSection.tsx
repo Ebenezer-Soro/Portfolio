@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { SectionHeading } from "./Reveal";
 import { SectionShell } from "./SectionShell";
@@ -75,7 +75,6 @@ export function SkillsSection({ skills, index }: { skills: Skill[]; index?: stri
     [skills],
   );
   const [active, setActive] = useState("Tout");
-  const reduce = useReducedMotion();
 
   if (!skills.length) return null;
 
@@ -113,14 +112,14 @@ export function SkillsSection({ skills, index }: { skills: Skill[]; index?: stri
         {filtered.map((skill, i) => (
           <motion.div
             key={skill.id}
-            variants={reduce ? undefined : fadeIn("up", "tween", (i % 8) * 0.04, 0.5)}
+            variants={fadeIn("up", "tween", (i % 8) * 0.04, 0.5)}
             // Apparition déclenchée par l'élément lui-même. Héritée de
             // la section, elle ne se jouait qu'une fois : après un
             // changement de filtre, les nouveaux éléments restaient à
             // opacité nulle — présents, occupant leur place, mais
             // invisibles.
-            initial={reduce ? undefined : "hidden"}
-            whileInView={reduce ? undefined : "show"}
+            initial="hidden"
+            whileInView="show"
             viewport={{ once: true, amount: 0.2 }}
           >
             <Tuile skill={skill} />
