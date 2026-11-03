@@ -6,15 +6,17 @@ import { SectionShell } from "./SectionShell";
 import { Button } from "@/components/ui/Button";
 import type { Post } from "@prisma/client";
 
-export function BlogSection({ posts }: { posts: Post[] }) {
+export function BlogSection({ posts, index }: { posts: Post[]; index?: string }) {
   if (!posts.length) return null;
 
   return (
-    <SectionShell id="blog" className="bg-[var(--bg-secondary)]">
+    <SectionShell id="blog" plage>
         <SectionHeading
-          eyebrow="Blog"
-          title="Derniers articles"
-          description="Mes réflexions et tutoriels sur le développement et la tech."
+          index={index ?? "08"}
+          eyebrow="Journal"
+          title="Notes de chantier."
+          description="Décisions, compromis, et le bug qui méritait d'être documenté."
+          align="left"
         />
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

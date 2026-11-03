@@ -6,69 +6,79 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Échelle or, dérivée du logo (#D4AF37 au centre).
+        // Échelle du bleu électrique. `DEFAULT` et `400` passent par les
+        // canaux RVB : ils changent de valeur d'un thème à l'autre, et
+        // un conteneur peut les surcharger (voir `.admin-scope`).
         primary: {
           DEFAULT: "rgb(var(--c-primary) / <alpha-value>)",
-          50: "#fdfaf0",
-          100: "#fbf6e4",
-          200: "#f4e9bf",
-          300: "#e9d68a",
+          50: "#f2f7ff",
+          100: "#e8f0ff",
+          200: "#c9ddff",
+          300: "#9cc0ff",
           400: "rgb(var(--c-primary-400) / <alpha-value>)",
-          500: "#d4af37",
-          600: "#b8912b",
-          700: "#8a6d1f",
-          800: "#6b5417",
-          900: "#453610",
+          500: "#2e7dff",
+          600: "#1554d6",
+          700: "#0f3fa6",
+          800: "#0b2d75",
+          900: "#081f52",
         },
-        accent: { DEFAULT: "rgb(var(--c-accent) / <alpha-value>)", hover: "#dcc25e" },
+        accent: { DEFAULT: "rgb(var(--c-accent) / <alpha-value>)", hover: "#4f93ff" },
         accent2: { DEFAULT: "rgb(var(--c-accent2) / <alpha-value>)" },
-        success: "#10b981",
-        danger: "#ef4444",
-        warning: "#f59e0b",
-        // ── Noirs du logo ────────────────────────────────────
+        success: "#0f9d6b",
+        danger: "#dc2626",
+        warning: "#b45309",
+        // ── Bleus de minuit ──────────────────────────────────
         // Réutilisables tels quels quand une surface doit rester sombre
-        // dans les deux thèmes (hero, fond étoilé, cartes de la scène).
+        // dans les deux thèmes.
         space: {
-          950: "#0d0d0d",
-          900: "#121212",
-          850: "#161616",
-          800: "#1a1a1a",
-          750: "#1f1f1f", // carte de timeline
-          700: "#2a2a2a", // bordure
+          980: "#050810",
+          950: "#070b14",
+          900: "#0a1020",
+          880: "#0d1526",
+          850: "#0f1829",
+          800: "#131f33",
+          750: "#18253c",
+          700: "#1f2d47",
         },
-        // Neutres chauds : un blanc pur jurerait à côté de l'or.
+        // Blancs nuage : le neutre froid qui accompagne le bleu.
         lavender: {
-          100: "#f7f3e8",
-          300: "#ded7c4", // sous-titre du hero
-          400: "#a8a296", // texte courant
+          100: "#f4f7fb",
+          200: "#dbe3ee",
+          300: "#aebbce",
+          400: "#8294ae",
+          500: "#64748f",
         },
-        // Éclat et argenté du monogramme.
-        eclat: "#e5e555",
-        argent: { 300: "#f0f0f0", 400: "#d0d0d0", 500: "#a8a8ac" },
+        // L'azur ne sert qu'aux dégradés et aux lueurs.
+        eclat: "#38bdf8",
+        argent: { 300: "#e2e8f0", 400: "#cbd5e1", 500: "#94a3b8" },
       },
       fontFamily: {
-        display: ["var(--font-poppins)", "Poppins", "Space Grotesk", "system-ui", "sans-serif"],
+        display: ["var(--font-space-grotesk)", "Space Grotesk", "Inter Tight", "system-ui", "sans-serif"],
         body: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
-        mono: ["var(--font-jetbrains-mono)", "JetBrains Mono", "Fira Code", "monospace"],
+        mono: ["var(--font-jetbrains-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
       },
-      // Le modèle cible un palier intermédiaire à 450px (cartes de service).
       screens: {
         xs: "450px",
       },
+      borderRadius: {
+        "3xl": "28px",
+        "4xl": "36px",
+      },
       boxShadow: {
         card: "var(--shadow-card)",
+        lueur: "var(--glow-primary)",
+        accent: "var(--lueur-accent)",
       },
       animation: {
         "fade-in-up": "fadeInUp 0.6s ease-out both",
         "fade-in-down": "fadeInDown 0.6s ease-out both",
         "fade-in-left": "fadeInLeft 0.6s ease-out both",
         "scale-in": "scaleIn 0.4s ease-out both",
-        "glow-pulse": "glowPulse 2s ease-in-out infinite",
+        "glow-pulse": "glowPulse 2.6s ease-in-out infinite",
         float: "float 3s ease-in-out infinite",
-        gradient: "gradientShift 4s ease infinite",
         shimmer: "shimmer 1.4s ease infinite",
         "float-slow": "float 6s ease-in-out infinite",
-        blob: "blobMorph 14s ease-in-out infinite",
+        levitation: "levitation 7s ease-in-out infinite",
         "spin-slow": "spin 22s linear infinite",
       },
       keyframes: {
@@ -89,25 +99,20 @@ const config: Config = {
           to: { opacity: "1", transform: "scale(1)" },
         },
         glowPulse: {
-          "0%,100%": { boxShadow: "0 0 20px rgba(212,175,55,0.3)" },
-          "50%": { boxShadow: "0 0 40px rgba(212,175,55,0.55)" },
+          "0%,100%": { boxShadow: "0 0 24px rgba(46,125,255,0.25)" },
+          "50%": { boxShadow: "0 0 48px rgba(46,125,255,0.5)" },
         },
         float: {
           "0%,100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-12px)" },
         },
-        gradientShift: {
-          "0%,100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
+        levitation: {
+          "0%,100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
         },
         shimmer: {
           from: { backgroundPosition: "-400px 0" },
           to: { backgroundPosition: "400px 0" },
-        },
-        blobMorph: {
-          "0%,100%": { borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%" },
-          "33%": { borderRadius: "30% 60% 70% 40% / 50% 60% 30% 60%" },
-          "66%": { borderRadius: "50% 50% 40% 60% / 40% 50% 60% 50%" },
         },
       },
     },

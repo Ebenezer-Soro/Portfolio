@@ -8,17 +8,19 @@ import { SectionShell } from "./SectionShell";
 import { cn } from "@/lib/utils";
 import type { FAQ } from "@prisma/client";
 
-export function FAQSection({ faqs }: { faqs: FAQ[] }) {
+export function FAQSection({ faqs, index }: { faqs: FAQ[]; index?: string }) {
   const [open, setOpen] = useState<string | null>(faqs[0]?.id ?? null);
 
   if (!faqs.length) return null;
 
   return (
-    <SectionShell id="faq" className="bg-[var(--bg-primary)]">
+    <SectionShell id="faq">
         <SectionHeading
+          index={index ?? "09"}
           eyebrow="FAQ"
-          title="Questions fréquentes"
-          description="Tout ce que vous devez savoir avant de collaborer."
+          title="Les réponses avant le premier appel."
+          description="Les questions qui reviennent chaque fois — périmètre, délais, prix, propriété."
+          align="left"
         />
 
         <div className="mx-auto max-w-3xl space-y-3">

@@ -12,34 +12,54 @@
 
   html {
     scroll-behavior: smooth;
-    /* Confinement du débordement latéral à la RACINE, et pas seulement sur
-       `body`.
+    /* Confinement du débordement latéral à la RACINE, et pas seulement
+       sur `body`.
 
        Sur `body` seul, la valeur est propagée au viewport — ce qui rend
-       `body` lui-même non clippant. Sur mobile, Chromium élargit alors le
-       viewport de mise en page pour rendre atteignable ce qui dépasse : la
-       navbar s'étalait sur 397 px pour 320 px visibles, et le bouton de menu
-       finissait hors écran.
+       `body` lui-même non clippant. Sur mobile, Chromium élargit alors
+       le viewport de mise en page pour rendre atteignable ce qui
+       dépasse : la navbar s'étalait sur 397 px pour 320 px visibles, et
+       le bouton de menu finissait hors écran.
 
        `hidden` et non `clip` : accolé à un `overflow-y: visible`, `clip`
-       forcerait aussi l'axe vertical à `clip` et supprimerait tout
-       défilement de la page. `hidden` laisse l'axe Y en `auto`.
+       forcerait aussi l'axe vertical et supprimerait tout défilement.
 
-       Le débordement provient des états initiaux d'animation (translations
-       en X) : une transformation ne modifie pas la mise en page mais compte
-       dans la zone de débordement défilable. */
+       Le débordement provient des états initiaux d'animation
+       (translations en X) : une transformation ne modifie pas la mise en
+       page mais compte dans la zone de débordement défilable. */
     overflow-x: hidden;
   }
 
   body {
+    position: relative;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-family: var(--font-body);
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Garde-fou mobile : aucune barre de défilement horizontale parasite.
-       `clip` (et non `hidden`) ne casse pas position: sticky. */
+    /* Garde-fou mobile. `clip` (et non `hidden`) ne casse pas
+       `position: sticky`. */
     overflow-x: clip;
+    /* Transition de thème VOLONTAIREMENT limitée à deux propriétés sur
+       le seul <body> : animer `all` sur tout le document provoque des
+       centaines de recalculs et un basculement poussif. */
+    transition:
+      background-color var(--duration-normal) var(--ease-smooth),
+      color var(--duration-normal) var(--ease-smooth);
+  }
+
+  /* Halo de page : deux taches de lumière très larges, fixées au
+     viewport. C'est ce qui empêche un grand fond uni de paraître mort,
+     sans ajouter le moindre élément dans le flux. Le back-office a sa
+     propre palette et n'en veut pas. */
+  body:not(:has(.admin-scope))::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--halo-page);
   }
 
   h1,
@@ -51,17 +71,24 @@
     font-family: var(--font-display);
     font-weight: 700;
     line-height: 1.1;
+    letter-spacing: -0.02em;
   }
 
-  /* Focus visible accessible */
+  /* L'attribut `hidden` doit masquer AUSSI les éléments SVG : la feuille
+     de style du navigateur ne l'applique pas de façon fiable au contenu
+     étranger. */
+  [hidden] {
+    display: none !important;
+  }
+
   :focus-visible {
     outline: 2px solid var(--border-focus);
-    outline-offset: 2px;
+    outline-offset: 3px;
     border-radius: var(--radius-sm);
   }
 
   ::selection {
-    background-color: rgba(212, 175, 55, 0.32);
+    background-color: rgb(var(--c-primary) / 0.26);
     color: var(--text-primary);
   }
 }
@@ -69,166 +96,626 @@
 @layer components {
   .container-page {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1320px;
     margin-inline: auto;
-    padding-inline: clamp(1rem, 0.5rem + 3vw, 2.5rem);
+    padding-inline: clamp(1.25rem, 0.9rem + 1.6vw, 2.5rem);
   }
 
   .section-pad {
     padding-block: var(--space-16);
   }
 
-  .text-gradient {
-    background: linear-gradient(120deg, var(--or-600), var(--or-500), var(--eclat));
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
+  /* ── Échelle typographique ────────────────────────────────
+     Deux niveaux seulement portent l'emphase : le titre d'accueil et
+     le titre de section. Tout le reste reste calme.
 
-  /* ── Échelle typographique du modèle ──────────────────────
-     Le modèle tire sa signature de titres très gras et très grands,
-     surmontés d'un sur-titre capitale espacé.
-
-     Interlignes volontairement plus larges que dans le modèle : celui-ci est
-     en anglais, sans accents. En français, les capitales accentuées (É, À) et
-     les cédilles débordent d'une boîte de ligne à 1.06 et se font trancher
-     dès qu'un ancêtre découpe. */
+     Interlignes volontairement larges : en français, les capitales
+     accentuées (É, À) et les cédilles débordent d'une boîte de ligne
+     serrée et se font trancher dès qu'un ancêtre découpe. */
   .hero-head-text {
     font-family: var(--font-display);
-    font-weight: 900;
-    line-height: 1.15;
-    font-size: clamp(2.5rem, 1.4rem + 5.2vw, 5rem);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-size: clamp(2.5rem, 1.4rem + 4.4vw, 4.75rem);
+    padding-block: 0.04em;
   }
 
   .hero-sub-text {
     font-family: var(--font-display);
     font-weight: 500;
     line-height: 1.35;
-    font-size: clamp(1rem, 0.72rem + 1.35vw, 1.875rem);
+    font-size: clamp(1rem, 0.72rem + 1.35vw, 1.75rem);
   }
 
   .section-head-text {
     font-family: var(--font-display);
-    font-weight: 900;
-    line-height: 1.18;
-    font-size: clamp(1.875rem, 1.1rem + 3.6vw, 3.75rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-size: clamp(2.125rem, 1.35rem + 3vw, 3.5rem);
     /* Marge de sécurité pour l'encre des accents en capitales. */
-    padding-block: 0.06em;
+    padding-block: 0.05em;
   }
 
-  .section-sub-text {
-    font-family: var(--font-display);
+  /* Étiquette monospace : index de section, métadonnées, cotes. C'est
+     le vocabulaire du dessin technique, et la signature du
+     positionnement « ingénieur ». */
+  .section-sub-text,
+  .mono-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
     font-weight: 500;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: clamp(0.875rem, 0.8rem + 0.3vw, 1.125rem);
-    color: var(--text-secondary);
+    color: var(--text-muted);
   }
 
-  /* ── Dégradés du modèle ───────────────────────────────── */
-  .black-gradient {
-    background: linear-gradient(to right, #434343, #000000);
+  /* Mot d'accent dans un titre : dégradé, jamais une simple couleur —
+     c'est ce qui sépare « coloré » de « travaillé ». */
+  .text-gradient,
+  .mot-accent {
+    background: var(--nappe-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
   }
 
-  /* Filet vertical du hero. Le nom est conservé : c'est celui du modèle,
-     seule la teinte suit désormais le logo. */
-  .violet-gradient {
-    background: linear-gradient(-90deg, #d4af37 0%, rgba(69, 54, 16, 0) 100%);
+  /* ── Motifs d'architecte ──────────────────────────────────
+     Trois motifs, et trois seulement, portent l'identité : la TRAME de
+     plan, les REPÈRES D'ANGLE et la LIGNE DE COTE. Tous décoratifs,
+     tous en `aria-hidden`, aucun n'intercepte le pointeur. */
+  .trame {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, var(--trame) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--trame) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 10%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 10%, transparent 75%);
   }
 
-  /* Bordure 1px en dégradé : l'enveloppe porte le dégradé et un padding
-     d'1px, la surface intérieure masque le centre. Gamme métallique
-     bronze → or → éclat, celle du monogramme. */
+  .trame-fine {
+    background-size: 24px 24px;
+  }
+
+  /* Rentrées à l'intérieur du cadre : sur une surface arrondie, des
+     équerres collées au bord se liraient comme un défaut de tracé. */
+  .equerres {
+    position: absolute;
+    inset: 0.875rem;
+    pointer-events: none;
+  }
+  .equerres::before,
+  .equerres::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: rgb(var(--c-primary) / 0.65);
+  }
+  .equerres::before {
+    top: 0;
+    right: 0;
+    border-top: 1px solid;
+    border-right: 1px solid;
+  }
+  .equerres::after {
+    bottom: 0;
+    left: 0;
+    border-bottom: 1px solid;
+    border-left: 1px solid;
+  }
+
+  /* Ligne de cote : un filet, un tiret à chaque extrémité, une valeur. */
+  .cote {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  .cote::before,
+  .cote::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(to right, transparent, var(--border-strong), transparent);
+  }
+
+  /* ── La plage ─────────────────────────────────────────────
+     Un grand panneau arrondi sur lequel les cartes viennent se poser.
+     Une section sur deux en porte un : c'est ce qui donne son rythme à
+     la page, et au thème clair sa profondeur sans une seule ombre
+     lourde. */
+  .plage {
+    position: relative;
+    border-radius: var(--radius-4xl);
+    background: var(--plage);
+    padding: clamp(1.75rem, 1rem + 3vw, 4rem);
+  }
+
+  [data-theme="dark"] .plage {
+    border: 1px solid var(--border);
+  }
+
+  /* Sur un très petit écran, le panneau mangerait toute la largeur
+     utile : il s'efface et laisse le contenu respirer. */
+  @media (max-width: 560px) {
+    .plage {
+      border-radius: var(--radius-xl);
+      padding: 1.25rem;
+    }
+  }
+
+  /* ── Surfaces ─────────────────────────────────────────────
+     Une nappe en dégradé, un liseré de lumière en haut, un filet de
+     1 px. C'est le dégradé qui empêche une carte de paraître découpée
+     dans du carton. */
+  .card-surface,
+  .nappe {
+    position: relative;
+    background: var(--nappe);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .nappe-rehaut::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 1rem;
+    right: 1rem;
+    height: 1px;
+    background: var(--rehaut);
+    pointer-events: none;
+  }
+
+  /* Bordure 1 px en dégradé : l'enveloppe porte le dégradé et un
+     rembourrage d'1 px, la surface intérieure masque le centre. Plus
+     net qu'une `border-image`, qui ne suit pas les coins arrondis sur
+     tous les navigateurs. */
   .green-pink-gradient {
-    background: linear-gradient(90.13deg, #8a6d1f 1.9%, #d4af37 50%, #e5e555 97.5%);
+    background: var(--nappe-accent);
   }
 
-  .orange-text-gradient {
-    background: linear-gradient(to top, #b8912b, #e5e555);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+  .black-gradient {
+    background: linear-gradient(to right, #1b2942, #070b14);
   }
 
-  .green-text-gradient {
-    background: linear-gradient(to top, #8a6d1f, #dcc25e);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
-
+  /* Teintes des mots-clés techniques. Quatre nuances d'un même bleu :
+     une rotation de couleurs franches ferait guirlande. */
   .blue-text-gradient {
-    background: linear-gradient(to top, #8a8a8e, #f0f0f0);
+    background: linear-gradient(to top, #1554d6, #4f93ff);
+  }
+  .green-text-gradient {
+    background: linear-gradient(to top, #0e7490, #38bdf8);
+  }
+  .pink-text-gradient {
+    background: linear-gradient(to top, #0f3fa6, #2e7dff);
+  }
+  .orange-text-gradient {
+    background: linear-gradient(to top, #475569, #94a3b8);
+  }
+  .blue-text-gradient,
+  .green-text-gradient,
+  .pink-text-gradient,
+  .orange-text-gradient {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
   }
 
-  .pink-text-gradient {
-    background: linear-gradient(to top, #6b5417, #d4af37);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+  .violet-gradient {
+    background: linear-gradient(-90deg, var(--color-primary) 0%, rgb(var(--c-primary) / 0) 100%);
   }
 
   .glass {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
   }
 
-  [data-theme="dark"] .glass {
-    background: rgba(18, 18, 18, 0.72);
-  }
-
-  .card-surface {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-card);
-  }
-
-  /* Plus de profondeur pour les cartes en mode clair */
-  [data-theme="light"] .card-surface {
-    box-shadow: 0 10px 30px -12px rgba(69, 54, 16, 0.14);
-  }
-
-  /* Fond du hero : la nuit du logo, réchauffée de halos dorés. */
+  /* Fond de l'accueil : la nuit du thème sombre, éclairée d'une aube
+     bleue au ras du sol. En clair, un souffle très pâle — deux
+     réglages distincts, pas une opacité. */
   .gradient-mesh {
-    background-color: var(--noir-950);
-    background-image:
-      radial-gradient(at 20% 25%, rgba(212, 175, 55, 0.22) 0px, transparent 50%),
-      radial-gradient(at 80% 20%, rgba(184, 145, 43, 0.2) 0px, transparent 50%),
-      radial-gradient(at 60% 80%, rgba(229, 229, 85, 0.14) 0px, transparent 50%),
-      radial-gradient(at 10% 90%, rgba(138, 109, 31, 0.22) 0px, transparent 50%);
+    background-color: var(--bg-primary);
+  }
+
+  .aube {
+    position: absolute;
+    inset: auto -10% -45% -10%;
+    height: 80%;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 100%, rgb(var(--c-primary) / 0.16) 0%, transparent 62%);
+  }
+
+  [data-theme="light"] .aube {
+    background: radial-gradient(ellipse at 50% 100%, rgb(var(--c-primary) / 0.07) 0%, transparent 60%);
+  }
+
+  /* ── Pastille de statut ───────────────────────────────────
+     Un point qui bat, un libellé. Posée au-dessus du titre d'accueil,
+     elle dit en un coup d'œil que la personne est joignable. */
+  .badge-pilule {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1rem 0.5rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--nappe);
+    box-shadow: var(--shadow-sm);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .badge-pilule .diode {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-full);
+    background: var(--color-success);
+    flex: none;
+  }
+
+  /* L'onde est un pseudo-élément : elle s'étend et s'efface sans
+     toucher à la taille du point, donc sans faire bouger le texte. */
+  .badge-pilule .diode::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    border: 1px solid var(--color-success);
+    animation: onde 2.4s ease-out infinite;
+  }
+
+  /* ── Carte flottante ──────────────────────────────────────
+     Les chiffres qui entourent le visuel d'accueil. */
+  .carte-flottante {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--nappe-haute);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .carte-flottante .valeur {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+
+  .carte-flottante .libelle {
+    display: block;
+    margin-top: 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Écusson : la plaque d'icône, reprise partout ──────────
+     Dégradé d'accent plein : c'est ce qui donne du poids à une carte,
+     là où un contour de 1 px la laissait fade. */
+  .ecusson {
+    display: grid;
+    place-items: center;
+    flex: none;
+    border-radius: var(--radius-md);
+    background: var(--nappe-accent);
+    color: #ffffff;
+    box-shadow: var(--lueur-accent);
+  }
+
+  [data-theme="dark"] .ecusson {
+    color: var(--nuit-950);
+  }
+
+  /* ── Ruban de technologies ────────────────────────────────
+     Le contenu est DUPLIQUÉ et la translation s'arrête à -50 % : la
+     seconde copie arrive exactement là où était la première, donc la
+     boucle est invisible. Les bords s'effacent par un masque, sinon
+     les logos apparaîtraient et disparaîtraient d'un coup. */
+  .ruban {
+    position: relative;
+    overflow: hidden;
+    padding-block: 1.5rem;
+    border-block: 1px solid var(--border);
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  }
+
+  .ruban .defile {
+    display: flex;
+    width: max-content;
+    gap: clamp(2rem, 4vw, 4rem);
+    animation: defilement 38s linear infinite;
+  }
+
+  .ruban:hover .defile {
+    animation-play-state: paused;
+  }
+
+  /* ── Frise de processus ───────────────────────────────────
+     Au-delà de 900 px les étapes s'alignent horizontalement ; en
+     dessous elles s'empilent, parce que six colonnes sur un téléphone
+     donnent six colonnes illisibles. */
+  .processus {
+    position: relative;
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  @media (min-width: 900px) {
+    .processus {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    /* Le filet passe DERRIÈRE les pastilles, à leur hauteur. */
+    .processus::before {
+      content: "";
+      position: absolute;
+      top: 1.75rem;
+      left: 8%;
+      right: 8%;
+      height: 1px;
+      background: linear-gradient(
+        to right,
+        transparent,
+        var(--border-strong) 10%,
+        var(--border-strong) 90%,
+        transparent
+      );
+    }
+  }
+
+  .etape-processus {
+    position: relative;
+    text-align: center;
+  }
+
+  @media (max-width: 899px) {
+    .etape-processus {
+      display: grid;
+      grid-template-columns: 3.5rem 1fr;
+      gap: 1rem;
+      text-align: left;
+      align-items: start;
+    }
+    .processus > .etape-processus:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 1.75rem;
+      top: 3.75rem;
+      bottom: -1.75rem;
+      width: 1px;
+      background: var(--border);
+    }
+  }
+
+  .pastille-etape {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-inline: auto;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    background: var(--bg-primary);
+    color: var(--color-primary);
+    transition:
+      border-color var(--duration-normal),
+      background var(--duration-normal),
+      color var(--duration-normal),
+      box-shadow var(--duration-normal),
+      transform var(--duration-normal) var(--ease-spring);
+  }
+
+  @media (max-width: 899px) {
+    .pastille-etape {
+      margin-inline: 0;
+    }
+  }
+
+  .etape-processus:hover .pastille-etape {
+    border-color: transparent;
+    background: var(--nappe-accent);
+    color: #ffffff;
+    box-shadow: var(--lueur-accent);
+    transform: translateY(-3px);
+  }
+
+  [data-theme="dark"] .etape-processus:hover .pastille-etape {
+    color: var(--nuit-950);
+  }
+
+  /* ── Barre de précision ───────────────────────────────────
+     Pas une jauge arrondie : une règle graduée. Dix traits, un
+     remplissage net. C'est la mesure, pas la performance. */
+  .regle {
+    position: relative;
+    height: 7px;
+    background: repeating-linear-gradient(to right, var(--border) 0 1px, transparent 1px 10%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .regle .remplissage {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0;
+    border-radius: 1px;
+    background: linear-gradient(to right, rgb(var(--c-primary) / 0.5), var(--color-primary));
+  }
+
+  .regle .remplissage::after {
+    /* Trait de tête : marque la valeur atteinte, comme un index. */
+    content: "";
+    position: absolute;
+    top: -4px;
+    right: -1px;
+    width: 2px;
+    height: 14px;
+    border-radius: 1px;
+    background: var(--color-primary);
+    box-shadow: 0 0 10px rgb(var(--c-primary) / 0.8);
+  }
+
+  /* ── Mot fantôme ──────────────────────────────────────────
+     Un mot géant, presque invisible, posé derrière une section. Il
+     donne de l'échelle à la page sans ajouter de bruit. */
+  .mot-fantome {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(5rem, 18vw, 16rem);
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--text-primary);
+    opacity: 0.028;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  [data-theme="dark"] .mot-fantome {
+    opacity: 0.045;
+  }
+
+  /* ── Châssis d'aperçu de projet ───────────────────────────
+     Au repos, la capture est mise en SOURDINE : voile uni et couleurs
+     désaturées. Une capture d'écran est une image très claire et très
+     bavarde ; posée telle quelle dans la grille, elle crève la mise en
+     page. Le voile se lève au survol, ce qui donne son sens à
+     l'aperçu. */
+  .chassis {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface-deep);
+  }
+
+  .chassis img {
+    filter: saturate(0.55) contrast(0.96);
+    transition:
+      transform 1.1s var(--ease-spring),
+      filter var(--duration-slow) var(--ease-smooth);
+  }
+
+  .chassis::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: rgb(7 11 20 / 0.52);
+    transition: opacity var(--duration-slow) var(--ease-smooth);
+  }
+
+  [data-theme="light"] .chassis::after {
+    background: rgb(19 25 34 / 0.14);
+  }
+
+  .group:hover .chassis img,
+  .group:focus-within .chassis img {
+    transform: scale(1.04) translateY(-3%);
+    filter: none;
+  }
+
+  .group:hover .chassis::after,
+  .group:focus-within .chassis::after {
+    opacity: 0;
+  }
+
+  /* Barre de châssis : trois pastilles et une adresse, comme la barre
+     d'un navigateur. Elle n'apparaît qu'au survol. */
+  .barre-chassis {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(-100%);
+    transition:
+      opacity var(--duration-normal) var(--ease-smooth),
+      transform var(--duration-normal) var(--ease-spring);
+  }
+
+  .group:hover .barre-chassis,
+  .group:focus-within .barre-chassis {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Bandeau d'appel ──────────────────────────────────────
+     Le seul endroit de la page où la couleur occupe toute la surface —
+     donc le seul qui puisse conclure. */
+  .bandeau-appel {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-4xl);
+    background: var(--nappe-accent);
+    color: #ffffff;
+    box-shadow: var(--shadow-lg);
+  }
+
+  [data-theme="dark"] .bandeau-appel {
+    color: var(--nuit-950);
+  }
+
+  .bandeau-appel .trame {
+    mask-image: none;
+    -webkit-mask-image: none;
+    opacity: 0.22;
   }
 
   /* ── Rangée de filtres ────────────────────────────────────
      Sur petit écran, les pastilles restent sur UNE ligne que l'on fait
-     défiler du doigt ; à partir de sm, elles reviennent à la ligne
-     normalement. La barre de défilement est masquée : sur un ruban de
-     filtres elle alourdit la mise en page pour aucun gain, le geste
-     tactile suffisant à indiquer l'affordance.
+     défiler du doigt ; à partir de sm, elles reviennent à la ligne.
+     La barre de défilement est masquée : sur un ruban de filtres elle
+     alourdit la mise en page pour aucun gain.
 
      `justify-content` reste volontairement à `flex-start` en mobile :
-     centrer un conteneur qui déborde pousse les premiers éléments hors de
-     la zone atteignable par le défilement. */
+     centrer un conteneur qui déborde pousse les premiers éléments hors
+     de la zone atteignable par le défilement. */
   .rangee-filtres {
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
-    /* Firefox */
     scrollbar-width: none;
-    /* Edge / IE hérités */
     -ms-overflow-style: none;
   }
 
@@ -236,7 +723,6 @@
     display: none;
   }
 
-  /* Les pastilles ne doivent ni se compresser ni se couper en deux lignes. */
   .rangee-filtres > * {
     flex: 0 0 auto;
     scroll-snap-align: start;
@@ -262,8 +748,7 @@
     display: none;
   }
 
-  /* Révélation de l'icône « code source » au survol d'une carte projet
-     (card-img_hover du modèle). */
+  /* Révélation des pastilles d'action au survol d'une carte projet. */
   .card-img_hover {
     opacity: 0;
     transform: translateY(6px);
@@ -279,80 +764,86 @@
   }
 
   /* ── Piste d'animation confinée ───────────────────────────
-     Les variantes d'entrée du modèle décalent leurs enfants de 100 px en X
-     (`fadeIn("left"/"right")`). Une transformation ne modifie pas la mise en
-     page, mais elle compte dans la zone de débordement défilable : tant
-     qu'une section n'est pas entrée dans le champ, son contenu élargit la
-     page de 100 px. Sur un écran de 320 px, la page naissait donc à 396 px
-     et il fallait pousser vers la droite pour atteindre le menu.
+     Les variantes d'entrée décalent leurs enfants de 100 px en X. Une
+     transformation ne modifie pas la mise en page, mais elle compte
+     dans la zone de débordement défilable : tant qu'une section n'est
+     pas entrée dans le champ, son contenu élargit la page de 100 px.
+     Sur un écran de 320 px, la page naissait donc à 396 px et il
+     fallait pousser vers la droite pour atteindre le menu.
 
-     `clip` et non `hidden` : `clip` ne crée pas de conteneur de défilement,
-     donc `position: sticky` et les ancres continuent de fonctionner. Comme
-     une valeur `visible` accolée à `clip` devient elle-même `clip`, l'axe
-     vertical est également découpé — d'où `overflow-clip-margin`, qui rend
-     la zone de peinture plus large que la boîte sans rien changer à la mise
-     en page : l'encre des glyphes (accents en capitale, hampes des grands
-     titres) et les ombres portées restent intactes. */
+     `clip` et non `hidden` : `clip` ne crée pas de conteneur de
+     défilement, donc `position: sticky` et les ancres continuent de
+     fonctionner. Comme une valeur `visible` accolée à `clip` devient
+     elle-même `clip`, l'axe vertical est également découpé — d'où
+     `overflow-clip-margin`, qui rend la zone de peinture plus large que
+     la boîte sans rien changer à la mise en page : l'encre des glyphes
+     et les ombres portées restent intactes. */
   .piste-animee {
     overflow-x: clip;
-    /* 9rem (144 px) couvre le plus grand dépassement mesuré : 121 px pour
-       le halo de la section « À propos » sur écran de 320 px, et 100 px pour
-       la distance d'entrée des variantes `fadeIn`. Sans cela, le bas des
-       éléments encore en mouvement se faisait trancher pendant la transition. `overflow-clip-margin`
-       n'élargit que la zone de PEINTURE — il ne crée aucun débordement
-       défilable, donc la page ne s'élargit pas d'un pixel. */
     overflow-clip-margin: 9rem;
   }
 
-  /* ── Bloc nocturne ────────────────────────────────────────
-     Le ciel étoilé du bas de page ne se voit que sur fond sombre. Ce bloc
-     garde donc la palette de nuit même en thème clair. On redéfinit les
-     JETONS plutôt que d'imposer des couleurs : cartes, champs du
-     formulaire, bordures et textes suivent sans qu'aucun composant ne
-     sache qu'il se trouve là. */
-  .bloc-nuit {
-    --bg-primary: var(--noir-950);
-    --bg-secondary: var(--noir-850);
-    --bg-elevated: var(--noir-800);
-    --bg-card: var(--noir-800);
-    --surface-raised: var(--noir-850);
-    --surface-deep: var(--noir-900);
-    --surface-timeline: var(--noir-750);
-
-    --text-primary: var(--ivoire-100);
-    --text-secondary: var(--ivoire-400);
-    --text-muted: var(--ivoire-500);
-
-    --border: var(--noir-700);
-    --border-focus: var(--or-500);
-
-    --c-primary: 212 175 55;
-    --c-primary-400: 229 229 85;
-    --c-accent: 220 194 94;
-    --c-accent2: 229 229 85;
-
-    --color-primary: var(--or-500);
-    --color-primary-hover: var(--or-400);
-
-    --glow-primary: 0 0 40px rgba(212, 175, 55, 0.26);
-    --shadow-card: 0px 35px 120px -15px #000000;
-    --shadow-sky: 0 4px 20px rgba(212, 175, 55, 0.3);
-
-    background-color: var(--noir-950);
-    color: var(--text-primary);
-    /* Les champs du formulaire de contact (bordures, curseur, saisie
-       automatique) doivent être rendus en sombre par le navigateur. */
-    color-scheme: dark;
+  /* ── Pièces propres à l'accueil ───────────────────────────
+     Au-delà de 1024 px, les cartes de chiffres se détachent et flottent
+     autour du schéma ; en dessous elles redeviennent une rangée sous
+     lui, car il n'y a plus la place de les faire flotter. Les positions
+     sont en POURCENTAGE : à tailles absolues, elles sortiraient du
+     cadre entre deux points de rupture. */
+  @media (min-width: 1024px) {
+    .hero-scene .carte-flottante {
+      position: absolute;
+      z-index: 3;
+    }
+    .hero-scene .cf-1 {
+      top: 6%;
+      right: 0;
+    }
+    .hero-scene .cf-2 {
+      top: 42%;
+      right: -3%;
+    }
+    .hero-scene .cf-3 {
+      bottom: 10%;
+      left: -2%;
+    }
   }
 
-  /* Aplats d'accent : texte sombre là où l'or reprend sa pleine saturation
-     (thème sombre et bloc nocturne). Du blanc sur #d4af37 tombe à 2:1 ;
-     en thème clair l'accent est un bronze foncé, où le blanc convient. */
-  [data-theme="dark"] .bg-primary,
-  [data-theme="dark"] .hover\:bg-primary:hover,
-  .bloc-nuit .bg-primary,
-  .bloc-nuit .hover\:bg-primary:hover {
-    color: #14120b;
+  .tube-defilement {
+    position: relative;
+    display: block;
+    width: 1px;
+    height: 44px;
+    overflow: hidden;
+    background: var(--border-strong);
+  }
+
+  .tube-defilement::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -40%;
+    width: 1px;
+    height: 40%;
+    background: var(--color-primary);
+    animation: descente 2.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  /* La flèche enfermée dans un rond plein : le détail qui sépare un
+     bouton de maquette d'un bouton de produit. */
+  .rond {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: -0.4rem;
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, currentColor 18%, transparent);
+    transition: transform var(--duration-normal) var(--ease-spring);
+  }
+
+  button:hover .rond,
+  a:hover .rond {
+    transform: translateX(3px);
   }
 
   .glow-ring {
@@ -366,8 +857,8 @@
     opacity: 0;
     transform: translateY(24px);
     transition:
-      opacity var(--duration-slower) var(--ease-smooth),
-      transform var(--duration-slower) var(--ease-smooth);
+      opacity var(--duration-slower) var(--ease-spring),
+      transform var(--duration-slower) var(--ease-spring);
     will-change: opacity, transform;
   }
 
@@ -376,12 +867,48 @@
     transform: translateY(0);
   }
 
-  .animate-gradient-text {
-    animation: gradientShift 4s ease infinite;
-  }
-
   .scrollbar-thin {
     scrollbar-width: thin;
+  }
+}
+
+@keyframes onde {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  70%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+@keyframes defilement {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes descente {
+  0% {
+    top: -40%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+@keyframes levitation {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
   }
 }
 

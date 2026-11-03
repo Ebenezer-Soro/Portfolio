@@ -1,105 +1,147 @@
-/* src/styles/tokens.css — design tokens (importé dans globals.css)
+/* src/styles/tokens.css — jetons de design (importé dans globals.css)
    ───────────────────────────────────────────────────────────────────
-   Palette dérivée du logo : noir #0D0D0D / #1A1A1A, or #D4AF37, éclat
-   #E5E555, plus l'argenté présent dans le monogramme.
+   Direction artistique « The Digital Architect » : bleu de minuit,
+   ardoise profonde, blanc nuage et bleu électrique.
 
-   La structure visuelle reste celle du modèle « 3D Developer Portfolio »
-   (titres très gras, cartes à bordure dégradée, timeline, cascade
-   d'animations) : seule la couche chromatique change, pour que le logo
-   ne soit pas un corps étranger dans sa propre navbar.
+   Deux thèmes ASSUMÉS, et non une inversion de couleurs :
 
-   Le thème sombre est la référence. Le clair est conservé et transposé
-   dans la même famille — l'or y est assombri en bronze, faute de quoi
-   il ne passerait pas le contraste sur fond pâle. */
+     Nuit  : bleu de minuit → ardoise. La profondeur vient de LUEURS et
+             de dégradés, jamais d'ombres — une ombre ne se voit pas sur
+             du noir.
+     Jour  : blanc cassé → panneaux blancs posés sur des plages
+             teintées, typographie fusain. La profondeur vient d'OMBRES
+             courtes et de surfaces arrondies, jamais de lueurs.
+
+   Le bleu n'a pas la même valeur dans les deux thèmes : #4F93FF donne
+   7:1 sur le navy mais seulement 2,5:1 sur du blanc cassé. Le thème
+   clair descend donc à #1554D6 pour tout ce qui porte du sens.
+
+   Les NOMS des jetons sémantiques sont inchangés depuis la version
+   précédente : les composants (Button, Card, Input, Badge…) s'y
+   conforment sans être modifiés, et le back-office garde sa propre
+   palette scopée dans `.admin-scope`. */
 :root {
-  /* ── PRIMITIVES — famille or ────────────────────────────── */
-  --or-100: #fbf6e4;
-  --or-200: #f4e9bf;
-  --or-300: #e9d68a;
-  --or-400: #dcc25e;
-  --or-500: #d4af37; /* or du logo — accent signature */
-  --or-600: #b8912b;
-  --or-700: #8a6d1f; /* bronze : version lisible sur fond clair */
-  --or-800: #6b5417;
-  --or-900: #453610;
+  /* ── PRIMITIVES — bleu électrique, et son azur de dégradé ────── */
+  --bleu-100: #e8f0ff;
+  --bleu-200: #c9ddff;
+  --bleu-300: #9cc0ff;
+  --bleu-400: #4f93ff;
+  --bleu-500: #2e7dff; /* bleu électrique de référence */
+  --bleu-600: #1554d6; /* version lisible sur fond clair */
+  --bleu-700: #0f3fa6;
+  --bleu-800: #0b2d75;
+  /* L'azur ne sert QUE dans les dégradés et les lueurs : seul, il ne
+     passe le contraste sur aucun des deux fonds. */
+  --azur-400: #38bdf8;
+  --azur-500: #0ea5e9;
 
-  --eclat: #e5e555; /* jaune vif du logo, réservé aux points de lumière */
-  --bronze: #8a6d1f;
+  /* ── Bleus de minuit et ardoises ── */
+  --nuit-980: #050810;
+  --nuit-950: #070b14; /* fond de la nuit */
+  --nuit-900: #0a1020;
+  --ardoise-880: #0d1526;
+  --ardoise-850: #0f1829;
+  --ardoise-800: #131f33;
+  --ardoise-750: #18253c;
+  --ardoise-700: #1f2d47; /* bordures de nuit */
+  --ardoise-620: #2b3b59;
 
-  /* Argenté du monogramme : accent secondaire, jamais structurant. */
-  --argent-300: #f0f0f0;
-  --argent-400: #d0d0d0;
-  --argent-500: #a8a8ac;
+  /* ── Blancs nuage et fusains ── */
+  --nuage-50: #f4f7fb;
+  --nuage-200: #dbe3ee;
+  --nuage-300: #aebbce;
+  --nuage-400: #8294ae;
+  --nuage-500: #64748f;
 
-  /* Noirs du logo */
-  --noir-950: #0d0d0d; /* fond principal */
-  --noir-900: #121212;
-  --noir-850: #161616;
-  --noir-800: #1a1a1a; /* cartes */
-  --noir-750: #1f1f1f; /* carte de timeline */
-  --noir-700: #2a2a2a; /* bordures */
+  --fusain-950: #0d1218;
+  --fusain-900: #131922; /* typographie du thème clair */
+  --fusain-700: #39465a;
+  --fusain-500: #5c6a7e;
+  --fusain-300: #8b97a8;
 
-  /* Chauds neutres : un blanc pur jurerait à côté de l'or. */
-  --ivoire-100: #f7f3e8;
-  --ivoire-300: #ded7c4;
-  --ivoire-400: #a8a296; /* texte courant en sombre */
-  --ivoire-500: #8b8577; /* texte atténué en sombre — 5:1 sur le noir du logo */
-  --ivoire-600: #6f6a5e;
+  --pierre-50: #f6f7fb; /* off-white */
+  --pierre-100: #eef1f7;
+  --pierre-150: #e8ecf4;
+  --pierre-200: #e3e8ef; /* bordures de jour */
+  --pierre-300: #d2d9e3;
 
-  --emerald-500: #10b981;
+  --emerald-500: #0f9d6b;
 
-  /* ── SÉMANTIQUES (à utiliser dans les composants) ───────── */
-  --color-primary: var(--or-700);
-  --color-primary-hover: var(--or-600);
-  --color-primary-dark: var(--or-800);
-  --color-accent: var(--or-600);
-  --color-accent-2: var(--eclat);
+  /* ── SÉMANTIQUES (à utiliser dans les composants) ────────────── */
+  --color-primary: var(--bleu-600);
+  --color-primary-hover: var(--bleu-500);
+  --color-primary-dark: var(--bleu-700);
+  --color-accent: var(--bleu-500);
+  --color-accent-2: var(--azur-500);
 
-  /* Canaux RVB des accents : permettent l'opacité Tailwind (/20) ET une
-     surcharge thématique scopée par un conteneur. En clair, on descend
-     en luminosité pour garder un contraste suffisant sur fond pâle. */
-  --c-primary: 138 109 31; /* #8a6d1f */
-  --c-primary-400: 184 145 43; /* #b8912b */
-  --c-accent: 184 145 43;
-  --c-accent2: 212 175 55; /* #d4af37 */
+  /* Canaux RVB des accents : permettent l'opacité Tailwind (/20) ET
+     une surcharge thématique scopée par un conteneur. */
+  --c-primary: 21 84 214; /* #1554d6 */
+  --c-primary-400: 46 125 255; /* #2e7dff */
+  --c-accent: 46 125 255;
+  --c-accent2: 14 165 233; /* azur */
 
   --color-success: var(--emerald-500);
   --color-danger: #c0392b;
-  --color-warning: #b8912b;
+  --color-warning: #b45309;
 
-  /* Backgrounds (clair) — ivoire chaud, même famille que le sombre */
-  --bg-primary: #faf8f2;
-  --bg-secondary: #f2eee3;
+  /* Fonds (clair) */
+  --bg-primary: var(--pierre-50);
+  --bg-secondary: var(--pierre-150);
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
 
-  --surface-raised: #f6f2e7;
-  --surface-deep: #ebe5d5;
+  --surface-raised: #ffffff;
+  --surface-deep: var(--pierre-100);
   --surface-timeline: #ffffff;
+  /* La plage : un grand panneau arrondi sur lequel les cartes se
+     posent. C'est elle qui donne au thème clair sa profondeur, sans
+     une seule ombre lourde. */
+  --plage: var(--pierre-150);
 
   /* Texte */
-  --text-primary: #14130f;
-  --text-secondary: #565245;
-  --text-muted: #8b8574;
+  --text-primary: var(--fusain-900);
+  --text-secondary: var(--fusain-700);
+  --text-muted: var(--fusain-300);
   --text-inverse: #ffffff;
 
   /* Bordures */
-  --border: #e5dfd0;
-  --border-focus: var(--or-700);
+  --border: var(--pierre-200);
+  --border-strong: var(--pierre-300);
+  --border-focus: var(--bleu-600);
 
-  /* Glow / effets */
-  --glow-primary: 0 0 30px rgba(212, 175, 55, 0.28);
-  --glow-accent: 0 0 20px rgba(184, 145, 43, 0.22);
-  --shadow-card: 0px 35px 120px -15px rgba(69, 54, 16, 0.16);
+  /* Trame de plan : des lignes de 1 px, presque invisibles, qui
+     donnent l'assise « dessin technique » sans attirer l'œil. */
+  --trame: rgba(19, 25, 34, 0.055);
 
-  /* ── TYPOGRAPHIE ────────────────────────── */
-  /* Poppins = police du modèle, réservée aux titres et aux gros blocs.
-     Inter reste le corps de texte : meilleure lisibilité en paragraphe et
-     en UI dense (panneau d'administration). Pour un alignement total sur
-     le modèle, remplacer --font-body par var(--font-poppins). */
-  --font-display: var(--font-poppins), "Poppins", "Space Grotesk", system-ui, sans-serif;
+  /* Profondeur : en clair, des portées courtes et douces. */
+  --shadow-sm: 0 1px 2px rgba(19, 25, 34, 0.05);
+  --shadow-md: 0 2px 4px -2px rgba(19, 25, 34, 0.08), 0 12px 28px -14px rgba(19, 25, 34, 0.16);
+  --shadow-lg: 0 4px 8px -4px rgba(19, 25, 34, 0.1), 0 28px 60px -24px rgba(19, 25, 34, 0.26);
+  --shadow-xl: 0 8px 16px -8px rgba(19, 25, 34, 0.12), 0 48px 90px -32px rgba(19, 25, 34, 0.3);
+  --shadow-card: var(--shadow-md);
+  --shadow-sky: 0 10px 30px -10px rgba(21, 84, 214, 0.5);
+  --glow-primary: none;
+  --lueur-accent: 0 10px 30px -10px rgba(21, 84, 214, 0.5);
+
+  /* Nappes : un dégradé vertical très court. C'est lui qui empêche une
+     carte de paraître découpée dans du carton. */
+  --nappe: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  --nappe-haute: linear-gradient(180deg, #ffffff 0%, #f3f6fb 100%);
+  --nappe-accent: linear-gradient(135deg, var(--bleu-600), var(--bleu-500) 55%, var(--azur-500));
+  /* Liseré clair en haut d'une carte : la lumière rasante. */
+  --rehaut: linear-gradient(90deg, transparent, rgba(19, 25, 34, 0.08), transparent);
+  /* Halo de page, derrière tout le reste. */
+  --halo-page: radial-gradient(900px 520px at 78% -5%, rgba(21, 84, 214, 0.1), transparent 70%);
+
+  /* ── TYPOGRAPHIE ──
+     Space Grotesk porte les titres : géométrique, un peu technique,
+     c'est elle qui donne le ton « ingénieur ». JetBrains Mono signe
+     les étiquettes, les index de section et les métadonnées — le
+     vocabulaire du dessin coté. Inter tient le corps de texte. */
+  --font-display: var(--font-space-grotesk), "Space Grotesk", "Inter Tight", system-ui, sans-serif;
   --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", "Fira Code", monospace;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
 
   --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
   --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
@@ -111,39 +153,39 @@
   --text-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 3.5rem);
   --text-5xl: clamp(3rem, 2rem + 4vw, 5rem);
 
-  /* ── ESPACEMENT FLUIDE ──────────────────── */
+  /* ── ESPACEMENT FLUIDE ── */
   --space-1: clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem);
   --space-2: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
   --space-4: clamp(1rem, 0.8rem + 1vw, 1.5rem);
   --space-6: clamp(1.5rem, 1rem + 2vw, 2.5rem);
   --space-8: clamp(2rem, 1.5rem + 2.5vw, 4rem);
   --space-12: clamp(3rem, 2rem + 4vw, 6rem);
-  --space-16: clamp(4rem, 3rem + 5vw, 8rem);
+  --space-16: clamp(3.5rem, 2rem + 6vw, 7.5rem);
 
-  /* ── RAYONS, OMBRES, ANIMATIONS ─────────── */
-  --radius-sm: 4px;
+  /* ── RAYONS ──
+     Assez francs pour que les surfaces aient du corps, assez sobres
+     pour que l'ensemble reste un dessin technique. Les petits éléments
+     restent presque droits ; ce sont les SURFACES qui s'arrondissent. */
+  --radius-sm: 3px;
   --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px; /* rounded-[20px] du modèle */
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 20px;
+  --radius-3xl: 28px;
+  --radius-4xl: 36px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --shadow-sky: 0 4px 20px rgba(184, 145, 43, 0.25);
-
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* ── COURBES ET DURÉES ── */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
 
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --duration-slow: 400ms;
-  --duration-slower: 600ms;
+  --duration-fast: 140ms;
+  --duration-normal: 240ms;
+  --duration-slow: 420ms;
+  --duration-slower: 820ms;
 
-  /* ── Z-INDEX ────────────────────────────── */
+  /* ── Z-INDEX ── */
   --z-base: 0;
   --z-raised: 10;
   --z-overlay: 100;
@@ -151,67 +193,107 @@
   --z-toast: 3000;
 }
 
-/* ── Mode sombre = la référence, celle du logo ────────────── */
+/* ── Mode sombre ─────────────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg-primary: var(--noir-950);
-  --bg-secondary: var(--noir-850);
-  --bg-elevated: var(--noir-800);
-  --bg-card: var(--noir-800);
+  --bg-primary: var(--nuit-950);
+  --bg-secondary: var(--ardoise-880);
+  --bg-elevated: var(--ardoise-800);
+  --bg-card: var(--ardoise-850);
 
-  --surface-raised: var(--noir-850);
-  --surface-deep: var(--noir-900);
-  --surface-timeline: var(--noir-750);
+  --surface-raised: var(--ardoise-850);
+  --surface-deep: var(--nuit-900);
+  --surface-timeline: var(--ardoise-800);
+  --plage: var(--ardoise-880);
 
-  --text-primary: var(--ivoire-100);
-  --text-secondary: var(--ivoire-400);
-  --text-muted: var(--ivoire-500);
+  --text-primary: var(--nuage-50);
+  --text-secondary: var(--nuage-300);
+  --text-muted: var(--nuage-500);
+  --text-inverse: var(--nuit-950);
 
-  --border: var(--noir-700);
+  --border: var(--ardoise-700);
+  --border-strong: var(--ardoise-620);
+  --border-focus: var(--bleu-400);
 
-  /* Sur fond noir, l'or peut reprendre toute sa saturation. */
-  --c-primary: 212 175 55; /* #d4af37 */
-  --c-primary-400: 229 229 85; /* #e5e555 */
-  --c-accent: 220 194 94; /* #dcc25e */
-  --c-accent2: 229 229 85;
+  --trame: rgba(174, 187, 206, 0.065);
 
-  --color-primary: var(--or-500);
-  --color-primary-hover: var(--or-400);
-  --border-focus: var(--or-500);
+  /* Sur fond navy, le bleu peut reprendre toute sa luminosité. */
+  --color-primary: var(--bleu-400);
+  --color-primary-hover: var(--bleu-300);
+  --color-accent: var(--bleu-400);
+  --color-accent-2: var(--azur-400);
+  --c-primary: 79 147 255;
+  --c-primary-400: 156 192 255;
+  --c-accent: 79 147 255;
+  --c-accent2: 56 189 248;
 
-  --glow-primary: 0 0 40px rgba(212, 175, 55, 0.26);
-  --shadow-card: 0px 35px 120px -15px #000000;
-  --shadow-sky: 0 4px 20px rgba(212, 175, 55, 0.3);
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  --shadow-md: 0 2px 6px -2px rgba(0, 0, 0, 0.5), 0 16px 40px -20px rgba(0, 0, 0, 0.9);
+  --shadow-lg: 0 6px 14px -6px rgba(0, 0, 0, 0.6), 0 48px 100px -40px rgba(0, 0, 0, 1);
+  --shadow-xl: 0 10px 20px -8px rgba(0, 0, 0, 0.7), 0 60px 130px -45px rgba(0, 0, 0, 1);
+  --shadow-card: var(--shadow-md);
+  --shadow-sky: 0 12px 38px -14px rgba(46, 125, 255, 0.7);
+  --glow-primary: 0 0 0 1px rgba(79, 147, 255, 0.14), 0 0 56px -14px rgba(46, 125, 255, 0.38);
+  --lueur-accent: 0 12px 38px -14px rgba(46, 125, 255, 0.7);
+
+  --nappe: linear-gradient(180deg, #14213a 0%, #0f1829 100%);
+  --nappe-haute: linear-gradient(180deg, #1a2a47 0%, #131f33 100%);
+  --nappe-accent: linear-gradient(135deg, var(--bleu-500), var(--bleu-400) 50%, var(--azur-400));
+  --rehaut: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.11), transparent);
+  --halo-page:
+    radial-gradient(1000px 620px at 80% -8%, rgba(46, 125, 255, 0.2), transparent 68%),
+    radial-gradient(760px 520px at 8% 18%, rgba(14, 165, 233, 0.1), transparent 70%);
+
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg-primary: var(--noir-950);
-    --bg-secondary: var(--noir-850);
-    --bg-elevated: var(--noir-800);
-    --bg-card: var(--noir-800);
+    --bg-primary: var(--nuit-950);
+    --bg-secondary: var(--ardoise-880);
+    --bg-elevated: var(--ardoise-800);
+    --bg-card: var(--ardoise-850);
 
-    --surface-raised: var(--noir-850);
-    --surface-deep: var(--noir-900);
-    --surface-timeline: var(--noir-750);
+    --surface-raised: var(--ardoise-850);
+    --surface-deep: var(--nuit-900);
+    --surface-timeline: var(--ardoise-800);
+    --plage: var(--ardoise-880);
 
-    --text-primary: var(--ivoire-100);
-    --text-secondary: var(--ivoire-400);
-    --text-muted: var(--ivoire-500);
+    --text-primary: var(--nuage-50);
+    --text-secondary: var(--nuage-300);
+    --text-muted: var(--nuage-500);
+    --text-inverse: var(--nuit-950);
 
-    --border: var(--noir-700);
+    --border: var(--ardoise-700);
+    --border-strong: var(--ardoise-620);
+    --border-focus: var(--bleu-400);
 
-    --c-primary: 212 175 55;
-    --c-primary-400: 229 229 85;
-    --c-accent: 220 194 94;
-    --c-accent2: 229 229 85;
+    --trame: rgba(174, 187, 206, 0.065);
 
-    --color-primary: var(--or-500);
-    --color-primary-hover: var(--or-400);
-    --border-focus: var(--or-500);
+    --color-primary: var(--bleu-400);
+    --color-primary-hover: var(--bleu-300);
+    --color-accent: var(--bleu-400);
+    --color-accent-2: var(--azur-400);
+    --c-primary: 79 147 255;
+    --c-primary-400: 156 192 255;
+    --c-accent: 79 147 255;
+    --c-accent2: 56 189 248;
 
-    --glow-primary: 0 0 40px rgba(212, 175, 55, 0.26);
-    --shadow-card: 0px 35px 120px -15px #000000;
-    --shadow-sky: 0 4px 20px rgba(212, 175, 55, 0.3);
+    --shadow-md: 0 2px 6px -2px rgba(0, 0, 0, 0.5), 0 16px 40px -20px rgba(0, 0, 0, 0.9);
+    --shadow-lg: 0 6px 14px -6px rgba(0, 0, 0, 0.6), 0 48px 100px -40px rgba(0, 0, 0, 1);
+    --shadow-card: var(--shadow-md);
+    --shadow-sky: 0 12px 38px -14px rgba(46, 125, 255, 0.7);
+    --glow-primary: 0 0 0 1px rgba(79, 147, 255, 0.14), 0 0 56px -14px rgba(46, 125, 255, 0.38);
+    --lueur-accent: 0 12px 38px -14px rgba(46, 125, 255, 0.7);
+
+    --nappe: linear-gradient(180deg, #14213a 0%, #0f1829 100%);
+    --nappe-haute: linear-gradient(180deg, #1a2a47 0%, #131f33 100%);
+    --nappe-accent: linear-gradient(135deg, var(--bleu-500), var(--bleu-400) 50%, var(--azur-400));
+    --rehaut: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.11), transparent);
+    --halo-page:
+      radial-gradient(1000px 620px at 80% -8%, rgba(46, 125, 255, 0.2), transparent 68%),
+      radial-gradient(760px 520px at 8% 18%, rgba(14, 165, 233, 0.1), transparent 70%);
+
+    color-scheme: dark;
   }
 }
 

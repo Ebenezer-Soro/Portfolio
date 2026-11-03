@@ -27,6 +27,7 @@ export function SectionShell({
   innerClassName,
   stagger = 0.12,
   delayChildren = 0,
+  plage = false,
 }: {
   id?: string;
   children: ReactNode;
@@ -34,6 +35,9 @@ export function SectionShell({
   innerClassName?: string;
   stagger?: number;
   delayChildren?: number;
+  /** Pose le contenu sur un grand panneau arrondi. Une section sur
+   *  deux en porte un : c'est ce qui donne son rythme à la page. */
+  plage?: boolean;
 }) {
   const reduce = useReducedMotion();
 
@@ -55,11 +59,11 @@ export function SectionShell({
           // trancherait l'encre des titres. Ici les 24 px de `px-6` et les
           // 40 px de `py-10` offrent déjà une réserve, doublée par
           // `overflow-clip-margin`.
-          "piste-animee mx-auto max-w-7xl px-6 py-10 sm:px-16 sm:py-16",
+          "piste-animee mx-auto w-full max-w-[1320px] px-[clamp(1.25rem,0.9rem+1.6vw,2.5rem)] py-[var(--space-16)]",
           innerClassName,
         )}
       >
-        {children}
+        {plage ? <div className="plage">{children}</div> : children}
       </motion.div>
     </section>
   );

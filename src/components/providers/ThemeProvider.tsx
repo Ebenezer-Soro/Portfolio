@@ -10,7 +10,11 @@ export function ThemeProvider({
   return (
     <NextThemesProvider
       attribute="data-theme"
-      defaultTheme="dark"
+      // Première visite : on suit la préférence du système. Les deux
+      // thèmes sont conçus avec le même soin ; imposer le sombre
+      // revenait à décider pour le visiteur, et à ne jamais montrer la
+      // moitié du travail. Le choix manuel, lui, est mémorisé.
+      defaultTheme="system"
       enableSystem
       disableTransitionOnChange
       {...props}

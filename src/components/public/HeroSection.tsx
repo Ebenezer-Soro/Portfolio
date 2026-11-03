@@ -1,39 +1,53 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { motion } from "framer-motion";
-import { ArrowRight, Download } from "lucide-react";
+import { ArrowRight, Briefcase, Code2, Globe, Layers, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Particles } from "./Particles";
+import { SystemScene } from "@/components/canvas/SystemScene";
 import { SocialLinks } from "./SocialLinks";
 import type { Profile, SocialLink } from "@prisma/client";
 
+/**
+ * Accueil — deux colonnes : à gauche la parole, à droite l'ouvrage.
+ *
+ * La colonne de droite accueille l'illustration du système, ENTOURÉE de
+ * cartes de chiffres qui flottent. C'est la disposition que les bons
+ * portfolios emploient autour d'un portrait ; faute de portrait dans le
+ * CMS, le schéma tient ce rôle et les chiffres donnent au bloc le poids
+ * qu'une photo lui aurait donné.
+ */
 export function HeroSection({
   profile,
   socialLinks,
+  settings,
 }: {
   profile: Profile;
   socialLinks: SocialLink[];
+  settings: Record<string, string>;
 }) {
   const container = useRef<HTMLDivElement>(null);
 
+  const chiffres = [
+    { icone: Layers, valeur: settings.stats_projects ?? "6", libelle: "Projets livrés", classe: "cf-1" },
+    { icone: Briefcase, valeur: settings.stats_years ?? "2", libelle: "Années de pratique", classe: "cf-2" },
+    { icone: Code2, valeur: settings.stats_techs ?? "5", libelle: "Technologies clés", classe: "cf-3" },
+  ];
+
   useGSAP(
     () => {
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduce) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.7 } });
-      tl.from(".hero-rail", { opacity: 0, scaleY: 0, transformOrigin: "top", duration: 0.9 })
-        .from(".hero-greeting", { opacity: 0, y: 20 }, "-=0.6")
+      tl.from(".hero-badge", { opacity: 0, y: 14 })
         .from(".hero-name", { opacity: 0, y: 24 }, "-=0.45")
-        .from(".hero-title", { opacity: 0, y: 24 }, "-=0.45")
+        .from(".hero-title", { opacity: 0, y: 24 }, "-=0.5")
         .from(".hero-subtitle", { opacity: 0, y: 20 }, "-=0.45")
-        .from(".hero-cta", { opacity: 0, y: 20, stagger: 0.15 }, "-=0.4")
-        .from(".hero-social", { opacity: 0, y: 16 }, "-=0.4")
-        .from(".hero-photo", { opacity: 0, scale: 0.85, duration: 0.9 }, "-=1.1");
+        .from(".hero-cta", { opacity: 0, y: 20 }, "-=0.4")
+        .from(".hero-social", { opacity: 0, y: 16 }, "-=0.45")
+        .from(".hero-pied", { opacity: 0, y: 16 }, "-=0.5")
+        .from(".hero-scene", { opacity: 0, duration: 1.1 }, "-=1.3");
     },
     { scope: container },
   );
@@ -42,134 +56,115 @@ export function HeroSection({
     <section
       id="accueil"
       ref={container}
-      className="gradient-mesh relative flex min-h-screen items-center overflow-hidden pt-32 pb-20 text-white"
+      className="gradient-mesh relative flex min-h-[100svh] items-center overflow-hidden pt-32 pb-20"
     >
-      <Particles />
+      <div aria-hidden className="trame" />
+      <div aria-hidden className="aube" />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-6 sm:px-16 md:grid-cols-2">
-        {/* Colonne texte, précédée du rail pointillé du modèle */}
-        <div className="order-2 flex flex-row items-start gap-5 md:order-1">
-          {/* Point doré + filet dégradé : le repère vertical du modèle */}
-          <div className="mt-2 hidden flex-col items-center justify-center sm:flex">
-            <div className="h-5 w-5 rounded-full bg-[#d4af37]" />
-            <div className="hero-rail violet-gradient h-40 w-1 sm:h-72" />
+      <div className="container-page relative z-10 grid w-full items-center gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:gap-16">
+        <div>
+          <div className="hero-badge mb-7 flex flex-wrap items-center gap-3">
+            {profile.isAvailable && (
+              <span className="badge-pilule">
+                <span className="diode" aria-hidden />
+                Disponible pour de nouveaux projets
+              </span>
+            )}
+            {profile.location && <span className="mono-label">{profile.location}</span>}
           </div>
 
-          <div className="flex-1">
-            <p className="hero-greeting text-lg text-lavender-300">Bonjour, je suis</p>
+          <h1 className="hero-head-text text-[var(--text-primary)]">
+            <span className="hero-name block">{profile.name}</span>
+            <span className="hero-title mot-accent block">{profile.title}</span>
+          </h1>
 
-            <h1 className="hero-head-text hero-name mt-1 text-white">
-              {profile.name.split(" ").map((mot, i) =>
-                i === 0 ? (
-                  <span key={i} className="text-[#d4af37]">
-                    {mot}{" "}
-                  </span>
-                ) : (
-                  <span key={i}>{mot} </span>
-                ),
-              )}
-            </h1>
+          <p className="hero-subtitle mt-6 max-w-xl text-[17px] leading-[30px] text-[var(--text-secondary)] sm:text-[19px] sm:leading-[32px]">
+            {profile.bio}
+          </p>
 
-            <p className="hero-sub-text hero-title mt-2 text-lavender-100">{profile.title}</p>
+          <div className="hero-cta mt-9 flex flex-wrap items-center gap-3.5">
+            <Link href="/projets">
+              <Button size="lg" variant="primary">
+                Voir mes réalisations
+                <span className="rond" aria-hidden>
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              </Button>
+            </Link>
+            <Link href="/contact">
+              <Button size="lg" variant="outline">
+                Démarrer un échange
+              </Button>
+            </Link>
+          </div>
 
-            <p className="hero-subtitle mt-5 max-w-xl text-[17px] leading-[30px] text-lavender-400">
-              {profile.bio}
-            </p>
+          <div className="hero-social mt-9 flex">
+            <SocialLinks links={socialLinks} />
+          </div>
 
-            <div className="hero-cta mt-8 flex flex-wrap items-center gap-4">
-              <Link href="/projets">
-                <Button size="lg" variant="gradient">
-                  Voir mes projets <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              {profile.cvUrl && (
-                <a href={profile.cvUrl} target="_blank" rel="noopener noreferrer">
-                  <Button size="lg" variant="secondary">
-                    <Download className="h-4 w-4" /> Télécharger CV
-                  </Button>
-                </a>
-              )}
-            </div>
-
-            <div className="hero-social mt-8 flex">
-              <SocialLinks links={socialLinks} />
-            </div>
+          <div className="hero-pied mono-label mt-10 flex flex-wrap gap-x-6 gap-y-3 border-t border-[var(--border)] pt-6">
+            {profile.location && (
+              <span className="inline-flex items-center gap-2">
+                <MapPin className="h-4 w-4" /> {profile.location}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-2">
+              <Globe className="h-4 w-4" /> Freelance · à distance
+            </span>
           </div>
         </div>
 
-        {/* Photo flottante sur halo doré */}
-        <div className="order-1 flex justify-center md:order-2">
-          {/*
-            L'image de l'accueil n'est pas forcément une photo détourée : ce
-            peut être une illustration rectangulaire, avec son propre fond.
-            Elle est donc présentée DANS UN CADRE, en `object-contain` : rien
-            n'est rogné, et les bandes éventuelles se fondent dans le fond
-            sombre du cadre. Le décor se limite à un balayage lumineux et à
-            un halo — une tache pleine donnait l'impression d'une vignette
-            collée sur une bulle dorée.
-
-            Tout le décor est dimensionné en POURCENTAGE de ce conteneur, et
-            le conteneur lui-même en `min(rem, vw)` : des tailles absolues ne
-            connaîtraient que trois paliers, et déborderaient entre deux
-            points de rupture.
-          */}
-          <div className="hero-photo relative flex aspect-square w-[min(26rem,78vw)] items-center justify-center md:w-[min(30rem,42vw)]">
-            {/* Balayage doré : c'est lui que l'on perçoit tourner. */}
+        {/*
+          Le bloc englobe la scène ET la rangée de chiffres : au-delà de
+          1024 px les cartes se détachent et flottent autour du schéma ;
+          en dessous elles redeviennent une rangée sous lui, car il n'y a
+          plus la place de les faire flotter.
+        */}
+        <div className="hero-scene relative">
+          <div className="relative mx-auto aspect-square w-[min(32rem,88vw)] lg:w-[min(36rem,42vw)]">
+            {/* Auréole : elle détache la scène du fond et rattrape
+                l'absence de sujet photographié. */}
             <div
               aria-hidden
-              className="absolute aspect-square w-[130%] animate-spin-slow rounded-full opacity-45 blur-3xl"
+              className="pointer-events-none absolute inset-[6%] rounded-full blur-[14px]"
               style={{
                 background:
-                  "conic-gradient(from 0deg, transparent 0deg, rgba(212,175,55,0.5) 70deg, transparent 150deg, rgba(229,229,85,0.28) 235deg, transparent 330deg)",
+                  "radial-gradient(circle, rgb(var(--c-accent2) / 0.16) 0%, rgb(var(--c-primary) / 0.08) 38%, transparent 68%)",
               }}
             />
-            {/* Halo fixe : détache le cadre du fond. */}
-            <div
-              aria-hidden
-              className="absolute aspect-square w-[116%] rounded-full opacity-80 blur-2xl"
-              style={{
-                background: "radial-gradient(circle, rgba(212,175,55,0.22) 0%, transparent 66%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute aspect-square w-[108%] animate-spin-slow rounded-full border border-dashed border-[#d4af37]/35"
-              style={{ animationDirection: "reverse" }}
-            />
+            <SystemScene />
+            <span className="mono-label absolute left-0 top-[2%] hidden text-[10px] lg:block">
+              Fig. 01 — ce que je construis
+            </span>
+          </div>
 
-            <div className="relative z-10 h-full w-full animate-float-slow rounded-[28px] border border-[#d4af37]/25 bg-white/[0.03] p-2 shadow-[0_30px_90px_-25px_rgba(0,0,0,0.85)] backdrop-blur-[2px]">
-              <div className="relative h-full w-full overflow-hidden rounded-[22px] bg-[#0d0d0d]">
-                {profile.photoUrl ? (
-                  <Image
-                    src={profile.photoUrl}
-                    alt={profile.name}
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 78vw, 30rem"
-                    className="object-contain"
-                  />
-                ) : (
-                  <div className="hero-head-text flex h-full w-full items-center justify-center text-white/85">
-                    {profile.name.charAt(0)}
-                  </div>
-                )}
+          <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3 lg:mt-0 lg:contents">
+            {chiffres.map(({ icone: Icone, valeur, libelle, classe }, i) => (
+              <div
+                key={libelle}
+                className={`carte-flottante animate-levitation ${classe}`}
+                style={{ animationDelay: `${-i * 2.3}s` }}
+              >
+                <span className="ecusson h-9 w-9">
+                  <Icone className="h-4 w-4" />
+                </span>
+                <span className="min-w-0">
+                  <span className="valeur">
+                    {valeur}
+                    <span className="text-primary">+</span>
+                  </span>
+                  <span className="libelle">{libelle}</span>
+                </span>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Indicateur de défilement — la « souris » animée du modèle */}
-      <div className="absolute bottom-8 flex w-full items-center justify-center xs:bottom-10">
-        <a href="#about" aria-label="Défiler vers la section suivante">
-          <div className="flex h-[64px] w-[35px] items-start justify-center rounded-3xl border-4 border-lavender-400 p-2">
-            <motion.div
-              animate={{ y: [0, 24, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
-              className="mb-1 h-3 w-3 rounded-full bg-lavender-400"
-            />
-          </div>
-        </a>
+      {/* Invite de défilement : un filet qui descend en boucle. */}
+      <div aria-hidden className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2.5">
+        <span className="mono-label text-[9px]">Défiler</span>
+        <span className="tube-defilement" />
       </div>
     </section>
   );

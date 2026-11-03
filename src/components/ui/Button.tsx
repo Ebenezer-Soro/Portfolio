@@ -5,29 +5,37 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
+/**
+ * Boutons de la direction artistique : plus hauts, plus épais, coins
+ * arrondis mais francs. Le bouton plein porte un dégradé et une ombre
+ * colorée — c'est la seule zone franchement lumineuse de la page, et
+ * elle doit appeler le clic.
+ *
+ * Le bleu supporte le texte blanc dans les deux thèmes (4,6:1 sur
+ * #2e7dff, 7:1 sur #1554d6) : contrairement à l'or de la version
+ * précédente, aucun aplat n'a besoin d'être retourné en texte sombre.
+ */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-display font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50 active:translate-y-px",
   {
     variants: {
       variant: {
         primary:
-          // Ombre dorée : la précédente était violette, reste du modèle d'origine.
-          "bg-primary text-white shadow-[0_4px_20px_rgba(212,175,55,0.28)] hover:bg-primary-400 hover:shadow-[0_6px_28px_rgba(212,175,55,0.42)]",
+          "bg-[image:var(--nappe-accent)] text-white shadow-[var(--lueur-accent)] hover:shadow-[var(--lueur-accent),0_0_0_4px_rgb(var(--c-primary)/0.16)]",
+        gradient:
+          "bg-[image:var(--nappe-accent)] text-white shadow-[var(--lueur-accent)] hover:shadow-[var(--lueur-accent),0_0_0_4px_rgb(var(--c-primary)/0.16)]",
         secondary:
-          "bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border)] hover:border-primary-400",
+          "bg-[image:var(--nappe)] text-[var(--text-primary)] border border-[var(--border-strong)] shadow-[var(--shadow-sm)] hover:border-primary hover:text-primary",
         outline:
-          "border border-primary text-primary hover:bg-primary hover:text-white",
+          "bg-[image:var(--nappe)] border border-[var(--border-strong)] text-[var(--text-primary)] hover:border-primary hover:text-primary hover:shadow-[var(--shadow-md)]",
         ghost:
           "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]",
         danger: "bg-danger text-white hover:opacity-90",
-        gradient:
-          // Texte sombre : du blanc sur l'or du dégradé ne donne que 2:1.
-          "bg-gradient-to-r from-primary via-accent to-accent2 bg-[length:200%_auto] text-[#14120b] hover:bg-[position:right_center]",
       },
       size: {
-        sm: "h-9 px-3 text-sm",
+        sm: "h-9 px-4 text-sm",
         md: "h-11 px-5 text-sm",
-        lg: "h-12 px-7 text-base",
+        lg: "h-14 px-7 text-base",
         icon: "h-11 w-11",
       },
     },

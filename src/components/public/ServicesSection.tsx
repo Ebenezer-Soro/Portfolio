@@ -4,46 +4,95 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { SectionHeading } from "./Reveal";
 import { SectionShell } from "./SectionShell";
-import { TiltCard } from "./TiltCard";
-import { GradientCard } from "./GradientCard";
 import { fadeIn } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 import type { Service } from "@prisma/client";
 
-export function ServicesSection({ services }: { services: Service[] }) {
+/**
+ * Les domaines, en cartes.
+ *
+ * Le PREMIER service est traité comme la discipline centrale : filet
+ * d'accent permanent, halo discret, mention « Discipline centrale ».
+ * Les suivants portent « Domaine complémentaire ». La hiérarchie se
+ * voit avant d'avoir lu une ligne — et le vocabulaire reste honnête :
+ * on n'annonce pas quatre expertises équivalentes.
+ *
+ * L'ordre vient du CMS (champ `order`) : c'est donc depuis l'admin que
+ * se décide quelle discipline occupe la place centrale.
+ */
+export function ServicesSection({ services, index }: { services: Service[]; index?: string }) {
   const reduce = useReducedMotion();
   if (!services.length) return null;
 
   return (
-    <SectionShell id="services" className="bg-[var(--bg-primary)]">
+    <SectionShell id="services" plage>
       <SectionHeading
-        eyebrow="Services"
-        title="Ce que je propose"
-        description="Des prestations sur mesure pour donner vie à vos projets."
+        index={index ?? "02"}
+        eyebrow="Expertise"
+        title="Un métier au centre, des domaines autour."
+        description="Le développement d'applications est mon quotidien. Les autres domaines l'entourent et le servent — annoncés comme tels, sans esbroufe."
         align="left"
       />
 
-      {/* Cartes du modèle : bordure 1px en dégradé, surface opaque,
-          inclinaison au survol, arrivée échelonnée par la droite. */}
-      <div className="flex flex-wrap gap-10">
-        {services.map((service, i) => (
-          <motion.div
-            key={service.id}
-            variants={reduce ? undefined : fadeIn("right", "spring", i * 0.3, 0.75)}
-            className="w-full xs:w-[250px]"
-          >
-            <TiltCard>
-              <GradientCard innerClassName="flex min-h-[280px] flex-col items-center justify-evenly px-8 py-5 text-center">
-                <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent2 text-white shadow-[var(--shadow-sky)]">
-                  <Icon name={service.iconName} size={30} />
+      <div className="grid gap-5 md:grid-cols-2">
+        {services.map((service, i) => {
+          const noyau = i === 0;
+          return (
+            <motion.article
+              key={service.id}
+              variants={reduce ? undefined : fadeIn("up", "spring", i * 0.12, 0.7)}
+              className={cn(
+                "group relative flex flex-col gap-[1.125rem] overflow-hidden rounded-3xl border p-[clamp(1.75rem,1.2rem+1.4vw,2.5rem)] shadow-card transition-all duration-300",
+                "bg-[image:var(--nappe)] hover:-translate-y-1 hover:shadow-[var(--shadow-lg),var(--glow-primary)]",
+                noyau
+                  ? "border-primary/40 shadow-[var(--shadow-md),var(--glow-primary)]"
+                  : "border-[var(--border)] hover:border-primary/55",
+              )}
+            >
+              {/* Filet d'accent : permanent sur la discipline centrale,
+                  déployé au survol sur les autres. */}
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute inset-x-0 top-0 h-[3px] origin-left bg-[image:var(--nappe-accent)] transition-transform duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  noyau ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
+                )}
+              />
+              {noyau && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -left-2/5 -top-2/5 h-[80%] w-[80%] rounded-full opacity-0 dark:opacity-100"
+                  style={{
+                    background: "radial-gradient(circle, rgb(var(--c-primary) / 0.14), transparent 65%)",
+                  }}
+                />
+              )}
+
+              <div className="relative flex items-center justify-between gap-4">
+                <span className="ecusson h-13 w-13 rounded-lg" style={{ width: "3.25rem", height: "3.25rem" }}>
+                  <Icon name={service.iconName} size={26} />
                 </span>
-                <h3 className="font-display text-[20px] font-bold text-[var(--text-primary)]">
-                  {service.title}
-                </h3>
-                <p className="text-sm text-[var(--text-secondary)]">{service.description}</p>
-              </GradientCard>
-            </TiltCard>
-          </motion.div>
-        ))}
+                <span
+                  className={cn(
+                    "whitespace-nowrap rounded-full px-2.5 py-1.5 font-mono text-[9px] font-medium uppercase tracking-[0.16em]",
+                    noyau
+                      ? "bg-primary/10 text-primary"
+                      : "border border-[var(--border)] text-[var(--text-muted)]",
+                  )}
+                >
+                  {noyau ? "Discipline centrale" : "Domaine complémentaire"}
+                </span>
+              </div>
+
+              <h3 className="relative font-display text-2xl font-bold text-[var(--text-primary)]">
+                {service.title}
+              </h3>
+              <p className="relative text-[15px] leading-[1.7] text-[var(--text-secondary)]">
+                {service.description}
+              </p>
+            </motion.article>
+          );
+        })}
       </div>
     </SectionShell>
   );

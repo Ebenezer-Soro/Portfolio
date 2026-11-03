@@ -1,65 +1,107 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useInView } from "react-intersection-observer";
 import { SectionHeading } from "./Reveal";
 import { SectionShell } from "./SectionShell";
 import { fadeIn } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { Skill } from "@prisma/client";
 
-// La grille 3D est lourde et strictement décorative : elle est chargée côté
-// client uniquement, après le rendu du contenu utile.
-const TechBalls = dynamic(
-  () => import("@/components/canvas/TechBalls").then((m) => m.TechBalls),
-  { ssr: false, loading: () => <div className="h-[104px]" /> },
-);
+/**
+ * Une tuile par technologie : logo, nom, domaine, et une RÈGLE GRADUÉE
+ * plutôt qu'une jauge arrondie. C'est une mesure, pas une performance
+ * — et le ton reste honnête, ce qui compte pour les outils encore en
+ * apprentissage.
+ */
+function Tuile({ skill }: { skill: Skill }) {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.3 });
+  const valeur = Math.max(0, Math.min(100, skill.level));
+  const initiales = skill.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase();
 
-export function SkillsSection({ skills }: { skills: Skill[] }) {
+  return (
+    <div
+      ref={ref}
+      className="flex items-center gap-4 rounded-3xl border border-[var(--border)] bg-[image:var(--nappe)] p-[1.125rem_1.25rem] shadow-[var(--shadow-sm)] transition-all duration-300 hover:-translate-y-[3px] hover:border-primary/55 hover:shadow-[var(--shadow-md),var(--glow-primary)]"
+      style={{ padding: "1.125rem 1.25rem" }}
+    >
+      {/* Le logo est posé sur une plaque claire : la plupart des logos
+          de technologies sont dessinés pour un fond blanc et
+          disparaîtraient sur le navy. La plaque garantit qu'ils restent
+          lisibles dans les DEUX thèmes, sans retouche d'image. */}
+      <span className="grid h-12 w-12 flex-none place-items-center overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-[0_2px_6px_rgb(0_0_0/0.14)]">
+        {skill.iconUrl ? (
+          <Image
+            src={skill.iconUrl}
+            alt=""
+            width={40}
+            height={40}
+            className="h-[1.9rem] w-[1.9rem] object-contain"
+          />
+        ) : (
+          <span className="font-display text-xs font-bold text-[#39465a]">{initiales}</span>
+        )}
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <span className="font-display text-base font-semibold tracking-[-0.01em] text-[var(--text-primary)]">
+            {skill.name}
+          </span>
+          <span className="font-mono text-[11px] tracking-[0.08em] text-[var(--text-muted)]">
+            {valeur}
+          </span>
+        </div>
+        <div className="regle">
+          <span
+            className="remplissage"
+            style={{
+              width: inView ? `${valeur}%` : 0,
+              transition: "width var(--duration-slower) var(--ease-spring)",
+            }}
+          />
+        </div>
+        <p className="mono-label mt-2 text-[9px]">{skill.category}</p>
+      </div>
+    </div>
+  );
+}
+
+export function SkillsSection({ skills, index }: { skills: Skill[]; index?: string }) {
   const categories = useMemo(
-    () => Array.from(new Set(skills.map((s) => s.category))),
+    () => ["Tout", ...Array.from(new Set(skills.map((s) => s.category)))],
     [skills],
   );
-
-  const [active, setActive] = useState(categories[0] ?? "");
+  const [active, setActive] = useState("Tout");
   const reduce = useReducedMotion();
 
   if (!skills.length) return null;
 
-  const filtered = skills.filter((s) => s.category === active);
+  const filtered = active === "Tout" ? skills : skills.filter((s) => s.category === active);
 
   return (
-    <SectionShell id="skills" className="bg-[var(--bg-secondary)]">
+    <SectionShell id="skills">
       <SectionHeading
-        eyebrow="Ce que je maîtrise"
-        title="Compétences techniques"
-        description="Un éventail de technologies, du front-end à la sécurité."
+        index={index ?? "03"}
+        eyebrow="Technologies"
+        title="Les outils, et jusqu'où je les ai menés."
+        description="Niveaux auto-évalués, volontairement honnêtes : une barre courte veut dire que je sais lire et utiliser l'outil, pas que je bâtirais une architecture autour de lui."
+        align="left"
       />
 
-      {/* Billes 3D flottantes — la section « Tech » du modèle. */}
-      <div className="mb-16 flex justify-center">
-        <div className="w-full max-w-3xl">
-          <TechBalls
-            items={skills.map((s) => ({ id: s.id, name: s.name, iconUrl: s.iconUrl }))}
-          />
-        </div>
-      </div>
-
-      {/* Le niveau de maîtrise reste une donnée du back-office : on le conserve
-          sous les billes plutôt que de le perdre au profit du décor. */}
-      <div className="rangee-filtres mb-10 sm:justify-center">
+      <div className="rangee-filtres mb-10">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setActive(cat)}
             aria-pressed={active === cat}
             className={cn(
-              "rounded-full px-4 py-2 text-sm font-medium transition-all",
+              "rounded-full border px-4 py-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.1em] transition-all",
               active === cat
-                ? "bg-primary text-white shadow-[var(--shadow-sky)]"
-                : "border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:border-primary-400 hover:text-primary",
+                ? "border-transparent bg-[image:var(--nappe-accent)] text-white shadow-[var(--lueur-accent)]"
+                : "border-[var(--border)] bg-[image:var(--nappe)] text-[var(--text-secondary)] hover:-translate-y-px hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]",
             )}
           >
             {cat}
@@ -67,20 +109,21 @@ export function SkillsSection({ skills }: { skills: Skill[] }) {
         ))}
       </div>
 
-      <div className="mx-auto grid max-w-3xl gap-x-10 gap-y-6 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filtered.map((skill, i) => (
           <motion.div
             key={skill.id}
-            variants={reduce ? undefined : fadeIn("up", "tween", i * 0.05, 0.5)}
-            // Apparition déclenchée par l'élément lui-même. Héritée de la
-            // section, elle ne se jouait qu'une fois : après un changement de
-            // filtre, les nouveaux éléments restaient à opacité nulle —
-            // présents, occupant leur place, mais invisibles.
+            variants={reduce ? undefined : fadeIn("up", "tween", (i % 8) * 0.04, 0.5)}
+            // Apparition déclenchée par l'élément lui-même. Héritée de
+            // la section, elle ne se jouait qu'une fois : après un
+            // changement de filtre, les nouveaux éléments restaient à
+            // opacité nulle — présents, occupant leur place, mais
+            // invisibles.
             initial={reduce ? undefined : "hidden"}
             whileInView={reduce ? undefined : "show"}
             viewport={{ once: true, amount: 0.2 }}
           >
-            <ProgressBar label={skill.name} value={skill.level} />
+            <Tuile skill={skill} />
           </motion.div>
         ))}
       </div>

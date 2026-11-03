@@ -9,7 +9,17 @@ import { fadeIn } from "@/lib/motion";
 import { formatDate, cn } from "@/lib/utils";
 import type { Experience } from "@prisma/client";
 
-export function ExperienceSection({ experiences }: { experiences: Experience[] }) {
+/**
+ * Parcours — un rail unique à gauche, sur tous les écrans.
+ *
+ * La version précédente alternait gauche/droite au-delà de 768 px.
+ * Une frise en zigzag se lit mal : l'œil fait des allers-retours, et
+ * sur mobile elle doublait la hauteur. Les dates en monospace à gauche
+ * du titre suffisent à donner le rythme, et chaque étape est posée sur
+ * une surface — sans elle, la frise n'était qu'une suite de
+ * paragraphes alignés le long d'un trait.
+ */
+export function ExperienceSection({ experiences, index }: { experiences: Experience[]; index?: string }) {
   const [filter, setFilter] = useState<"all" | "work" | "education">("all");
   const reduce = useReducedMotion();
 
@@ -24,24 +34,26 @@ export function ExperienceSection({ experiences }: { experiences: Experience[] }
   ];
 
   return (
-    <SectionShell id="experience" className="bg-[var(--bg-primary)]">
+    <SectionShell id="experience" plage>
       <SectionHeading
-        eyebrow="Mon parcours jusqu'ici"
-        title="Expériences & Formations"
-        description="Mon cheminement professionnel et académique."
+        index={index ?? "06"}
+        eyebrow="Parcours"
+        title="Où j'ai travaillé, ce que j'ai étudié."
+        description="Mon cheminement professionnel et académique, dans l'ordre."
+        align="left"
       />
 
-      <div className="rangee-filtres mb-14 sm:justify-center">
+      <div className="rangee-filtres mb-12">
         {filters.map((f) => (
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
             aria-pressed={filter === f.key}
             className={cn(
-              "rounded-full px-4 py-2 text-sm font-medium transition-all",
+              "rounded-full border px-4 py-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.1em] transition-all",
               filter === f.key
-                ? "bg-primary text-white shadow-[var(--shadow-sky)]"
-                : "border border-[var(--border)] text-[var(--text-secondary)] hover:border-primary-400 hover:text-primary",
+                ? "border-transparent bg-[image:var(--nappe-accent)] text-white shadow-[var(--lueur-accent)]"
+                : "border-[var(--border)] text-[var(--text-secondary)] hover:-translate-y-px hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]",
             )}
           >
             {f.label}
@@ -49,79 +61,70 @@ export function ExperienceSection({ experiences }: { experiences: Experience[] }
         ))}
       </div>
 
-      {/* Timeline verticale du modèle : rail central, pastille colorée,
-          carte sur fond #1f1f1f en sombre (var(--surface-timeline)). */}
-      <div className="relative mx-auto max-w-4xl">
-        <div className="absolute left-4 top-0 h-full w-px bg-[var(--border)] md:left-1/2 md:-translate-x-1/2" />
+      <div className="relative max-w-4xl">
+        <span
+          aria-hidden
+          className="absolute bottom-2 left-[5px] top-2 w-px bg-[var(--border)]"
+        />
 
-        <ul className="space-y-10">
-          {filtered.map((exp, i) => {
-            const isLeft = i % 2 === 0;
-            return (
-              <motion.li
-                key={exp.id}
-                variants={
-                  reduce ? undefined : fadeIn(isLeft ? "right" : "left", "spring", i * 0.15, 0.7)
-                }
-                // Apparition déclenchée par l'élément lui-même. Héritée de la
-                // section, elle ne se jouait qu'une fois : après un changement de
-                // filtre, les nouveaux éléments restaient à opacité nulle —
-                // présents, occupant leur place, mais invisibles.
-                initial={reduce ? undefined : "hidden"}
-                whileInView={reduce ? undefined : "show"}
-                viewport={{ once: true, amount: 0.2 }}
+        <ul className="flex flex-col gap-9">
+          {filtered.map((exp, i) => (
+            <motion.li
+              key={exp.id}
+              variants={reduce ? undefined : fadeIn("up", "spring", i * 0.12, 0.7)}
+              // Apparition déclenchée par l'élément lui-même : héritée
+              // de la section, elle ne se jouait qu'une fois et les
+              // éléments d'un nouveau filtre restaient invisibles.
+              initial={reduce ? undefined : "hidden"}
+              whileInView={reduce ? undefined : "show"}
+              viewport={{ once: true, amount: 0.2 }}
+              className="group relative pl-9"
+            >
+              <span
+                aria-hidden
                 className={cn(
-                  "relative pl-12 md:w-1/2 md:pl-0",
-                  isLeft ? "md:pr-12 md:text-right" : "md:ml-auto md:pl-12",
+                  "absolute left-0 top-[0.55rem] h-[11px] w-[11px] rotate-45 rounded-sm border border-primary transition-all",
+                  exp.current
+                    ? "bg-primary shadow-[0_0_0_4px_rgb(var(--c-primary)/0.15)]"
+                    : "bg-[var(--bg-primary)] group-hover:bg-primary group-hover:shadow-[0_0_0_4px_rgb(var(--c-primary)/0.15)]",
                 )}
-              >
-                <span
-                  className={cn(
-                    "absolute left-4 top-1.5 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-white shadow-[0_0_0_4px_var(--bg-primary)] md:left-auto",
-                    isLeft ? "md:right-0 md:translate-x-1/2" : "md:left-0 md:-translate-x-1/2",
-                  )}
-                >
-                  {exp.type === "work" ? (
-                    <Briefcase className="h-4 w-4" />
-                  ) : (
-                    <GraduationCap className="h-4 w-4" />
-                  )}
-                </span>
+              />
 
-                <div className="rounded-2xl bg-[var(--surface-timeline)] p-6 shadow-card">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+              <div className="rounded-3xl border border-[var(--border)] bg-[image:var(--nappe)] p-6 shadow-[var(--shadow-sm)] transition-all duration-300 group-hover:translate-x-1 group-hover:border-primary/45 group-hover:shadow-[var(--shadow-md)] sm:p-[1.5rem_1.625rem]">
+                <p className="flex items-center gap-2">
+                  <span className="mono-label text-primary">
                     {formatDate(exp.startDate, "MMM yyyy")} —{" "}
                     {exp.current
-                      ? "Présent"
+                      ? "aujourd'hui"
                       : exp.endDate
                         ? formatDate(exp.endDate, "MMM yyyy")
                         : ""}
                   </span>
-                  <h3 className="mt-1 font-display text-[24px] font-bold text-[var(--text-primary)]">
-                    {exp.title}
-                  </h3>
-                  <p className="text-[16px] font-semibold text-[var(--text-secondary)]">
-                    {exp.organization}
+                  {exp.type === "work" ? (
+                    <Briefcase className="h-4 w-4 text-[var(--text-muted)]" />
+                  ) : (
+                    <GraduationCap className="h-4 w-4 text-[var(--text-muted)]" />
+                  )}
+                </p>
+
+                <h3 className="mt-1.5 font-display text-[1.375rem] font-bold text-[var(--text-primary)]">
+                  {exp.title}
+                </h3>
+                <p className="text-[15px] font-semibold text-primary">{exp.organization}</p>
+
+                {exp.location && (
+                  <p className="mono-label mt-1.5 inline-flex items-center gap-1.5 text-[10px]">
+                    <MapPin className="h-3.5 w-3.5" /> {exp.location}
                   </p>
-                  {exp.location && (
-                    <p
-                      className={cn(
-                        "mt-1 flex items-center gap-1 text-xs text-[var(--text-muted)]",
-                        isLeft && "md:justify-end",
-                      )}
-                    >
-                      <MapPin className="h-3 w-3" /> {exp.location}
-                    </p>
-                  )}
-                  {exp.description && (
-                    <p className="mt-3 text-[14px] leading-relaxed tracking-wide text-[var(--text-secondary)]">
-                      {exp.description}
-                    </p>
-                  )}
-                </div>
-              </motion.li>
-            );
-          })}
+                )}
+                {exp.description && (
+                  <p className="mt-3 text-[15px] leading-relaxed text-[var(--text-secondary)]">
+                    {exp.description}
+                  </p>
+                )}
+              </div>
+            </motion.li>
+          ))}
         </ul>
       </div>
     </SectionShell>

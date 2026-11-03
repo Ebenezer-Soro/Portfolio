@@ -30,29 +30,31 @@
   --border: #e1e4ec;
   --border-focus: #7a6019;
 
-  /* Accent : l'or du logo, assombri en bronze pour rester lisible sur
-     blanc — le #D4AF37 n'y atteint qu'un rapport de contraste de 1,9:1.
-     Valeurs mesurées (audit automatique de toutes les pages) : le bronze
-     #8a6d1f tombait à 4,3:1 sur les pastilles teintées, d'où #7a6019
-     (5,2:1 sur pastille, 6:1 en texte blanc sur aplat). */
-  --c-primary: 122 96 25; /* #7a6019 */
-  --c-primary-400: 138 109 31; /* #8a6d1f — survol, texte blanc 4,7:1 */
-  --c-accent: 110 88 22; /* #6e5816 — badges « Mis en avant », 6:1 */
-  --c-accent2: 212 175 55; /* #d4af37 */
+  /* Accent : le bleu électrique de la marque, dans sa valeur foncée —
+     #2E7DFF ne donne que 3,1:1 sur blanc, #1554D6 en donne 6,3:1 en
+     texte et 5,9:1 en blanc sur aplat. */
+  --c-primary: 21 84 214; /* #1554d6 */
+  --c-primary-400: 15 63 166; /* #0f3fa6 — survol */
+  --c-accent: 15 63 166;
+  --c-accent2: 46 125 255; /* #2e7dff */
 
-  --color-primary: #7a6019;
-  --color-primary-hover: #8a6d1f;
+  --color-primary: #1554d6;
+  --color-primary-hover: #0f3fa6;
 
   /* Ombres discrètes : la hiérarchie vient des bordures et du fond,
      pas de la profondeur. */
   --shadow-card: 0 1px 2px rgba(23, 26, 35, 0.06), 0 1px 3px rgba(23, 26, 35, 0.04);
   --shadow-md: 0 1px 2px rgba(23, 26, 35, 0.06), 0 1px 3px rgba(23, 26, 35, 0.04);
   --shadow-lg: 0 4px 12px rgba(23, 26, 35, 0.08);
-  --shadow-sky: 0 2px 8px rgba(138, 109, 31, 0.2);
+  --shadow-sky: 0 2px 8px rgba(21, 84, 214, 0.2);
   --glow-primary: none;
 
   /* Interface dense : coins moins arrondis que sur le site vitrine. */
+  --radius-lg: 10px;
+  --radius-xl: 12px;
   --radius-2xl: 12px;
+  --radius-3xl: 14px;
+  --radius-4xl: 16px;
 
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -64,10 +66,9 @@
    les noirs dorés du site, qui fatiguent l'œil sur une longue session de
    saisie.
 
-   L'accent y reprend l'or du logo : lisible en texte sur fond sombre
-   (7:1), mais du texte BLANC sur un fond or tomberait à 2:1. Les
-   éléments pleins d'accent passent donc en texte sombre (règles plus bas),
-   comme le bouton doré du site public. */
+   L'accent y reprend le bleu de la marque, qui supporte le texte blanc
+   sur aplat aussi bien en nuit qu'en jour — contrairement à l'or de la
+   version précédente, où il fallait passer en texte sombre. */
 [data-theme="dark"] .admin-scope {
   --bg-primary: #111318;
   --bg-secondary: #0c0e12;
@@ -84,32 +85,26 @@
   --text-inverse: #111318;
 
   --border: #2a2e38;
-  --border-focus: #d4af37;
+  --border-focus: #4f93ff;
 
-  --c-primary: 212 175 55; /* #d4af37 */
-  --c-primary-400: 220 194 94; /* #dcc25e */
-  --c-accent: 220 194 94;
-  --c-accent2: 229 229 85; /* #e5e555 */
+  --c-primary: 79 147 255; /* #4f93ff */
+  --c-primary-400: 156 192 255; /* #9cc0ff */
+  --c-accent: 79 147 255;
+  --c-accent2: 56 189 248; /* #38bdf8 */
 
-  --color-primary: #d4af37;
-  --color-primary-hover: #dcc25e;
+  --color-primary: #4f93ff;
+  --color-primary-hover: #9cc0ff;
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.45);
-  --shadow-sky: 0 2px 10px rgba(212, 175, 55, 0.18);
+  --shadow-sky: 0 2px 10px rgba(79, 147, 255, 0.18);
 
   color-scheme: dark;
 }
 
-/* Texte sombre sur les aplats d'accent : bouton principal, bouton
-   « contour » au survol, pastilles dégradées (logo, statistiques). */
-[data-theme="dark"] .admin-scope .bg-primary,
-[data-theme="dark"] .admin-scope .hover\:bg-primary:hover,
-[data-theme="dark"] .admin-scope .from-primary.text-white,
-[data-theme="dark"] .admin-scope .from-accent.text-white {
-  color: #14120b;
-}
+/* Le bleu supporte le texte blanc : contrairement à l'or, les aplats
+   d'accent n'ont plus besoin d'être retournés en texte sombre. */
 
 /* Vert « Publié » : Tailwind le définit comme une constante (#10b981), pas
    comme un jeton — il ne suit donc pas la palette. Sur les pastilles

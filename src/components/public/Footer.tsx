@@ -22,40 +22,49 @@ export function Footer({
 
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--bg-secondary)]">
-      <div className="container-page grid gap-10 py-14 md:grid-cols-3">
-        <div className="space-y-4">
-          <Link href="/" className="flex items-center gap-2.5">
-            {profile.logoUrl ? (
-              <Image
-                src={profile.logoUrl}
-                alt={profile.name}
-                width={36}
-                height={36}
-                className="h-9 w-9 rounded-lg object-cover"
-              />
-            ) : (
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent font-display text-lg font-bold text-white">
-                {profile.name.charAt(0)}
+      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div>
+          <Link href="/" className="flex items-center gap-3">
+            <span className="grid h-10 w-10 flex-none place-items-center overflow-hidden rounded-lg border border-primary/45 bg-primary/[0.08] font-display text-sm font-bold text-primary">
+              {profile.logoUrl ? (
+                <Image
+                  src={profile.logoUrl}
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                profile.name.slice(0, 2).toUpperCase()
+              )}
+            </span>
+            <span className="flex flex-col leading-[1.15]">
+              <span className="font-display text-base font-bold tracking-[-0.015em] text-[var(--text-primary)]">
+                {profile.name}
               </span>
-            )}
-            <span className="font-display text-base font-bold text-[var(--text-primary)]">
-              {profile.name}
+              <span className="mono-label text-[9px]">{profile.title}</span>
             </span>
           </Link>
-          <p className="max-w-xs text-sm text-[var(--text-secondary)]">{profile.title}</p>
-          <SocialLinks links={socialLinks} />
+
+          <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-[var(--text-secondary)]">
+            {profile.location
+              ? `Des plateformes web conçues, développées et déployées depuis ${profile.location} — pour des clients partout.`
+              : "Des plateformes web conçues, développées et déployées de bout en bout."}
+          </p>
+
+          <div className="mt-5">
+            <SocialLinks links={socialLinks} />
+          </div>
         </div>
 
         <div>
-          <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-[var(--text-primary)]">
-            Navigation
-          </h3>
-          <ul className="space-y-2">
+          <h3 className="mono-label mb-4 text-[10px]">Navigation</h3>
+          <ul className="space-y-2.5">
             {QUICK_LINKS.map((l) => (
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className="text-sm text-[var(--text-secondary)] transition-colors hover:text-primary"
+                  className="text-[15px] text-[var(--text-secondary)] transition-colors hover:text-primary"
                 >
                   {l.label}
                 </Link>
@@ -65,37 +74,42 @@ export function Footer({
         </div>
 
         <div>
-          <h3 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-[var(--text-primary)]">
-            Contact
-          </h3>
-          <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
+          <h3 className="mono-label mb-4 text-[10px]">Contact</h3>
+          <ul className="space-y-2.5 text-[15px] text-[var(--text-secondary)]">
             {profile.email && (
               <li>
-                <a href={`mailto:${profile.email}`} className="hover:text-primary">
+                <a href={`mailto:${profile.email}`} className="transition-colors hover:text-primary">
                   {profile.email}
                 </a>
               </li>
             )}
             {profile.phone && (
               <li>
-                <a href={`tel:${profile.phone}`} className="hover:text-primary">
+                <a
+                  href={`tel:${profile.phone.replace(/\s/g, "")}`}
+                  className="transition-colors hover:text-primary"
+                >
                   {profile.phone}
                 </a>
               </li>
             )}
             {profile.location && <li>{profile.location}</li>}
           </ul>
+          {profile.isAvailable && (
+            <p className="mono-label mt-5 text-[10px] text-primary">Ouvert aux nouveaux projets</p>
+          )}
         </div>
       </div>
 
       <div className="border-t border-[var(--border)]">
-        {/* Aucun lien vers l'administration : elle ne doit laisser aucune trace
-            dans le rendu public. L'accès se fait au clavier (voir
+        {/* Aucun lien vers l'administration : elle ne doit laisser aucune
+            trace dans le rendu public. L'accès se fait au clavier (voir
             AdminShortcut) ou par l'URL directe. */}
-        <div className="container-page flex flex-col items-center justify-between gap-2 py-5 text-xs text-[var(--text-muted)] sm:flex-row">
-          <p>
-            © {year} {profile.name}. Tous droits réservés.
+        <div className="container-page flex flex-col gap-2 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="mono-label text-[10px]">
+            © {year} {profile.name} — Tous droits réservés
           </p>
+          <p className="mono-label text-[10px]">Conçu et développé sur mesure</p>
         </div>
       </div>
     </footer>

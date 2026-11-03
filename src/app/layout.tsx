@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Poppins, Inter, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { SITE_URL } from "@/lib/site";
 import { getProfile, getSettings } from "@/lib/queries";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
@@ -10,13 +10,12 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 
-// Police d'affichage du modèle. Poppins n'est pas une police variable :
-// les graisses doivent être déclarées explicitement. 900 porte la signature
-// visuelle du modèle (titres `font-black`).
-const poppins = Poppins({
-  variable: "--font-poppins",
+// Police d'affichage : géométrique et un peu technique, c'est elle qui
+// donne le ton « ingénieur » de la direction artistique. Variable, donc
+// une seule ressource couvre toutes les graisses utilisées (400 à 700).
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -126,7 +125,7 @@ export default async function RootLayout({
     <html
       lang="fr"
       suppressHydrationWarning
-      className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col overflow-x-hidden">
         <ThemeProvider nonce={nonce}>

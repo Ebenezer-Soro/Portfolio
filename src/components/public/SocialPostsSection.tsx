@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import type { SocialPost } from "@prisma/client";
 
-export function SocialPostsSection({ posts }: { posts: SocialPost[] }) {
+export function SocialPostsSection({ posts, index }: { posts: SocialPost[]; index?: string }) {
   const platforms = useMemo(
     () => ["Toutes", ...Array.from(new Set(posts.map((p) => p.platform)))],
     [posts],
@@ -22,11 +22,13 @@ export function SocialPostsSection({ posts }: { posts: SocialPost[] }) {
   const filtered = filter === "Toutes" ? posts : posts.filter((p) => p.platform === filter);
 
   return (
-    <SectionShell id="publications" className="bg-[var(--bg-primary)]">
+    <SectionShell id="publications">
         <SectionHeading
-          eyebrow="Réseaux sociaux"
-          title="Mes publications"
-          description="Retrouvez mes derniers partages sur les réseaux."
+          index={index ?? "07"}
+          eyebrow="Publications"
+          title="Ce que je partage, et où."
+          description="Mes derniers partages sur les réseaux professionnels, rassemblés en un seul endroit."
+          align="left"
         />
 
         <div className="rangee-filtres mb-10 sm:justify-center">

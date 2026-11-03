@@ -12,7 +12,7 @@ import { fadeIn } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { Project } from "@prisma/client";
 
-export function ProjectsSection({ projects }: { projects: Project[] }) {
+export function ProjectsSection({ projects, index }: { projects: Project[]; index?: string }) {
   const techs = useMemo(() => {
     const set = new Set<string>();
     projects.forEach((p) => p.techStack.forEach((t) => set.add(t)));
@@ -26,28 +26,29 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
 
   const filtered =
     filter === "Tous" ? projects : projects.filter((p) => p.techStack.includes(filter));
-  const shown = filtered.slice(0, 6);
+  const shown = filtered.slice(0, 5);
 
   return (
-    <SectionShell id="projects" className="bg-[var(--bg-secondary)]">
+    <SectionShell id="projects">
       <SectionHeading
-        eyebrow="Mon travail"
-        title="Projets"
-        description="Ces projets illustrent mon savoir-faire à travers des cas concrets. Chacun est décrit brièvement, avec un lien vers le dépôt de code et la démonstration en ligne."
+        index={index ?? "04"}
+        eyebrow="Réalisations"
+        title="Des plateformes faites pour servir tous les jours."
+        description="Chaque projet est décrit brièvement, avec un lien vers la démonstration en ligne. Survolez une carte pour l'aperçu."
         align="left"
       />
 
-      <div className="rangee-filtres mb-14">
+      <div className="rangee-filtres mb-12">
         {techs.slice(0, 8).map((tech) => (
           <button
             key={tech}
             onClick={() => setFilter(tech)}
             aria-pressed={filter === tech}
             className={cn(
-              "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all",
+              "rounded-full border px-4 py-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.1em] transition-all",
               filter === tech
-                ? "bg-primary text-white shadow-[var(--shadow-sky)]"
-                : "border border-[var(--border)] text-[var(--text-secondary)] hover:border-primary-400 hover:text-primary",
+                ? "border-transparent bg-[image:var(--nappe-accent)] text-white shadow-[var(--lueur-accent)]"
+                : "border-[var(--border)] text-[var(--text-secondary)] hover:-translate-y-px hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]",
             )}
           >
             {tech}
@@ -55,20 +56,23 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
         ))}
       </div>
 
-      <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Le premier projet occupe les DEUX colonnes de la première
+          rangée : la hiérarchie se lit dans la grille, pas dans une
+          étiquette. Les suivants se rangent par deux en dessous. */}
+      <div className="grid gap-6 md:grid-cols-2">
         {shown.map((project, i) => (
           <motion.div
             key={project.id}
-            variants={reduce ? undefined : fadeIn("up", "spring", i * 0.2, 0.75)}
-            // Apparition déclenchée par l'élément lui-même. Héritée de la
-            // section, elle ne se jouait qu'une fois : après un changement de
-            // filtre, les nouveaux éléments restaient à opacité nulle —
-            // présents, occupant leur place, mais invisibles.
+            variants={reduce ? undefined : fadeIn("up", "spring", i * 0.14, 0.75)}
+            // Apparition déclenchée par l'élément lui-même : héritée de
+            // la section, elle ne se jouait qu'une fois et les éléments
+            // d'un nouveau filtre restaient invisibles.
             initial={reduce ? undefined : "hidden"}
             whileInView={reduce ? undefined : "show"}
             viewport={{ once: true, amount: 0.2 }}
+            className={cn(i === 0 && "md:col-span-2")}
           >
-            <ProjectCard project={project} />
+            <ProjectCard project={project} large={i === 0} />
           </motion.div>
         ))}
       </div>
@@ -76,7 +80,10 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
       <div className="mt-14 text-center">
         <Link href="/projets">
           <Button variant="outline" size="lg">
-            Tous les projets <ArrowRight className="h-4 w-4" />
+            Tous les projets
+            <span className="rond" aria-hidden>
+              <ArrowRight className="h-4 w-4" />
+            </span>
           </Button>
         </Link>
       </div>

@@ -9,7 +9,9 @@ import { SocialPostsSection } from "@/components/public/SocialPostsSection";
 import { BlogSection } from "@/components/public/BlogSection";
 import { FAQSection } from "@/components/public/FAQSection";
 import { ContactSection } from "@/components/public/ContactSection";
-import { StarsCanvas } from "@/components/canvas/StarsCanvas";
+import { ProcessSection } from "@/components/public/ProcessSection";
+import { TechMarquee } from "@/components/public/TechMarquee";
+import { CtaBanner } from "@/components/public/CtaBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL, absoluteUrl } from "@/lib/site";
 import { sectionVisible } from "@/lib/sections";
@@ -91,39 +93,49 @@ export default async function HomePage() {
   const affiche = (id: Parameters<typeof sectionVisible>[1]) =>
     sectionVisible(settings, id);
 
+  /* Numérotation des sections, calculée à l'affichage.
+     Les index étaient écrits en dur dans chaque composant. Or le CMS
+     permet de masquer n'importe quelle rubrique : trois sections
+     cachées suffisaient à produire une suite trouée (01, 02, 03, 05,
+     06, 09, 11), qui se lit comme un défaut. Le compteur n'avance que
+     pour les sections réellement rendues. */
+  let compteur = 0;
+  const num = () => String(++compteur).padStart(2, "0");
+
   return (
     <>
       <JsonLd data={personLd} />
       <JsonLd data={websiteLd} />
 
       {/*
-        Les sections portent désormais leur propre cascade d'animation
-        (SectionShell + variantes `fadeIn`), reprise du modèle. L'ancien
-        `RevealSection`, qui animait le bloc entier avec un flou, entrait en
-        concurrence avec elle : les deux effets se superposaient. Une seule
-        grammaire de mouvement suffit.
-      */}
-      <HeroSection profile={profile} socialLinks={socialLinks} />
-      {affiche("about") && <AboutSection profile={profile} settings={settings} />}
-      {affiche("services") && <ServicesSection services={services} />}
-      {affiche("skills") && <SkillsSection skills={skills} />}
-      {affiche("experience") && <ExperienceSection experiences={experiences} />}
-      {affiche("projects") && <ProjectsSection projects={projects} />}
-      {affiche("publications") && <SocialPostsSection posts={socialPosts} />}
-      {affiche("blog") && <BlogSection posts={posts} />}
-      {affiche("faq") && <FAQSection faqs={faqs} />}
+        L'ordre suit le parcours d'un visiteur : qui je suis, ce que je
+        sais faire, ce que j'ai fait, COMMENT je travaille, d'où je
+        viens, puis ce que j'écris — et enfin la prise de contact. La
+        méthode est placée juste après les réalisations : c'est là que
+        la question « et concrètement, ça se passe comment ? » arrive.
 
-      {/* Bloc final sur ciel étoilé, comme dans le modèle : le champ
-          d'étoiles n'habille que la fin de page. */}
-      <div className="bloc-nuit relative z-0">
-        <StarsCanvas />
-        <div className="relative z-10">
-          {affiche("testimonials") && (
-            <TestimonialsSection testimonials={testimonials} />
-          )}
-          {affiche("contact") && <ContactSection profile={profile} />}
-        </div>
-      </div>
+        Chaque section porte sa propre cascade d'animation
+        (SectionShell + variantes `fadeIn`). Une section sur deux est
+        posée sur une « plage » — un grand panneau arrondi — ce qui
+        donne son rythme à la page sans alterner des fonds pleine
+        largeur.
+      */}
+      <HeroSection profile={profile} socialLinks={socialLinks} settings={settings} />
+      <TechMarquee skills={skills} />
+      {affiche("about") && <AboutSection profile={profile} settings={settings} index={num()} />}
+      {affiche("services") && <ServicesSection services={services} index={num()} />}
+      {affiche("skills") && <SkillsSection skills={skills} index={num()} />}
+      {affiche("projects") && <ProjectsSection projects={projects} index={num()} />}
+      <ProcessSection index={num()} />
+      {affiche("experience") && <ExperienceSection experiences={experiences} index={num()} />}
+      {affiche("publications") && <SocialPostsSection posts={socialPosts} index={num()} />}
+      {affiche("blog") && <BlogSection posts={posts} index={num()} />}
+      {affiche("faq") && <FAQSection faqs={faqs} index={num()} />}
+      {affiche("testimonials") && (
+        <TestimonialsSection testimonials={testimonials} settings={settings} indexSection={num()} />
+      )}
+      {affiche("contact") && <ContactSection profile={profile} index={num()} />}
+      <CtaBanner email={profile.email} />
     </>
   );
 }
