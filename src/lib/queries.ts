@@ -35,6 +35,7 @@ const DEFAULT_PROFILE: Profile = {
   photoUrl: null,
   aboutPhotoUrl: null,
   logoUrl: null,
+  i18n: null,
   email: "contact@soroebenezer.dev",
   phone: null,
   location: "Abidjan, Côte d'Ivoire",

@@ -21,19 +21,22 @@ model Admin {
 
 // ── PROFIL (contenu singleton) ────────────
 model Profile {
-  id          String   @id @default(cuid())
-  name        String   @default("Soro Z. Ebenezer")
-  title       String   @default("Développeur Full Stack & Ingénieur Informatique")
-  bio         String   @db.Text
-  photoUrl    String? // photo du hero (idéalement détourée)
+  id            String   @id @default(cuid())
+  name          String   @default("Soro Z. Ebenezer")
+  title         String   @default("Développeur Full Stack & Ingénieur Informatique")
+  bio           String   @db.Text
+  photoUrl      String? // photo du hero (idéalement détourée)
   aboutPhotoUrl String? // photo distincte pour la section "À propos"
-  logoUrl     String? // chemin vers /uploads/
-  email       String?
-  phone       String?
-  location    String?  @default("Abidjan, Côte d'Ivoire")
-  cvUrl       String? // lien de téléchargement du CV
-  isAvailable Boolean  @default(true)
-  updatedAt   DateTime @updatedAt
+  logoUrl       String? // chemin vers /uploads/
+  email         String?
+  phone         String?
+  location      String?  @default("Abidjan, Côte d'Ivoire")
+  cvUrl         String? // lien de téléchargement du CV
+  isAvailable   Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// title, bio. Un champ absent retombe sur le francais.
+  i18n          Json?
 }
 
 // ── PROJETS ───────────────────────────────
@@ -54,6 +57,9 @@ model Project {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// title, description, content. Un champ absent retombe sur le francais.
+  i18n        Json?
 }
 
 // ── COMPÉTENCES ───────────────────────────
@@ -64,6 +70,9 @@ model Skill {
   category String // "Frontend", "Backend", "DevOps", "Sécurité"…
   iconUrl  String?
   order    Int     @default(0)
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// category. Un champ absent retombe sur le francais.
+  i18n     Json?
 }
 
 // ── EXPÉRIENCES / FORMATIONS ──────────────
@@ -78,6 +87,9 @@ model Experience {
   current      Boolean   @default(false)
   description  String?   @db.Text
   order        Int       @default(0)
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// title, description. Un champ absent retombe sur le francais.
+  i18n         Json?
 }
 
 // ── SERVICES ──────────────────────────────
@@ -88,6 +100,9 @@ model Service {
   iconName    String // nom d'icône lucide-react
   order       Int     @default(0)
   published   Boolean @default(true)
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// title, description. Un champ absent retombe sur le francais.
+  i18n        Json?
 }
 
 // ── TÉMOIGNAGES ───────────────────────────
@@ -101,6 +116,9 @@ model Testimonial {
   rating    Int      @default(5)
   published Boolean  @default(false)
   createdAt DateTime @default(now())
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// role, content. Un champ absent retombe sur le francais.
+  i18n      Json?
 }
 
 // ── RÉSEAUX SOCIAUX ───────────────────────
@@ -126,6 +144,9 @@ model SocialPost {
   active       Boolean  @default(true)
   order        Int      @default(0)
   createdAt    DateTime @default(now())
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// title, description. Un champ absent retombe sur le francais.
+  i18n         Json?
 }
 
 // ── BLOG ──────────────────────────────────
@@ -142,6 +163,9 @@ model Post {
   readingTime Int? // en minutes
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// title, excerpt, content. Un champ absent retombe sur le francais.
+  i18n        Json?
 }
 
 // ── FAQ ───────────────────────────────────
@@ -151,6 +175,9 @@ model FAQ {
   answer   String  @db.Text
   order    Int     @default(0)
   active   Boolean @default(true)
+  /// Traductions, par langue : { "en": { … } }. Champs traduisibles :
+  /// question, answer. Un champ absent retombe sur le francais.
+  i18n     Json?
 }
 
 // ── MESSAGES DE CONTACT ───────────────────
