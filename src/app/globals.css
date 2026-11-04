@@ -342,46 +342,6 @@
     background: radial-gradient(ellipse at 50% 100%, rgb(var(--c-primary) / 0.07) 0%, transparent 60%);
   }
 
-  /* ── Pastille de statut ───────────────────────────────────
-     Un point qui bat, un libellé. Posée au-dessus du titre d'accueil,
-     elle dit en un coup d'œil que la personne est joignable. */
-  .badge-pilule {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 1rem 0.5rem 0.875rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-full);
-    background: var(--nappe);
-    box-shadow: var(--shadow-sm);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-  }
-
-  .badge-pilule .diode {
-    position: relative;
-    width: 7px;
-    height: 7px;
-    border-radius: var(--radius-full);
-    background: var(--color-success);
-    flex: none;
-  }
-
-  /* L'onde est un pseudo-élément : elle s'étend et s'efface sans
-     toucher à la taille du point, donc sans faire bouger le texte. */
-  .badge-pilule .diode::after {
-    content: "";
-    position: absolute;
-    inset: -4px;
-    border-radius: inherit;
-    border: 1px solid var(--color-success);
-    animation: onde 2.4s ease-out infinite;
-  }
-
   /* ── Carte flottante ──────────────────────────────────────
      Les chiffres qui entourent le visuel d'accueil. */
   .carte-flottante {
@@ -872,18 +832,6 @@
   }
 }
 
-@keyframes onde {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.9;
-  }
-  70%,
-  100% {
-    transform: scale(2.1);
-    opacity: 0;
-  }
-}
-
 @keyframes defilement {
   from {
     transform: translateX(0);
@@ -925,7 +873,6 @@
      par seconde. Les animations qui tournent en continu doivent etre
      coupees nommement. */
   .ruban .defile,
-  .badge-pilule .diode::after,
   .tube-defilement::after,
   .animate-levitation {
     animation: none !important;

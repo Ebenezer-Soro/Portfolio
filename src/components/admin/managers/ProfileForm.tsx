@@ -74,7 +74,17 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <p className="-mt-2 text-xs text-[var(--text-muted)]">
             Si vide, la photo du Hero sera réutilisée dans la section « À propos ».
           </p>
-          <ImageUploader label="Logo" value={form.logoUrl} onChange={(url) => set("logoUrl", url)} />
+          <ImageUploader
+            label="Logo"
+            value={form.logoUrl}
+            onChange={(url) => set("logoUrl", url)}
+            /* Le logo s'affiche sur 40 px de côté, dans l'en-tête et le
+               pied de page. 512 px couvre large, écrans à forte densité
+               compris ; sans borne il partait à 2560 px et était stocké
+               en 1920 px — des centaines de kilo-octets pour une
+               vignette. */
+            coteMax={512}
+          />
           <ImageUploader label="CV (PDF)" accept="pdf" value={form.cvUrl} onChange={(url) => set("cvUrl", url)} />
           <Input
             label="Ou lien CV externe"

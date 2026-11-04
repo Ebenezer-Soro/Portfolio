@@ -107,8 +107,8 @@ export async function generateMetadata(): Promise<Metadata> {
 // se déclare dans l'export `viewport`, plus dans `metadata`.
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf8f2" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d0d0d" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f7fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#070b14" },
   ],
 };
 

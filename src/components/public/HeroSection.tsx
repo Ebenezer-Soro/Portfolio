@@ -40,8 +40,7 @@ export function HeroSection({
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.7 } });
-      tl.from(".hero-badge", { opacity: 0, y: 14 })
-        .from(".hero-name", { opacity: 0, y: 24 }, "-=0.45")
+      tl.from(".hero-name", { opacity: 0, y: 24 })
         .from(".hero-title", { opacity: 0, y: 24 }, "-=0.5")
         .from(".hero-subtitle", { opacity: 0, y: 20 }, "-=0.45")
         .from(".hero-cta", { opacity: 0, y: 20 }, "-=0.4")
@@ -63,16 +62,6 @@ export function HeroSection({
 
       <div className="container-page relative z-10 grid w-full items-center gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:gap-16">
         <div>
-          <div className="hero-badge mb-7 flex flex-wrap items-center gap-3">
-            {profile.isAvailable && (
-              <span className="badge-pilule">
-                <span className="diode" aria-hidden />
-                Disponible pour de nouveaux projets
-              </span>
-            )}
-            {profile.location && <span className="mono-label">{profile.location}</span>}
-          </div>
-
           <h1 className="hero-head-text text-[var(--text-primary)]">
             <span className="hero-name block">{profile.name}</span>
             <span className="hero-title mot-accent block">{profile.title}</span>
