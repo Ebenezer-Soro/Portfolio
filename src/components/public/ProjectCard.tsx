@@ -59,18 +59,23 @@ export function ProjectCard({ project, large = false }: { project: Project; larg
         )}
 
         <Link href={`/projets/${project.slug}`} className="absolute inset-0 z-[1]">
-          <span className="sr-only">{project.title}</span>
           {project.coverUrl ? (
+            /* L'alternative textuelle porte ici le nom du lien : une
+               image de couverture est du contenu, pas une décoration, et
+               c'est par ce texte qu'elle est trouvée dans la recherche
+               d'images. Le doublon `sr-only` est donc réservé au cas sans
+               couverture, où il n'y a aucun autre texte. */
             <Image
               src={project.coverUrl}
-              alt=""
+              alt={`${project.title} — aperçu du projet`}
               fill
               sizes={large ? "(max-width: 768px) 100vw, 55vw" : "(max-width: 768px) 100vw, 420px"}
               className={cn("object-cover", large ? "object-left-top" : "object-top")}
             />
           ) : (
             <span className="grid h-full w-full place-items-center bg-[image:linear-gradient(135deg,rgb(var(--c-primary)/0.14),transparent_60%)] font-display text-4xl font-bold text-[var(--border-strong)]">
-              {project.title.charAt(0)}
+              <span className="sr-only">{project.title}</span>
+              <span aria-hidden>{project.title.charAt(0)}</span>
             </span>
           )}
         </Link>

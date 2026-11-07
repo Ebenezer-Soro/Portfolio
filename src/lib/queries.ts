@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "./prisma";
 import type {
   Profile,
@@ -43,19 +44,29 @@ const DEFAULT_PROFILE: Profile = {
   updatedAt: new Date(0),
 };
 
-export async function getProfile(): Promise<Profile> {
+/*
+ * Mémoïsation par requête (`cache` de React).
+ *
+ * `generateMetadata` et le corps de la page sont deux appels distincts
+ * du même rendu : sans ce cache, ouvrir un article interrogeait la base
+ * deux fois pour l'article et deux fois pour le profil. Le profil et les
+ * réglages sont en plus demandés par plusieurs composants de l'accueil.
+ * Le cache ne dure que le temps d'une requête : aucune donnée n'est
+ * conservée entre deux visiteurs, et le rendu reste dynamique.
+ */
+export const getProfile = cache(async function getProfile(): Promise<Profile> {
   return safe(
     async () => (await prisma.profile.findFirst()) ?? DEFAULT_PROFILE,
     DEFAULT_PROFILE,
   );
-}
+});
 
-export async function getSettings(): Promise<Record<string, string>> {
+export const getSettings = cache(async function getSettings(): Promise<Record<string, string>> {
   return safe(async () => {
     const rows = await prisma.siteSetting.findMany();
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   }, {});
-}
+});
 
 export async function getPublishedProjects(): Promise<Project[]> {
   return safe(
@@ -68,9 +79,11 @@ export async function getPublishedProjects(): Promise<Project[]> {
   );
 }
 
-export async function getProjectBySlug(slug: string): Promise<Project | null> {
+export const getProjectBySlug = cache(async function getProjectBySlug(
+  slug: string,
+): Promise<Project | null> {
   return safe(() => prisma.project.findUnique({ where: { slug } }), null);
-}
+});
 
 export async function getSkills(): Promise<Skill[]> {
   return safe(
@@ -134,9 +147,11 @@ export async function getPublishedPosts(limit?: number): Promise<Post[]> {
   );
 }
 
-export async function getPostBySlug(slug: string): Promise<Post | null> {
+export const getPostBySlug = cache(async function getPostBySlug(
+  slug: string,
+): Promise<Post | null> {
   return safe(() => prisma.post.findUnique({ where: { slug } }), null);
-}
+});
 
 export async function getFaqs(): Promise<FAQ[]> {
   return safe(

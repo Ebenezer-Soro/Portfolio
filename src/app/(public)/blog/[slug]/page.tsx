@@ -18,13 +18,36 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const [post, profile] = await Promise.all([getPostBySlug(slug), getProfile()]);
   if (!post) return { title: "Article introuvable" };
+  const url = `${SITE_URL}/blog/${post.slug}`;
+  const image = absoluteUrl(post.coverUrl);
   return {
     title: post.title,
     description: post.excerpt ?? undefined,
     alternates: { canonical: `/blog/${post.slug}` },
-    openGraph: post.coverUrl ? { images: [post.coverUrl] } : undefined,
+    // `type: "article"` et les deux dates : sans elles, les réseaux et
+    // Google Discover présentent la page comme un site, sans date ni
+    // auteur. L'image doit être absolue — une URL relative est ignorée
+    // par les aperçus.
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description: post.excerpt ?? undefined,
+      url,
+      publishedTime: post.createdAt.toISOString(),
+      modifiedTime: post.updatedAt.toISOString(),
+      authors: [profile.name],
+      tags: post.tags,
+      ...(image ? { images: [image] } : {}),
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title: post.title,
+      description: post.excerpt ?? undefined,
+      ...(image ? { images: [image] } : {}),
+    },
+    ...(post.tags.length ? { keywords: post.tags } : {}),
   };
 }
 
@@ -48,11 +71,30 @@ export default async function PostDetailPage({
     author: { "@type": "Person", name: profile.name, url: SITE_URL },
     mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
     inLanguage: "fr-FR",
+    ...(post.tags.length ? { keywords: post.tags.join(", ") } : {}),
+    ...(post.readingTime ? { timeRequired: `PT${post.readingTime}M` } : {}),
+    publisher: { "@type": "Person", name: profile.name, url: SITE_URL },
+  };
+
+  /*
+   * Fil d'Ariane : il ne s'affiche pas sur la page, il sert au résultat
+   * de recherche, qui remplace alors l'URL brute par
+   * « Accueil › Blog › Titre ».
+   */
+  const filLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+      { "@type": "ListItem", position: 3, name: post.title },
+    ],
   };
 
   return (
     <article className="container-page max-w-3xl pt-32 pb-20">
       <JsonLd data={articleLd} />
+      <JsonLd data={filLd} />
       <Link
         href="/blog"
         className="mb-8 inline-flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)] hover:text-primary"

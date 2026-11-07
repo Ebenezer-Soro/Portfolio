@@ -80,6 +80,30 @@ export async function generateMetadata(): Promise<Metadata> {
     keywords: profile.location ? [...MOTS_CLES, profile.location] : MOTS_CLES,
     authors: [{ name: nom, url: SITE_URL }],
     creator: nom,
+    publisher: nom,
+    applicationName: site,
+    /*
+     * Directives d'indexation.
+     *
+     * Par défaut, Google limite l'aperçu d'image à une vignette et tronque
+     * l'extrait à sa guise. `max-image-preview: large` autorise la grande
+     * image — c'est elle qui conditionne l'apparition dans Google Discover
+     * et l'affichage des couvertures d'articles —, `max-snippet: -1` lève
+     * la limite de longueur de l'extrait. Rien ici n'ouvre l'accès à des
+     * pages privées : l'admin reste exclu par son propre `noindex` et par
+     * l'en-tête X-Robots-Tag du middleware, qui l'emportent sur ceci.
+     */
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
     openGraph: {
       type: "website",
       locale: "fr_FR",

@@ -36,6 +36,19 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+/** Texte nu : les données structurées n'acceptent ni balise ni
+ *  retour à la ligne décoratif. */
+function enTexte(valeur: string): string {
+  return valeur.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** Phrase entière, 160 caractères au plus : au-delà, les moteurs
+ *  coupent au milieu d'un mot. */
+function resumerPour(texte: string): string {
+  const t = enTexte(texte);
+  return t.length <= 160 ? t : t.slice(0, 157).replace(/\s+\S*$/, "") + "…";
+}
+
 export default async function HomePage() {
   const [
     profile,
@@ -87,6 +100,54 @@ export default async function HomePage() {
     inLanguage: "fr-FR",
   };
 
+  /*
+   * Données structurées — émises UNIQUEMENT si la rubrique est visible.
+   * Décrire à Google une FAQ que le visiteur ne trouvera pas sur la page
+   * est un motif de sanction, pas un gain de référencement.
+   */
+  const faqLd =
+    sectionVisible(settings, "faq") && faqs.length
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: { "@type": "Answer", text: enTexte(f.answer) },
+          })),
+        }
+      : null;
+
+  /*
+   * `Person` dit qui écrit. `ProfessionalService` dit qu'il y a une
+   * prestation derrière, ce qu'elle couvre et comment la demander :
+   * c'est ce type-là que Google interroge sur les requêtes de service.
+   */
+  const serviceLd =
+    sectionVisible(settings, "services") && services.length
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ProfessionalService",
+          name: profile.name,
+          url: SITE_URL,
+          description: resumerPour(profile.bio),
+          ...(absoluteUrl(profile.photoUrl) ? { image: absoluteUrl(profile.photoUrl) } : {}),
+          ...(profile.email ? { email: `mailto:${profile.email}` } : {}),
+          ...(profile.location
+            ? {
+                address: { "@type": "PostalAddress", addressLocality: profile.location },
+                areaServed: profile.location,
+              }
+            : {}),
+          serviceType: services.map((s) => s.title),
+          availableChannel: {
+            "@type": "ServiceChannel",
+            serviceUrl: `${SITE_URL}/contact`,
+            availableLanguage: ["fr"],
+          },
+        }
+      : null;
+
   // Visibilité pilotée depuis l'admin (Paramètres → Sections de l'accueil).
   // Une section reste par ailleurs masquée si elle n'a aucun contenu : les
   // deux conditions se cumulent.
@@ -106,6 +167,8 @@ export default async function HomePage() {
     <>
       <JsonLd data={personLd} />
       <JsonLd data={websiteLd} />
+      {faqLd && <JsonLd data={faqLd} />}
+      {serviceLd && <JsonLd data={serviceLd} />}
 
       {/*
         L'ordre suit le parcours d'un visiteur : qui je suis, ce que je

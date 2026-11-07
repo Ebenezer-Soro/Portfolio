@@ -20,11 +20,27 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = await getProjectBySlug(slug);
   if (!project) return { title: "Projet introuvable" };
+  // L'image d'aperçu doit être absolue : une URL relative est ignorée
+  // par les aperçus des réseaux sociaux et de la messagerie.
+  const image = absoluteUrl(project.coverUrl);
   return {
     title: project.title,
     description: project.description,
     alternates: { canonical: `/projets/${project.slug}` },
-    openGraph: project.coverUrl ? { images: [project.coverUrl] } : undefined,
+    openGraph: {
+      type: "article",
+      title: project.title,
+      description: project.description,
+      url: `${SITE_URL}/projets/${project.slug}`,
+      ...(image ? { images: [image] } : {}),
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title: project.title,
+      description: project.description,
+      ...(image ? { images: [image] } : {}),
+    },
+    ...(project.techStack.length ? { keywords: project.techStack } : {}),
   };
 }
 
@@ -51,9 +67,25 @@ export default async function ProjectDetailPage({
     inLanguage: "fr-FR",
   };
 
+  /*
+   * Fil d'Ariane : invisible sur la page, il sert au résultat de
+   * recherche, qui affiche alors « Accueil › Projets › Titre » au lieu
+   * de l'URL brute.
+   */
+  const filLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Projets", item: `${SITE_URL}/projets` },
+      { "@type": "ListItem", position: 3, name: project.title },
+    ],
+  };
+
   return (
     <article className="container-page max-w-4xl pt-32 pb-20">
       <JsonLd data={projectLd} />
+      <JsonLd data={filLd} />
       <Link
         href="/projets"
         className="mb-8 inline-flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)] hover:text-primary"
