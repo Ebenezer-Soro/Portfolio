@@ -1,7 +1,17 @@
 {
+  "id": "/",
   "name": "Ebenezer Soro — Développeur Full Stack",
   "short_name": "Ebenezer Soro",
+  "description": "Portfolio de Soro Z. Ebenezer : développement web et mobile, données et IA, sécurité, infrastructure.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
     {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",

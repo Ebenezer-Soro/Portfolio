@@ -58,7 +58,16 @@ export function Navbar({ profile }: { profile: Profile }) {
           aria-label="Navigation principale"
         >
           <Link href="/" className="group flex items-center gap-3" aria-label="Accueil">
-            <span className="grid h-10 w-10 flex-none place-items-center overflow-hidden rounded-lg border border-primary/45 bg-primary/[0.08] font-display text-sm font-bold text-primary transition-shadow group-hover:shadow-[var(--glow-primary)]">
+            <span
+              className={cn(
+                "grid h-10 w-10 flex-none place-items-center overflow-hidden rounded-lg font-display text-sm font-bold text-primary transition-shadow group-hover:shadow-[var(--glow-primary)]",
+              /* Le logo chargé depuis l'admin porte son propre fond — c'est
+                 la tuile carrée du kit, la même que l'icône d'onglet. L'encadrer
+                 une seconde fois donnerait deux cadres imbriqués : le fond teinté
+                 et la bordure ne servent donc qu'au repli en initiales. */
+                profile.logoUrl ? "" : "border border-primary/45 bg-primary/[0.08]",
+              )}
+            >
               {profile.logoUrl ? (
                 <Image
                   src={profile.logoUrl}

@@ -117,9 +117,18 @@ export async function generateMetadata(): Promise<Metadata> {
     // Router ne le détecte pas, il faut donc le déclarer explicitement.
     icons: {
       icon: [
+        // L'ICO d'abord : c'est le repli des navigateurs anciens et des
+        // agrégateurs qui ne lisent pas la liste.
         { url: "/favicon.ico", sizes: "any" },
-        { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+        // Le SVG ensuite : les navigateurs récents le préfèrent et
+        // l'affichent net à n'importe quelle densité d'écran.
+        { url: "/favicon.svg", type: "image/svg+xml" },
         { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+        { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+        // 48×48 : la taille que Google réclame pour afficher une icône à
+        // côté du résultat de recherche. Sans elle, il redimensionne le
+        // 32 et le rendu est flou.
+        { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
       ],
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
     },
