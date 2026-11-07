@@ -124,6 +124,14 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
     },
     manifest: "/site.webmanifest",
+    /*
+     * Preuve de propriete pour la Search Console. Ce jeton est public par
+     * nature — il est lu dans le HTML de chaque page — et ne donne aucun
+     * acces : il atteste seulement que la personne qui a cree la propriete
+     * controle le site. A conserver tant que la propriete existe : Google
+     * revalide periodiquement et la retire si la balise disparait.
+     */
+    verification: { google: "kR6V2l22vZjpagr_ke-kwPszaNxmbWS4YV6mZn3wNWw" },
   };
 }
 
